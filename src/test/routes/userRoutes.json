@@ -1,0 +1,13 @@
+[
+  {
+    "path": "users?search=string&count=int",
+    "name": "Users",
+    "children": [
+      {
+        "path": ":userId",
+        "name": "Single",
+        "children": []
+      }
+    ]
+  }
+]

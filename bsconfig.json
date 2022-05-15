@@ -1,0 +1,39 @@
+{
+  "name": "main",
+  "reason": {
+    "react-jsx": 3
+  },
+  "version": "0.1.0",
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    },
+    {
+      "dir": "cli",
+      "subdirs": true
+    },
+    {
+      "dir": "router",
+      "subdirs": true
+    },
+    {
+      "dir": "test",
+      "subdirs": true,
+      "dev": true
+    }
+  ],
+  "package-specs": [
+    {
+      "module": "es6",
+      "in-source": true
+    }
+  ],
+  "suffix": ".mjs",
+  "ppx-flags": ["rescript-relay/ppx"],
+  "bs-dependencies": [
+    "@rescript/react",
+    "rescript-relay",
+    "@ryyppy/rescript-promise"
+  ]
+}

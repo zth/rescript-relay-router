@@ -92,7 +92,7 @@ let (_cleanup, routerContext) = RelayRouter.Router.make(
 Now we can take `routerContext` and wrap our application with the router context provider:
 
 ```reasonml
-<RelayRouter.Provider value={routerContext}>
+<RelayRouter.Provider value={Router.routerContext}>
   <React.Suspense fallback={React.string("Loading...")}>
     <RescriptReactErrorBoundary fallback={_ => React.string("Error!")}>
       <App />
@@ -101,15 +101,16 @@ Now we can take `routerContext` and wrap our application with the router context
 </RelayRouter.Provider>
 ```
 
-Finally, we'll need to render `<RelayRouter.RouteRenderer />`:
+Finally, we'll need to render `<RelayRouter.RouteRenderer />`. You can render that wherever you want to render your routes. It's typically somewhere around the top level, although you might have shared things unaffected by the router that you want to wrap the route renderer with.
 
 ```reasonml
+// App.res or similar
 <RelayRouter.RouteRenderer
   // Fallback renders whenever suspense bubbles all the way up here, to the router
   renderFallback={_ => React.string("Fallback...")}
 
   // This renders all the time, and when there's a pending navigation (pending via React concurrent mode), pending will be `true`
-  renderPending={pending => <PendingIndicatorBar pending />}
+  renderPending={pending => <div>{pending ? React.string("Loading...") : React.null}</div>}
 />
 ```
 

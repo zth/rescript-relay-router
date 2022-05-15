@@ -59,7 +59,7 @@ let findGeneratedModule = (moduleName) => {
 export let rescriptRelayVitePlugin = ({
   autoScaffoldRenderers = true,
   deleteRemoved = true,
-}) => {
+} = {}) => {
   let watcher;
 
   return {

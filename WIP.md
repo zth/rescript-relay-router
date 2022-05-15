@@ -1,0 +1,61 @@
+# Plans
+
+- [x] SSR Relay support, streaming
+- [x] Preload data
+- [x] Preload code
+- [x] Type safe URL makers
+- [x] Parse and understand query params
+- [x] Use query params safely
+- [x] CLI for matching route to components
+- [x] Integrate watching into vite
+- [x] Nested layouts
+- [x] Opt out of nested layouts
+- [x] Watch routes and rebuild
+- [x] Only write if has changes
+- [x] Ensure @live is added appropriately to enable dead code analysis
+- [x] Explore continously streaming code splitting preload tags
+- [x] Unify router approach (react-router, rescript react router, hand rolled, require shallow push, etc)
+- [x] Error handling in vite plugin and CLI commands
+- [x] Allow multiple JSON files to make it easier to split up definitions?
+- [x] Route helpers (push, replace, redirect, etc)
+- [x] Init the routes if folders do not exist
+- [x] Centralize bindings so they don't pollute the global scope
+- [x] Helpers for checking whether a route, and/or sub route is active or not
+- [x] Figure out a way to see if nested route is rendered or not (so you can conditionally change your layout)
+- [x] Dogfood in Informind
+- [x] Preload code for rendered links (with priority?)
+- [x] Resolve full target file path for ReScript modules, also in text/strings
+- [x] Scroll restoration
+- [x] Find reasonable place for configuring the router (package.json?)
+- [x] Move configration to cosmiconfig
+- [x] Build client side preload mechanism
+- [x] Init command for CLI
+- [x] Automatic code splitting of route renderers
+- [x] Prevent calling loadQuery more than needed, and properly dispose of all load queries on route change
+- [ ] Reduce code size by unifying emitted helpers
+- [x] Generic route-is-active hook
+- [x] Move to making route declarations initable so it can have its data scoped properly, and a few things configured
+- [ ] Generate renderers into folder structure mirroring route structure?
+- [ ] Run validation for each completed route by trying the RR matchers
+- [ ] Move to sorted array for path and query params
+- [ ] [later] Validate and harden routes JSON definition, including JSON schema?
+- [ ] [later] Figure out Rollup plugin for linking imports to chunks so we can do proper preloads via modulepreload
+- [ ] [later] Extension integration
+- [ ] [ssr] Validate streaming SSR with defer/stream
+- [ ] [ssr] Package up the streaming etc
+- [ ] [later] CLI for checking whether there are unapplied changes (for use with CI, so process.exit)
+- [ ] [later] Investigate language server features (go to definition of renderer, find route, etc)
+- [ ] [later] Write resi files for routes? (might be cumbersome for some files, as we rely a fair bit on inference)
+- [ ] [later] Redirects (maybe leverage history?)
+- [ ] [later] Migrator from file system structure for both Remix and Next?
+- [ ] [later] Support scroll restoration in X scroll too
+- [ ] [later] Static generation PoC (I'm not too interested in static generation myself)
+- [ ] [later] Investigate what's needed to make the router FW agnostic (don't rely on rescript-relay per se)
+- [ ] [wontfix] Inline React router matchers (it's fine to just depend on RR directly, it seems well suited for tree shaking)
+- [ ] [wontfix] Default values for query params? Not right now, easy enough to implement when needed
+- [ ] [wontfix] Figure out reasonable way to use IDs as polyvariants for tab ids etc (no need for now)
+
+## TODO
+
+- Apply errors to stream
+- Figure out a way to test all of this

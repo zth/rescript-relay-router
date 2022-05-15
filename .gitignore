@@ -1,0 +1,10 @@
+node_modules
+.DS_Store
+lib
+dist
+.bsb.lock
+.merlin
+*.bs.js
+src/__generated__/**
+!src/__generated__/.gitkeep
+_release

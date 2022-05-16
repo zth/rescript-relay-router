@@ -267,19 +267,9 @@ module Router: {
   }
 }
 
-let context = React.createContext(Obj.magic())
+module Provider = RelayRouter__Context.Provider
 
-module Provider = {
-  let make = React.Context.provider(context)
-
-  let makeProps = (~value, ~children, ()) =>
-    {
-      "value": value,
-      "children": children,
-    }
-}
-
-let useRouterContext = (): routerContext => React.useContext(context)
+let useRouterContext = RelayRouter__Context.useRouterContext
 
 module RouteComponent = {
   @react.component

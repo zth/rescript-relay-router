@@ -28,7 +28,7 @@
   ],
   "sideEffects": false,
   "bin": {
-    "rescript-relay-router-cli": "cli/RescriptRelayRouterCli.js"
+    "rescript-relay-router": "cli/RescriptRelayRouterCli.js"
   },
   "peerDependencies": {
     "@rescript/react": "^0.10.3",

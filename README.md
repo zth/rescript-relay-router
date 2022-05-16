@@ -33,10 +33,10 @@ Install the router and initialize it:
 yarn add rescript-relay-router
 
 # Initiate the router itself
-yarn rescript-relay-router-cli init
+yarn rescript-relay-router init
 
 # Run the first generate command manually. This will run automatically when everything is setup
-yarn rescript-relay-router-cli generate -scaffold-renderers
+yarn rescript-relay-router generate -scaffold-renderers
 ```
 
 This will create all necessary assets to get started. Now, add the router to your `bsconfig.json`:

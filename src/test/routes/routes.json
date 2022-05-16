@@ -5,14 +5,7 @@
     "children": [
       {
         "include": "todoRoutes.json"
-      },
-      {
-        "include": "userRoutes.json"
       }
     ]
-  },
-  {
-    "path": "/o/:slug/sub-thing/:action",
-    "name": "OrgDeep"
   }
 ]

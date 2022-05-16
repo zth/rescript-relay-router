@@ -44,6 +44,8 @@ let makeServerFetchQuery = (~onResponseReceived): RescriptRelay.Network.fetchFun
     _cacheConfig,
     _uploads,
   ) => {
+    Js.log("fetching op")
+    Js.log(operation)
     fetch(
       "http://localhost:4000/graphql",
       fetchOpts(
@@ -58,6 +60,10 @@ let makeServerFetchQuery = (~onResponseReceived): RescriptRelay.Network.fetchFun
     ->Promise.then(json => {
       sink.next(. json)
       sink.complete(.)
+      Promise.resolve()
+    })
+    ->Promise.catch(e => {
+      sink.error(. e->Obj.magic)
       Promise.resolve()
     })
     ->ignore

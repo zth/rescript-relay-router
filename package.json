@@ -15,7 +15,7 @@
     "preview": "vite preview",
     "res": "rescript build -with-deps",
     "res:watch": "yarn res -w",
-    "schema": "npx -y get-graphql-schema http://localhost:4000/ > schema.graphql",
+    "schema": "npx -y get-graphql-schema http://localhost:4000/graphql > schema.graphql",
     "remove-unused-fields": "rescript-relay-cli remove-unused-fields",
     "test": "vitest",
     "test:watch": "vitest watch"
@@ -44,13 +44,13 @@
     "graphql-ws": "5.5.0",
     "lines-and-columns": "^2.0.3",
     "postcss": "8.2.15",
-    "react": "18.0.0-rc.0",
-    "react-dom": "18.0.0-rc.0",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
     "react-helmet": "6.1.0",
-    "react-relay": "13.0.2",
-    "relay-runtime": "13.0.2",
+    "react-relay": "13.2.0",
+    "relay-runtime": "13.2.0",
     "rescript": "9.1.4",
-    "rescript-relay": "1.0.0-beta.12",
+    "rescript-relay": "1.0.0-beta.22",
     "rollup-plugin-visualizer": "5.5.0",
     "tailwindcss": "2.1.2",
     "vite": "2.8.6",
@@ -58,8 +58,8 @@
     "vitest": "0.6.0"
   },
   "resolutions": {
-    "react": "18.0.0-rc.0",
-    "react-dom": "18.0.0-rc.0"
+    "react": "18.1.0",
+    "react-dom": "18.1.0"
   },
   "dependencies": {
     "@ryyppy/rescript-promise": "^2.1.0",

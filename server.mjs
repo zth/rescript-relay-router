@@ -75,11 +75,13 @@ async function createServer() {
           onCompleteShell() {
             // The shell is complete, and React is ready to start streaming.
             // Pipe the results to the intermediate stream.
+            console.log("[debug-react-stream] shell completed");
             pipe(s);
           },
           onCompleteAll() {
             // Write the end of the HTML document when React has streamed
             // everything it wants.
+            console.log("[debug-react-stream] writing end");
             res.write(end);
           },
           onError(x) {
@@ -121,6 +123,7 @@ async function createServer() {
       // something is broken.
       setTimeout(abort, 30000);
     } catch (e) {
+      console.log("[debug] got error");
       vite.ssrFixStacktrace(e);
       console.error(e);
       // Can't set a proper status here as we've already sent the status code

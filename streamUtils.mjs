@@ -8,6 +8,7 @@ export class RescriptRelayWritable extends Writable {
     this._preloadAssetHolder = preloadAssetHolder;
   }
   _write(chunk, encoding, callback) {
+    console.log("[debug-stream] got chunk to write");
     // Rendering our app will continuously yield assets we want to push to the
     // client via the stream. These assets are everything from actual response
     // from the Relay network that we want to replay on the client, to things
@@ -30,6 +31,12 @@ export class RescriptRelayWritable extends Writable {
         )
         .join("");
 
+      console.log("[debug-stream] writing preloaded query data", {
+        id,
+        response,
+        final,
+      });
+
       this._writable.write(`<script type="text/javascript">
   window.__RELAY_DATA = window.__RELAY_DATA || [];
 ${appendDataText}
@@ -40,13 +47,17 @@ ${appendDataText}
       let { assets } = this._preloadAssetHolder;
       this._preloadAssetHolder.assets = [];
       let appendDataText = assets.join("\n");
+      console.log("[debug-stream] writing preloaded assets", appendDataText);
       this._writable.write(appendDataText);
     }
+
+    console.log("[debug-stream] writing chunk");
 
     this._writable.write(chunk, encoding, callback);
   }
   flush() {
     if (typeof this._writable.flush === "function") {
+      console.log("[debug-stream] flushing");
       this._writable.flush();
     }
   }

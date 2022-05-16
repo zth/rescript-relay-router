@@ -1,34 +1,12 @@
 import { defineConfig } from "vite";
 import reactRefresh from "@vitejs/plugin-react-refresh";
 import { visualizer } from "rollup-plugin-visualizer";
-import { injectHtml } from "vite-plugin-html";
 import { rescriptRelayVitePlugin } from "./RescriptRelayVitePlugin.mjs";
 
 export default defineConfig({
   base: process.env.APP_PATH ?? "/",
   plugins: [
     reactRefresh(),
-    injectHtml({
-      data: {
-        injectScript:
-          process.env.NODE_ENV === "production" ||
-          process.env.APP_ENABLE_GOOGLE_ANALYTICS === "true"
-            ? `<script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-36VWV3VWWC"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "G-36VWV3VWWC");
-    </script>`
-            : "",
-      },
-    }),
     process.env.NODE_ENV !== "test"
       ? rescriptRelayVitePlugin({
           autoScaffoldRenderers: true,

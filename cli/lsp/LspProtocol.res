@@ -127,6 +127,79 @@ type codeLens = {
   command: command,
 }
 
+type codeActionKind =
+  | Empty
+  | QuickFix
+  | Refactor
+  | RefactorExtract
+  | RefactorInline
+  | RefactorRewrite
+  | Source
+  | SourceOrganizeImports
+  | SourceFixAll
+
+let codeActionKindToString = kind =>
+  switch kind {
+  | Empty => ""
+  | QuickFix => "quickfix"
+  | Refactor => "refactor"
+  | RefactorExtract => "refactor.extract"
+  | RefactorInline => "refactor.inline"
+  | RefactorRewrite => "refactor.rewrite"
+  | Source => "source"
+  | SourceOrganizeImports => "source.organizeImports"
+  | SourceFixAll => "source.fixAll"
+  }
+
+type textEdit = {
+  range: range,
+  newText: string,
+}
+
+module DocumentChange: {
+  type t
+  module CreateFile: {
+    let make: (~uri: string, ~overwrite: bool=?, ~ignoreIfExists: bool=?, unit) => t
+  }
+  module TextDocumentEdit: {
+    let make: (~textDocumentUri: string, ~edits: array<textEdit>) => t
+  }
+} = {
+  type t
+  external cast: 'any => t = "%identity"
+
+  module CreateFile = {
+    let make = (~uri, ~overwrite=?, ~ignoreIfExists=?, ()) =>
+      {
+        "kind": "create",
+        "uri": uri,
+        "options": {
+          "overwrite": overwrite,
+          "ignoreIfExists": ignoreIfExists,
+        },
+      }->cast
+  }
+
+  module TextDocumentEdit = {
+    let make = (~textDocumentUri, ~edits) =>
+      {
+        "textDocument": {
+          "uri": textDocumentUri,
+        },
+        "edits": edits,
+      }->cast
+  }
+}
+
+type workspaceEdit = {documentChanges: option<array<DocumentChange.t>>}
+
+type codeAction = {
+  title: string,
+  kind: option<string>,
+  isPreferred: option<bool>,
+  edit: option<workspaceEdit>,
+}
+
 module Command = {
   @live
   let makeOpenFileCommand = (~title, ~fileUri) => {

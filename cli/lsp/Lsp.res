@@ -33,6 +33,7 @@ module Message = {
     | #"textDocument/codeLens"
     | #"textDocument/documentLink"
     | #"textDocument/completion"
+    | #"textDocument/codeAction"
   ] as 'a
 
   let jsonrpcVersion = "2.0"
@@ -81,6 +82,7 @@ module Message = {
     type codeLensParams = {textDocument: textDocumentIdentifier}
     type documentLinkParams = {textDocument: textDocumentIdentifier}
     type completionParams = textDocumentPosition
+    type codeActionParams = {textDocument: textDocumentIdentifier, range: LspProtocol.range}
 
     type t =
       | DidOpenTextDocumentNotification(didOpenTextDocumentParams)
@@ -90,6 +92,7 @@ module Message = {
       | CodeLens(codeLensParams)
       | DocumentLinks(documentLinkParams)
       | Completion(completionParams)
+      | CodeAction(codeActionParams)
       | UnmappedMessage
 
     let decodeLspMessage = (msg: msg): t => {
@@ -101,6 +104,7 @@ module Message = {
       | #"textDocument/codeLens" => CodeLens(msg->unsafeGetParams)
       | #"textDocument/documentLink" => DocumentLinks(msg->unsafeGetParams)
       | #"textDocument/completion" => Completion(msg->unsafeGetParams)
+      | #"textDocument/codeAction" => CodeAction(msg->unsafeGetParams)
       | _ => UnmappedMessage
       }
     }
@@ -176,6 +180,7 @@ module Message = {
       ~completionProvider: completionProvider=?,
       ~codeLensProvider: bool=?,
       ~documentLinkProvider: bool=?,
+      ~codeActionProvider: bool=?,
       unit,
     ) => t
   } = {
@@ -194,6 +199,7 @@ module Message = {
       completionProvider: option<completionProvider>,
       codeLensProvider: bool,
       documentLinkProvider: bool,
+      codeActionProvider: bool,
     }
 
     @live
@@ -205,6 +211,7 @@ module Message = {
       ~completionProvider=?,
       ~codeLensProvider=false,
       ~documentLinkProvider=false,
+      ~codeActionProvider=false,
       (),
     ) => {
       capabilities: {
@@ -213,6 +220,7 @@ module Message = {
         completionProvider: completionProvider,
         codeLensProvider: codeLensProvider,
         documentLinkProvider: documentLinkProvider,
+        codeActionProvider: codeActionProvider,
       },
     }
   }
@@ -224,6 +232,7 @@ module Message = {
     external fromCodeLenses: array<LspProtocol.codeLens> => t = "%identity"
     external fromDocumentLinks: array<LspProtocol.documentLink> => t = "%identity"
     external fromCompletionItems: array<LspProtocol.completionItem> => t = "%identity"
+    external fromCodeActions: array<LspProtocol.codeAction> => t = "%identity"
     let null: unit => t
   } = {
     type t
@@ -233,6 +242,7 @@ module Message = {
     external fromCodeLenses: array<LspProtocol.codeLens> => t = "%identity"
     external fromDocumentLinks: array<LspProtocol.documentLink> => t = "%identity"
     external fromCompletionItems: array<LspProtocol.completionItem> => t = "%identity"
+    external fromCodeActions: array<LspProtocol.codeAction> => t = "%identity"
     let null = () => Js.Nullable.null->fromAny
   }
 
@@ -531,6 +541,7 @@ let start = (~mode, ~config: config) => {
             ~hoverProvider=true,
             ~codeLensProvider=true,
             ~documentLinkProvider=true,
+            ~codeActionProvider=true,
             (),
           )->Message.Result.fromInitialize,
           (),
@@ -679,6 +690,33 @@ let start = (~mode, ~config: config) => {
               ) {
               | None => Message.Result.null()
               | Some(completionItems) => Message.Result.fromCompletionItems(completionItems)
+              }
+
+              Message.Response.make(~id=msg->Message.getId, ~result, ())
+              ->Message.Response.asMessage
+              ->send
+            } else {
+              Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null(), ())
+              ->Message.Response.asMessage
+              ->send
+            }
+
+          | CodeAction(params) =>
+            if params.textDocument.uri->Bindings.Path.extname == ".json" {
+              let result = switch ctx
+              ->CurrentContext.getCurrentRouteStructure
+              ->Resolvers.codeActions(
+                ~ctx={
+                  fileUri: Bindings.Path.basename(params.textDocument.uri),
+                  pos: params.range.start,
+                  config: ctx->CurrentContext.getConfig,
+                  routeFileNames: ctx->CurrentContext.getRouteFileNames,
+                },
+              ) {
+              | None => Message.Result.null()
+              | Some(codeActions) =>
+                log(codeActions)
+                Message.Result.fromCodeActions(codeActions)
               }
 
               Message.Response.make(~id=msg->Message.getId, ~result, ())

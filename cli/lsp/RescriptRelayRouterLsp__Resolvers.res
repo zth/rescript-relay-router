@@ -2,6 +2,9 @@ open RescriptRelayRouterCli__Types
 module Bindings = RescriptRelayRouterCli__Bindings
 module Utils = RescriptRelayRouterCli__Utils
 
+@val
+external log: 'any => unit = "console.error"
+
 type lspResolveContext = {
   fileUri: string,
   pos: LspProtocol.loc,
@@ -88,16 +91,28 @@ module AstIterator = {
         switch (fileName.loc->mapRange->hasPos(~pos), keyLoc->mapRange->hasPos(~pos)) {
         | (true, _) =>
           setFoundContext(
-            IncludeEntry({includeEntry: includeEntry, innerLocation: Some(FileName(fileName))}),
+            IncludeEntry({
+              includeEntry: includeEntry,
+              innerLocation: Some(FileName(fileName)),
+            }),
           )
 
         | (_, true) =>
           setFoundContext(
-            IncludeEntry({includeEntry: includeEntry, innerLocation: Some(Key(keyLoc))}),
+            IncludeEntry({
+              includeEntry: includeEntry,
+              innerLocation: Some(Key(keyLoc)),
+            }),
           )
         | _ =>
           switch content->findPosInRouteChildren(~ctx) {
-          | None => setFoundContext(IncludeEntry({includeEntry: includeEntry, innerLocation: None}))
+          | None =>
+            setFoundContext(
+              IncludeEntry({
+                includeEntry: includeEntry,
+                innerLocation: None,
+              }),
+            )
           | Some(astLocation) => setFoundContext(astLocation)
           }
         }
@@ -120,11 +135,20 @@ module AstIterator = {
           )
         | (_, true) =>
           setFoundContext(
-            RouteEntry({routeEntry: routeEntry, innerLocation: Some(Path(FullPath({path: path})))}),
+            RouteEntry({
+              routeEntry: routeEntry,
+              innerLocation: Some(Path(FullPath({path: path}))),
+            }),
           )
         | (false, false) =>
           switch routeEntry.children->Belt.Option.getWithDefault([])->findPosInRouteChildren(~ctx) {
-          | None => setFoundContext(RouteEntry({routeEntry: routeEntry, innerLocation: None}))
+          | None =>
+            setFoundContext(
+              RouteEntry({
+                routeEntry: routeEntry,
+                innerLocation: None,
+              }),
+            )
           | Some(astLocation) => setFoundContext(astLocation)
           }
         }
@@ -248,6 +272,47 @@ let completion = (routeStructure: routeStructure, ~ctx: lspResolveContext): opti
         }
       | None => None
       }
+    }
+  }
+}
+
+let codeActions = (routeStructure: routeStructure, ~ctx: lspResolveContext): option<
+  array<LspProtocol.codeAction>,
+> => {
+  switch routeStructure->findRequestContext(~ctx) {
+  | None =>
+    log("oops, none")
+    None
+  | Some(astLocation) =>
+    log(astLocation)
+    switch astLocation {
+    | RouteEntry({routeEntry: {parentRouteLoc: Some({childrenArray})}}) =>
+      Some([
+        {
+          title: "Add route entry",
+          kind: Refactor->LspProtocol.codeActionKindToString->Some,
+          isPreferred: None,
+          edit: Some({
+            documentChanges: Some([
+              LspProtocol.DocumentChange.TextDocumentEdit.make(
+                ~textDocumentUri=ctx.fileUri,
+                ~edits=[
+                  {
+                    range: {
+                      start: childrenArray.end_->mapPos,
+                      end_: childrenArray.end_->mapPos,
+                    },
+                    newText: "{}",
+                  },
+                ],
+              ),
+            ]),
+          }),
+        },
+      ])
+    | _ =>
+      log("no match")
+      None
     }
   }
 }

@@ -122,6 +122,8 @@ There, we're all set! Let's go into how routes are defined and rendered.
 
 Routes are defined in JSON files. Route JSON files can include other route JSON files. This makes it easy to organize route definitions. Each route has a name, a path (including path params), query parameters if wanted, and child routes that are to be rendered inside of the route.
 
+> Route files are interpreted JSONC, which means you can add comments in them. Check the example below.
+
 `routes.json` is the entry file for all routes. Example `routes.json`:
 
 ```json
@@ -130,6 +132,8 @@ Routes are defined in JSON files. Route JSON files can include other route JSON 
     "name": "Organization",
     "path": "/organization/:slug",
     "children": [
+      // Look, a comment! This works fine because the underlying format is jsonc rather than plain JSON.
+      // Good to provide contextual information about the routes.
       { "name": "Dashboard", "path": "" },
       { "name": "Members", "path": "members?showActive=bool" }
     ]

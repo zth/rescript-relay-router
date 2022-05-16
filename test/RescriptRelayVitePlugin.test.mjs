@@ -8,8 +8,8 @@ describe("RescriptRelayVitePlugin", () => {
       relativePathToRoutesFolder: "./",
     });
 
-    expect(await plugin.resolveId(`@rescriptModule/RelayRouterLink`)).toEqual({
-      id: path.resolve(process.cwd(), `./router/RelayRouterLink.mjs`),
+    expect(await plugin.resolveId(`@rescriptModule/RelayRouter`)).toEqual({
+      id: path.resolve(process.cwd(), `./router/RelayRouter.mjs`),
     });
   });
 

@@ -1,6 +1,6 @@
 let setQueryParams: (
   RelayRouter__Bindings.QueryParams.t,
-  RelayRouterTypes.setQueryParamsMode,
+  RelayRouter__Types.setQueryParamsMode,
   RelayRouter__Bindings.History.t,
 ) => unit
 
@@ -14,3 +14,9 @@ external matchPathWithOptions: ({"path": string, "end": bool}, string) => option
   "matchPath"
 
 let extractDisposables: (. 'any) => array<(. unit) => unit>
+
+let runAtPriority: (
+  RelayRouter__Types.callback,
+  ~priority: RelayRouter__Types.preloadPriority,
+) => option<unit => unit>
+

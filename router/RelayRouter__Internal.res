@@ -1,4 +1,4 @@
-open RelayRouterTypes
+open RelayRouter__Types
 
 let setQueryParams = (queryParams, mode, history) => {
   open RelayRouter__Bindings
@@ -47,3 +47,33 @@ let extractDisposables = %raw(`function extractDisposables_(s, disposables = [])
 
   return disposables;
 }`)
+
+type requestIdleCallbackId
+
+@val
+external requestIdleCallback: (callback, option<{"timeout": int}>) => requestIdleCallbackId =
+  "window.requestIdleCallback"
+
+@val
+external cancelIdleCallback: requestIdleCallbackId => unit = "window.cancelIdleCallback"
+
+let runAtPriority = (cb, ~priority) => {
+  if !RelaySSRUtils.ssr {
+    switch priority {
+    | Low =>
+      // On low priority, let the browser wait as long as needed
+      let id = requestIdleCallback(cb, None)
+      Some(() => cancelIdleCallback(id))
+    | Default =>
+      // On default priority, ensure loading starts within 2s
+      let id = requestIdleCallback(cb, Some({"timeout": 2000}))
+      Some(() => cancelIdleCallback(id))
+    | High =>
+      // High priority means we'll run it right away
+      cb()
+      None
+    }
+  } else {
+    None
+  }
+}

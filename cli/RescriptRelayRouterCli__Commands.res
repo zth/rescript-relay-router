@@ -1,6 +1,6 @@
 module Codegen = RescriptRelayRouterCli__Codegen
 module Utils = RescriptRelayRouterCli__Utils
-module History = RelayRouter__Bindings.History
+module History = RelayRouter.Bindings.History
 module Types = RescriptRelayRouterCli__Types
 module Diagnostics = RescriptRelayRouterCli__Diagnostics
 
@@ -164,11 +164,11 @@ ${routeNamesEntries
 
 type preparedContainer = {
   dispose: (. unit) => unit,
-  render: RelayRouterTypes.renderRouteFn,
+  render: RelayRouter.Types.renderRouteFn,
   mutable timeout: option<Js.Global.timeoutId>
 }
 
-let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.route> => {
+let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.route> => {
   let preparedMap: Belt.HashMap.String.t<preparedContainer> = Belt.HashMap.String.make(~hintSize=${routeNamesEntries
     ->Js.Array2.length
     ->Belt.Int.toString})
@@ -237,7 +237,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
     ~config,
     ~fileName="RouteDeclarations.resi",
     (),
-  )->Fs.writeFileIfChanged(`let make: (~prepareDisposeTimeout: int=?, unit) => array<RelayRouterTypes.route>`)
+  )->Fs.writeFileIfChanged(`let make: (~prepareDisposeTimeout: int=?, unit) => array<RelayRouter.Types.route>`)
 
   if scaffoldAfter {
     scaffoldRouteRenderers(~deleteRemoved, ~config)

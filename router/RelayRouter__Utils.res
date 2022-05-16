@@ -6,13 +6,13 @@ let childRouteHasContent = childRoute => childRoute != React.null
 type routerHelpers = {
   push: string => unit,
   replace: string => unit,
-  preload: (string, ~priority: RelayRouterTypes.preloadPriority=?, unit) => unit,
-  preloadCode: (string, ~priority: RelayRouterTypes.preloadPriority=?, unit) => unit,
+  preload: (string, ~priority: RelayRouter__Types.preloadPriority=?, unit) => unit,
+  preloadCode: (string, ~priority: RelayRouter__Types.preloadPriority=?, unit) => unit,
 }
 
 @live
 let useRouter = (): routerHelpers => {
-  let {history, preload, preloadCode, postRouterEvent, get} = RelayRouter.useRouterContext()
+  let {history, preload, preloadCode, postRouterEvent, get} = RelayRouter__Context.useRouterContext()
   let push = React.useCallback2(path => {
     postRouterEvent(OnBeforeNavigation({currentLocation: get().location}))
     history->History.push(path)
@@ -31,7 +31,7 @@ let useRouter = (): routerHelpers => {
 }
 
 let useLocation = () => {
-  let router = RelayRouter.useRouterContext()
+  let router = RelayRouter__Context.useRouterContext()
   let (location, setLocation) = React.useState(() => router.history->History.getLocation)
 
   React.useEffect1(() => {

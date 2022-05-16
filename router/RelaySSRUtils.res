@@ -217,7 +217,7 @@ let makeServerFetchFunction = (
 }
 
 module AssetRegisterer = {
-  type context = RelayRouterTypes.preloadAsset => unit
+  type context = RelayRouter__Types.preloadAsset => unit
   let context = React.createContext(_ => ())
 
   module Provider = {

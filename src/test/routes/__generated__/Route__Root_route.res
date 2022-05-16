@@ -9,13 +9,13 @@ let makeLink = () => {
 let routePattern = "/"
 
 @live
-let isRouteActive = ({pathname}: RelayRouter__Bindings.History.location, ~exact: bool=false, ()): bool => {
-  RelayRouter__Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
+let isRouteActive = ({pathname}: RelayRouter.Bindings.History.location, ~exact: bool=false, ()): bool => {
+  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
 }
 
 @live
 let useIsRouteActive = (~exact=false, ()) => {
-  let location = RelayRouterUtils.useLocation()
+  let location = RelayRouter.Utils.useLocation()
   React.useMemo1(() => isRouteActive(location, ~exact, ()), [location])
 }
 @live
@@ -23,12 +23,12 @@ type subRoute = [#Todos | #Users]
 
 @live
 let useActiveSubRoute = (): option<[#Todos | #Users]> => {
-  let location = RelayRouterUtils.useLocation()
+  let location = RelayRouter.Utils.useLocation()
   React.useMemo1(() => {
     let {pathname} = location
-    if RelayRouter__Internal.matchPath("/todos", pathname)->Belt.Option.isSome {
+    if RelayRouter.Internal.matchPath("/todos", pathname)->Belt.Option.isSome {
       Some(#Todos)
-    } else if RelayRouter__Internal.matchPath("/users", pathname)->Belt.Option.isSome {
+    } else if RelayRouter.Internal.matchPath("/users", pathname)->Belt.Option.isSome {
       Some(#Users)
     } else {
       None
@@ -39,12 +39,12 @@ let useActiveSubRoute = (): option<[#Todos | #Users]> => {
 @live
 type prepareProps = {
   environment: RescriptRelay.Environment.t,
-  location: RelayRouter__Bindings.History.location,
+  location: RelayRouter.Bindings.History.location,
 }
 
 let makeRouteKey = (
   ~pathParams: Js.Dict.t<string>,
-  ~queryParams: RelayRouter__Bindings.QueryParams.t
+  ~queryParams: RelayRouter.Bindings.QueryParams.t
 ): string => {
   ignore(pathParams)
   ignore(queryParams)
@@ -58,8 +58,8 @@ let makeRouteKey = (
 let makePrepareProps = (. 
   ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
-  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-  ~location: RelayRouter__Bindings.History.location,
+  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+  ~location: RelayRouter.Bindings.History.location,
 ): prepareProps => {
   ignore(pathParams)
   ignore(queryParams)
@@ -75,20 +75,20 @@ type renderProps<'prepared> = {
   childRoutes: React.element,
   prepared: 'prepared,
   environment: RescriptRelay.Environment.t,
-  location: RelayRouter__Bindings.History.location,
+  location: RelayRouter.Bindings.History.location,
 }
 
 @live
 type renderers<'prepared> = {
   prepare: prepareProps => 'prepared,
-  prepareCode: option<(. prepareProps) => array<RelayRouterTypes.preloadAsset>>,
+  prepareCode: option<(. prepareProps) => array<RelayRouter.Types.preloadAsset>>,
   render: renderProps<'prepared> => React.element,
 }
 
 @obj
 external makeRenderer: (
   ~prepare: prepareProps => 'prepared,
-  ~prepareCode: prepareProps => array<RelayRouterTypes.preloadAsset>=?,
+  ~prepareCode: prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: renderProps<'prepared> => React.element,
   unit
 ) => renderers<'prepared> = ""

@@ -54,11 +54,11 @@ let loadedRouteRenderers: loadedRouteRendererMap = {
 
 type preparedContainer = {
   dispose: (. unit) => unit,
-  render: RelayRouterTypes.renderRouteFn,
+  render: RelayRouter.Types.renderRouteFn,
   mutable timeout: option<Js.Global.timeoutId>
 }
 
-let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.route> => {
+let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.route> => {
   let preparedMap: Belt.HashMap.String.t<preparedContainer> = Belt.HashMap.String.make(~hintSize=8)
 
   let getPrepared = (~routeKey) => 
@@ -126,8 +126,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
       preloadCode: (
         . ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
-        ~queryParams: RelayRouter__Bindings.QueryParams.t,
-        ~location: RelayRouter__Bindings.History.location,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t,
+        ~location: RelayRouter.Bindings.History.location,
       ) => {
         let apply = (module(RouteRenderer: T__Root)) => {
           let preparedProps = Route__Root_route.makePrepareProps(.
@@ -162,8 +162,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
       prepare: (
         . ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
-        ~queryParams: RelayRouter__Bindings.QueryParams.t,
-        ~location: RelayRouter__Bindings.History.location,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t,
+        ~location: RelayRouter.Bindings.History.location,
       ) => {
         let preparedProps = Route__Root_route.makePrepareProps(.
           ~environment,
@@ -248,7 +248,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
           addPrepared(~routeKey, ~render, ~dispose=(. ) => {
             switch preparedRef.contents {
               | Loaded(prepared) => 
-                RelayRouter__Internal.extractDisposables(. prepared)
+                RelayRouter.Internal.extractDisposables(. prepared)
                 ->Belt.Array.forEach(dispose => {
                   dispose(.)
                 })
@@ -277,8 +277,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
           preloadCode: (
             . ~environment: RescriptRelay.Environment.t,
             ~pathParams: Js.Dict.t<string>,
-            ~queryParams: RelayRouter__Bindings.QueryParams.t,
-            ~location: RelayRouter__Bindings.History.location,
+            ~queryParams: RelayRouter.Bindings.QueryParams.t,
+            ~location: RelayRouter.Bindings.History.location,
           ) => {
             let apply = (module(RouteRenderer: T__Root__Todos)) => {
               let preparedProps = Route__Root__Todos_route.makePrepareProps(.
@@ -313,8 +313,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
           prepare: (
             . ~environment: RescriptRelay.Environment.t,
             ~pathParams: Js.Dict.t<string>,
-            ~queryParams: RelayRouter__Bindings.QueryParams.t,
-            ~location: RelayRouter__Bindings.History.location,
+            ~queryParams: RelayRouter.Bindings.QueryParams.t,
+            ~location: RelayRouter.Bindings.History.location,
           ) => {
             let preparedProps = Route__Root__Todos_route.makePrepareProps(.
               ~environment,
@@ -400,7 +400,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
               addPrepared(~routeKey, ~render, ~dispose=(. ) => {
                 switch preparedRef.contents {
                   | Loaded(prepared) => 
-                    RelayRouter__Internal.extractDisposables(. prepared)
+                    RelayRouter.Internal.extractDisposables(. prepared)
                     ->Belt.Array.forEach(dispose => {
                       dispose(.)
                     })
@@ -429,8 +429,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                 preloadCode: (
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
-                  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-                  ~location: RelayRouter__Bindings.History.location,
+                  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+                  ~location: RelayRouter.Bindings.History.location,
                 ) => {
                   let apply = (module(RouteRenderer: T__Root__Todos__Active)) => {
                     let preparedProps = Route__Root__Todos__Active_route.makePrepareProps(.
@@ -465,8 +465,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                 prepare: (
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
-                  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-                  ~location: RelayRouter__Bindings.History.location,
+                  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+                  ~location: RelayRouter.Bindings.History.location,
                 ) => {
                   let preparedProps = Route__Root__Todos__Active_route.makePrepareProps(.
                     ~environment,
@@ -552,7 +552,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                     addPrepared(~routeKey, ~render, ~dispose=(. ) => {
                       switch preparedRef.contents {
                         | Loaded(prepared) => 
-                          RelayRouter__Internal.extractDisposables(. prepared)
+                          RelayRouter.Internal.extractDisposables(. prepared)
                           ->Belt.Array.forEach(dispose => {
                             dispose(.)
                           })
@@ -584,8 +584,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                 preloadCode: (
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
-                  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-                  ~location: RelayRouter__Bindings.History.location,
+                  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+                  ~location: RelayRouter.Bindings.History.location,
                 ) => {
                   let apply = (module(RouteRenderer: T__Root__Todos__Inactive)) => {
                     let preparedProps = Route__Root__Todos__Inactive_route.makePrepareProps(.
@@ -620,8 +620,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                 prepare: (
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
-                  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-                  ~location: RelayRouter__Bindings.History.location,
+                  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+                  ~location: RelayRouter.Bindings.History.location,
                 ) => {
                   let preparedProps = Route__Root__Todos__Inactive_route.makePrepareProps(.
                     ~environment,
@@ -707,7 +707,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                     addPrepared(~routeKey, ~render, ~dispose=(. ) => {
                       switch preparedRef.contents {
                         | Loaded(prepared) => 
-                          RelayRouter__Internal.extractDisposables(. prepared)
+                          RelayRouter.Internal.extractDisposables(. prepared)
                           ->Belt.Array.forEach(dispose => {
                             dispose(.)
                           })
@@ -739,8 +739,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                 preloadCode: (
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
-                  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-                  ~location: RelayRouter__Bindings.History.location,
+                  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+                  ~location: RelayRouter.Bindings.History.location,
                 ) => {
                   let apply = (module(RouteRenderer: T__Root__Todos__Single)) => {
                     let preparedProps = Route__Root__Todos__Single_route.makePrepareProps(.
@@ -775,8 +775,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                 prepare: (
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
-                  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-                  ~location: RelayRouter__Bindings.History.location,
+                  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+                  ~location: RelayRouter.Bindings.History.location,
                 ) => {
                   let preparedProps = Route__Root__Todos__Single_route.makePrepareProps(.
                     ~environment,
@@ -863,7 +863,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                     addPrepared(~routeKey, ~render, ~dispose=(. ) => {
                       switch preparedRef.contents {
                         | Loaded(prepared) => 
-                          RelayRouter__Internal.extractDisposables(. prepared)
+                          RelayRouter.Internal.extractDisposables(. prepared)
                           ->Belt.Array.forEach(dispose => {
                             dispose(.)
                           })
@@ -897,8 +897,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
           preloadCode: (
             . ~environment: RescriptRelay.Environment.t,
             ~pathParams: Js.Dict.t<string>,
-            ~queryParams: RelayRouter__Bindings.QueryParams.t,
-            ~location: RelayRouter__Bindings.History.location,
+            ~queryParams: RelayRouter.Bindings.QueryParams.t,
+            ~location: RelayRouter.Bindings.History.location,
           ) => {
             let apply = (module(RouteRenderer: T__Root__Users)) => {
               let preparedProps = Route__Root__Users_route.makePrepareProps(.
@@ -933,8 +933,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
           prepare: (
             . ~environment: RescriptRelay.Environment.t,
             ~pathParams: Js.Dict.t<string>,
-            ~queryParams: RelayRouter__Bindings.QueryParams.t,
-            ~location: RelayRouter__Bindings.History.location,
+            ~queryParams: RelayRouter.Bindings.QueryParams.t,
+            ~location: RelayRouter.Bindings.History.location,
           ) => {
             let preparedProps = Route__Root__Users_route.makePrepareProps(.
               ~environment,
@@ -1020,7 +1020,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
               addPrepared(~routeKey, ~render, ~dispose=(. ) => {
                 switch preparedRef.contents {
                   | Loaded(prepared) => 
-                    RelayRouter__Internal.extractDisposables(. prepared)
+                    RelayRouter.Internal.extractDisposables(. prepared)
                     ->Belt.Array.forEach(dispose => {
                       dispose(.)
                     })
@@ -1049,8 +1049,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                 preloadCode: (
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
-                  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-                  ~location: RelayRouter__Bindings.History.location,
+                  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+                  ~location: RelayRouter.Bindings.History.location,
                 ) => {
                   let apply = (module(RouteRenderer: T__Root__Users__Single)) => {
                     let preparedProps = Route__Root__Users__Single_route.makePrepareProps(.
@@ -1085,8 +1085,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                 prepare: (
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
-                  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-                  ~location: RelayRouter__Bindings.History.location,
+                  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+                  ~location: RelayRouter.Bindings.History.location,
                 ) => {
                   let preparedProps = Route__Root__Users__Single_route.makePrepareProps(.
                     ~environment,
@@ -1172,7 +1172,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
                     addPrepared(~routeKey, ~render, ~dispose=(. ) => {
                       switch preparedRef.contents {
                         | Loaded(prepared) => 
-                          RelayRouter__Internal.extractDisposables(. prepared)
+                          RelayRouter.Internal.extractDisposables(. prepared)
                           ->Belt.Array.forEach(dispose => {
                             dispose(.)
                           })
@@ -1208,8 +1208,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
       preloadCode: (
         . ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
-        ~queryParams: RelayRouter__Bindings.QueryParams.t,
-        ~location: RelayRouter__Bindings.History.location,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t,
+        ~location: RelayRouter.Bindings.History.location,
       ) => {
         let apply = (module(RouteRenderer: T__OrgDeep)) => {
           let preparedProps = Route__OrgDeep_route.makePrepareProps(.
@@ -1244,8 +1244,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
       prepare: (
         . ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
-        ~queryParams: RelayRouter__Bindings.QueryParams.t,
-        ~location: RelayRouter__Bindings.History.location,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t,
+        ~location: RelayRouter.Bindings.History.location,
       ) => {
         let preparedProps = Route__OrgDeep_route.makePrepareProps(.
           ~environment,
@@ -1331,7 +1331,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouterTypes.ro
           addPrepared(~routeKey, ~render, ~dispose=(. ) => {
             switch preparedRef.contents {
               | Loaded(prepared) => 
-                RelayRouter__Internal.extractDisposables(. prepared)
+                RelayRouter.Internal.extractDisposables(. prepared)
                 ->Belt.Array.forEach(dispose => {
                   dispose(.)
                 })

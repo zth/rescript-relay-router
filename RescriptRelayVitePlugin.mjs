@@ -19,15 +19,23 @@ let findGeneratedModule = (moduleName) => {
     let found = false;
 
     rl.on("line", (line) => {
+      // Only look at `o` (output) lines as our "when past module" logic may get confused
+      // by other things interjected.
+      if (!line.startsWith("o")) {
+        return;
+      }
+
       let lineIsForModule = line.includes(`/${moduleName}.`);
 
-      // Close as soon ass we've walked past all lines concerning this module. The log
+      // Close as soon as we've walked past all lines concerning this module. The log
       // groups all lines concerning a specific module, so we can safely say that
       // whenever we see a new module after looping through the old one, we don't need
       // to look more.
       if (hasReachedModuleInFile && !lineIsForModule) {
         s.close();
         rl.close();
+        // Prevent subsequent `line` events from firing.
+        rl.removeAllListeners();
         return;
       }
 
@@ -50,7 +58,7 @@ let findGeneratedModule = (moduleName) => {
 
     rl.on("close", () => {
       if (!found) {
-        reject(new Error("Module not found."));
+        reject(new Error(`Module '${moduleName}' not found.`));
       }
     });
   });

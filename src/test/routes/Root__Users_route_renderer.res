@@ -29,9 +29,9 @@ let renderer = Route__Root__Users_route.makeRenderer(
       | Some(search) => React.string(search)
       | None => React.string("no seearch")
       }}
-      <RelayRouterLink to_={Routes.Root.Users.Single.Route.makeLink(~userId="123", ())}>
+      <RelayRouter.Link to_={Routes.Root.Users.Single.Route.makeLink(~userId="123", ())}>
         {React.string("To a user")}
-      </RelayRouterLink>
+      </RelayRouter.Link>
       <button
         onClick={_ => {
           setParams(~setter=current => {

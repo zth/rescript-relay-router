@@ -103,8 +103,8 @@ module ScrollRestoration = {
 
   @react.component
   let make = () => {
-    let location = RelayRouterUtils.useLocation()
-    let router = RelayRouter.useRouterContext()
+    let location = RelayRouter__Utils.useLocation()
+    let router = RelayRouter__Context.useRouterContext()
     let targetEl = TargetScrollElement.useTargetElement()
     let (id, targetElement) = React.useMemo1(() =>
       switch targetEl {
@@ -132,7 +132,7 @@ module ScrollRestoration = {
           location->getScrollPosId(~id),
           targetElement->scrollTop,
         )
-        let _ = RelayRouter.runAtPriority(~priority, () => {
+        let _ = RelayRouter__Internal.runAtPriority(~priority, () => {
           switch scrollPositionsY.contents->Js.Json.stringifyAny {
           | None => ()
           | Some(stringifiedPositions) => setScrollPositions(stringifiedPositions)

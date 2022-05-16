@@ -87,7 +87,7 @@ let getRouteMaker = (route: printableRoute) => {
 
   if hasQueryParams {
     str.contents =
-      str.contents ++ `  open RelayRouter__Bindings\n  let queryParams = QueryParams.make()`
+      str.contents ++ `  open RelayRouter.Bindings\n  let queryParams = QueryParams.make()`
 
     queryParamSerializers->Belt.Array.forEach(((key, serializer)) => {
       str.contents =
@@ -134,7 +134,7 @@ let getQueryParamAssets = (route: printableRoute) => {
     str.contents =
       str.contents ++
       `@live\nlet parseQueryParams = (search: string): queryParams => {
-  open RelayRouter__Bindings
+  open RelayRouter.Bindings
   let queryParams = QueryParams.parse(search)
   {${queryParamEntries
         ->Belt.Array.map(((key, queryParam)) => {
@@ -160,12 +160,12 @@ let makeQueryParams = (${queryParamEntries
 let setQueryParams = (
   newParams: queryParams,
   ~currentSearch: string, 
-  ~navigationMode_=RelayRouterTypes.Push,
+  ~navigationMode_=RelayRouter.Types.Push,
   ~removeNotControlledParams=true,
-  ~history: RelayRouter__Bindings.History.t,
+  ~history: RelayRouter.Bindings.History.t,
   ()
 ) => {
-  open RelayRouter__Bindings
+  open RelayRouter.Bindings
 
   let queryParams = if removeNotControlledParams {
     QueryParams.make()
@@ -181,7 +181,7 @@ let setQueryParams = (
         })
         ->Js.Array2.joinWith("")}
   
-  queryParams->RelayRouter__Internal.setQueryParams(navigationMode_, history)
+  queryParams->RelayRouter.Internal.setQueryParams(navigationMode_, history)
 }
 
 @live
@@ -190,7 +190,7 @@ type useQueryParamsReturn = {
   setParams: (
     ~setter: queryParams => queryParams,
     ~onAfterParamsSet: queryParams => unit=?,
-    ~navigationMode_: RelayRouterTypes.setQueryParamsMode=?,
+    ~navigationMode_: RelayRouter.Types.setQueryParamsMode=?,
     ~removeNotControlledParams: bool=?,
     unit
   ) => unit
@@ -199,7 +199,7 @@ type useQueryParamsReturn = {
 @live
 let useQueryParams = (): useQueryParamsReturn => {
   let {history} = RelayRouter.useRouterContext()
-  let {search} = RelayRouterUtils.useLocation()
+  let {search} = RelayRouter.Utils.useLocation()
   let currentQueryParams = React.useMemo1(() => {
     search->parseQueryParams
   }, [search])
@@ -217,7 +217,7 @@ let useQueryParams = (): useQueryParamsReturn => {
         () => (
           ~setter,
           ~onAfterParamsSet=?,
-          ~navigationMode_=RelayRouterTypes.Push, 
+          ~navigationMode_=RelayRouter.Types.Push,
           ~removeNotControlledParams=true,
           ()
         ) => {
@@ -253,7 +253,7 @@ let getPrepareAssets = (route: printableRoute) => {
 
   let standardRecordFields = [
     ("environment", "RescriptRelay.Environment.t"),
-    ("location", "RelayRouter__Bindings.History.location"),
+    ("location", "RelayRouter.Bindings.History.location"),
   ]
 
   let pathParamsRecordFields = []
@@ -291,7 +291,7 @@ let getPrepareAssets = (route: printableRoute) => {
     str.contents ++
     `let makeRouteKey = (
   ~pathParams: Js.Dict.t<string>,
-  ~queryParams: RelayRouter__Bindings.QueryParams.t
+  ~queryParams: RelayRouter.Bindings.QueryParams.t
 ): string => {
 ${if pathParamsRecordFields->Js.Array2.length == 0 {
         "  ignore(pathParams)\n"
@@ -310,7 +310,7 @@ ${pathParamsRecordFields
       ->Js.Array2.joinWith("\n")}
 ${queryParamsRecordFields
       ->Belt.Array.map(((key, _)) =>
-        "    ++ queryParams->RelayRouter__Bindings.QueryParams.getParamByKey(\"" ++
+        "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
         key ++ "\")->Belt.Option.getWithDefault(\"\")"
       )
       ->Js.Array2.joinWith("\n")}
@@ -322,8 +322,8 @@ ${queryParamsRecordFields
     str.contents ++ `@live\nlet makePrepareProps = (. 
   ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
-  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-  ~location: RelayRouter__Bindings.History.location,
+  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+  ~location: RelayRouter.Bindings.History.location,
 ): prepareProps => {\n`
 
   let propsToIgnore = [
@@ -358,7 +358,7 @@ ${queryParamsRecordFields
 
       str.contents =
         str.contents ++
-        `    ${safeParam->SafeParam.getSafeKey}: queryParams->RelayRouter__Bindings.QueryParams.${param->Utils.queryParamToQueryParamDecoder(
+        `    ${safeParam->SafeParam.getSafeKey}: queryParams->RelayRouter.Bindings.QueryParams.${param->Utils.queryParamToQueryParamDecoder(
             ~key=safeParam->SafeParam.getOriginalKey,
           )}`
     })
@@ -380,14 +380,14 @@ ${queryParamsRecordFields
   str.contents =
     str.contents ++ `@live\ntype renderers<'prepared> = {
   prepare: prepareProps => 'prepared,
-  prepareCode: option<(. prepareProps) => array<RelayRouterTypes.preloadAsset>>,
+  prepareCode: option<(. prepareProps) => array<RelayRouter.Types.preloadAsset>>,
   render: renderProps<'prepared> => React.element,
 }
 
 @obj
 external makeRenderer: (
   ~prepare: prepareProps => 'prepared,
-  ~prepareCode: prepareProps => array<RelayRouterTypes.preloadAsset>=?,
+  ~prepareCode: prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: renderProps<'prepared> => React.element,
   unit
 ) => renderers<'prepared> = ""`
@@ -438,8 +438,8 @@ ${route.queryParams
     preloadCode: (
       . ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
-      ~queryParams: RelayRouter__Bindings.QueryParams.t,
-      ~location: RelayRouter__Bindings.History.location,
+      ~queryParams: RelayRouter.Bindings.QueryParams.t,
+      ~location: RelayRouter.Bindings.History.location,
     ) => {
       let apply = (module(RouteRenderer: T__${routeName})) => {
         let preparedProps = Route__${routeName}_route.makePrepareProps(.
@@ -474,8 +474,8 @@ ${route.queryParams
     prepare: (
       . ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
-      ~queryParams: RelayRouter__Bindings.QueryParams.t,
-      ~location: RelayRouter__Bindings.History.location,
+      ~queryParams: RelayRouter.Bindings.QueryParams.t,
+      ~location: RelayRouter.Bindings.History.location,
     ) => {
       let preparedProps = Route__${routeName}_route.makePrepareProps(.
         ~environment,
@@ -559,7 +559,7 @@ ${prepareParamsQueryParamsStr}
         addPrepared(~routeKey, ~render, ~dispose=(. ) => {
           switch preparedRef.contents {
             | Loaded(prepared) => 
-              RelayRouter__Internal.extractDisposables(. prepared)
+              RelayRouter.Internal.extractDisposables(. prepared)
               ->Belt.Array.forEach(dispose => {
                 dispose(.)
               })
@@ -587,13 +587,13 @@ let getIsRouteActiveFn = (route: RescriptRelayRouterCli__Types.printableRoute) =
 let routePattern = "${route.path->RoutePath.toPattern}"
 
 @live
-let isRouteActive = ({pathname}: RelayRouter__Bindings.History.location, ~exact: bool=false, ()): bool => {
-  RelayRouter__Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
+let isRouteActive = ({pathname}: RelayRouter.Bindings.History.location, ~exact: bool=false, ()): bool => {
+  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
 }
 
 @live
 let useIsRouteActive = (~exact=false, ()) => {
-  let location = RelayRouterUtils.useLocation()
+  let location = RelayRouter.Utils.useLocation()
   React.useMemo1(() => isRouteActive(location, ~exact, ()), [location])
 }`
 }
@@ -623,12 +623,12 @@ type subRoute = ${subRouteType}
 
 @live
 let useActiveSubRoute = (): option<${subRouteType}> => {
-  let location = RelayRouterUtils.useLocation()
+  let location = RelayRouter.Utils.useLocation()
   React.useMemo1(() => {
     let {pathname} = location
     ${elgibleChildren
       ->Belt.Array.mapWithIndex((index, child) => {
-        let checkStr = `RelayRouter__Internal.matchPath("${child.path->RoutePath.toPattern}", pathname)->Belt.Option.isSome`
+        let checkStr = `RelayRouter.Internal.matchPath("${child.path->RoutePath.toPattern}", pathname)->Belt.Option.isSome`
         let str = ref("")
 
         if index == 0 {

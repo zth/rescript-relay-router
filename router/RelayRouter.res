@@ -1,44 +1,23 @@
-open RelayRouterTypes
-open RelayRouter__Bindings
+module Types = RelayRouter__Types
+module Bindings = RelayRouter__Bindings
+module Link = RelayRouter__Link
+module Scroll = RelayRouter__Scroll
+
+// TODO: This is now exposing RelayRouter internals because it's needed by the generated code.
+module Internal = RelayRouter__Internal
+module Utils = RelayRouter__Utils
+
+open Types
+open Bindings
 
 @module("react-router") @return(nullable)
 external matchRoutes: (array<route>, History.location) => option<array<routeMatch>> = "matchRoutes"
 
-type requestIdleCallbackId
-
-@val
-external requestIdleCallback: (callback, option<{"timeout": int}>) => requestIdleCallbackId =
-  "window.requestIdleCallback"
-
-@val
-external cancelIdleCallback: requestIdleCallbackId => unit = "window.cancelIdleCallback"
-
-let runAtPriority = (cb, ~priority) => {
-  if !RelaySSRUtils.ssr {
-    switch priority {
-    | Low =>
-      // On low priority, let the browser wait as long as needed
-      let id = requestIdleCallback(cb, None)
-      Some(() => cancelIdleCallback(id))
-    | Default =>
-      // On default priority, ensure loading starts within 2s
-      let id = requestIdleCallback(cb, Some({"timeout": 2000}))
-      Some(() => cancelIdleCallback(id))
-    | High =>
-      // High priority means we'll run it right away
-      cb()
-      None
-    }
-  } else {
-    None
-  }
-}
-
 let prepareMatches = (
   matches: array<routeMatch>,
   ~environment: RescriptRelay.Environment.t,
-  ~queryParams: RelayRouter__Bindings.QueryParams.t,
-  ~location: RelayRouter__Bindings.History.location,
+  ~queryParams: Bindings.QueryParams.t,
+  ~location: Bindings.History.location,
 ): array<preparedMatch> => {
   matches->Js.Array2.map(match => {
     {
@@ -155,7 +134,7 @@ module Router: {
       let queryParams = url->URL.getSearch->Belt.Option.getWithDefault("")->QueryParams.parse
 
       let location = {
-        RelayRouter__Bindings.History.pathname: url->URL.getPathname,
+        Bindings.History.pathname: url->URL.getPathname,
         search: url->URL.getSearch->Belt.Option.getWithDefault(""),
         hash: url->URL.getHash,
         state: url->URL.getState,
@@ -198,7 +177,7 @@ module Router: {
 
       preloadUrl->runOnEachRouteMatch((~match, ~queryParams, ~location as _) => {
         // We don't care about the unsub callback here
-        let _ = runAtPriority(() => {
+        let _ = Internal.runAtPriority(() => {
           let _ =
             match.route.preloadCode(.
               ~environment,
@@ -218,7 +197,7 @@ module Router: {
       preloadUrl->runOnEachRouteMatch((~match, ~queryParams, ~location) => {
         // We don't care about the render function returned to us when
         // preparing, and we don't care about the run priority unsub
-        let _ = runAtPriority(() => {
+        let _ = Internal.runAtPriority(() => {
           let _: renderRouteFn = match.route.prepare(.
             ~environment,
             ~pathParams=match.params,

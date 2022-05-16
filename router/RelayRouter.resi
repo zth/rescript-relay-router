@@ -1,33 +1,37 @@
+module Types = RelayRouter__Types
+module Bindings = RelayRouter__Bindings
+module Link = RelayRouter__Link
+module Scroll = RelayRouter__Scroll
+
+// TODO: This is now exposing RelayRouter internals because it's needed by the generated code.
+module Internal = RelayRouter__Internal
+module Utils = RelayRouter__Utils
+
 module RouterEnvironment: {
   type t
   let makeBrowserEnvironment: unit => t
   let makeServerEnvironment: (~initialUrl: string) => t
 }
 
-let runAtPriority: (
-  RelayRouterTypes.callback,
-  ~priority: RelayRouterTypes.preloadPriority,
-) => option<unit => unit>
-
 module Router: {
   let make: (
-    ~routes: array<RelayRouterTypes.route>,
+    ~routes: array<Types.route>,
     ~routerEnvironment: RouterEnvironment.t,
     ~environment: RescriptRelay.Environment.t,
-  ) => (RelayRouterTypes.cleanupFn, RelayRouterTypes.routerContext)
+  ) => (Types.cleanupFn, Types.routerContext)
 }
 
 module Provider: {
-  let make: React.component<{"children": React.element, "value": RelayRouterTypes.routerContext}>
+  let make: React.component<{"children": React.element, "value": Types.routerContext}>
 
   let makeProps: (
-    ~value: RelayRouterTypes.routerContext,
+    ~value: Types.routerContext,
     ~children: React.element,
     unit,
-  ) => {"children": React.element, "value": RelayRouterTypes.routerContext}
+  ) => {"children": React.element, "value": Types.routerContext}
 }
 
-let useRouterContext: unit => RelayRouterTypes.routerContext
+let useRouterContext: unit => Types.routerContext
 
 module RouteRenderer: {
   @react.component @live
@@ -38,4 +42,4 @@ module RouteRenderer: {
   ) => React.element
 }
 
-let useRegisterPreloadedAsset: RelayRouterTypes.preloadAsset => unit
+let useRegisterPreloadedAsset: Types.preloadAsset => unit

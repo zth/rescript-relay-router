@@ -1,5 +1,5 @@
 open Vitest
-open RelayRouterUtils
+open RelayRouter__Utils
 
 type testCase = {
   exact: bool,
@@ -8,7 +8,7 @@ type testCase = {
   expected: bool,
 }
 
-describe("RelayRouterUtils", () => {
+describe("RelayRouter__Utils", () => {
   describe("isRouteActive", () => {
     let testCases = [
       {

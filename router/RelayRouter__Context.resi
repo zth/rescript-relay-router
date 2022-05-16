@@ -1,7 +1,7 @@
 module Provider : {
-  let make : React.component<{"value": RelayRouterTypes.routerContext, "children": React.element}>
+  let make : React.component<{"value": RelayRouter__Types.routerContext, "children": React.element}>
 
-  let makeProps : (~value : RelayRouterTypes.routerContext, ~children: React.element, ()) => {"value": RelayRouterTypes.routerContext, "children": React.element}
+  let makeProps : (~value : RelayRouter__Types.routerContext, ~children: React.element, ()) => {"value": RelayRouter__Types.routerContext, "children": React.element}
 }
 
-let useRouterContext : unit => RelayRouterTypes.routerContext;
+let useRouterContext : unit => RelayRouter__Types.routerContext;

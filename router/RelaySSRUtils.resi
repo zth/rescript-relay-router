@@ -17,7 +17,7 @@ let makeClientFetchFunction: (
 
 @live
 let makeServerFetchFunction: (
-  RelayRouterTypes.onResponseReceivedFn,
+  RelayRouter__Types.onResponseReceivedFn,
   (
     RescriptRelay.Observable.sink<Js.Json.t>,
     RescriptRelay.Network.operation,
@@ -31,7 +31,7 @@ let makeServerFetchFunction: (
 let ssr: bool
 
 module AssetRegisterer: {
-  type context = RelayRouterTypes.preloadAsset => unit
+  type context = RelayRouter__Types.preloadAsset => unit
 
   @live
   let use: unit => context

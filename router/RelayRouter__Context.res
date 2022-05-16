@@ -1,5 +1,5 @@
 
-open RelayRouterTypes
+open RelayRouter__Types
 
 let context = React.createContext(Obj.magic())
 

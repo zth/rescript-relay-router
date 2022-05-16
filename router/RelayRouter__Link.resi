@@ -9,7 +9,7 @@ let make: (
   ~className: string=?,
   ~target: [#self | #blank]=?,
   ~mode: [#push | #replace]=?,
-  ~preloadPriority: RelayRouterTypes.preloadPriority=?,
+  ~preloadPriority: RelayRouter__Types.preloadPriority=?,
   ~preloadData: preloadMode=?,
   ~preloadCode: preloadMode=?,
   ~children: React.element,

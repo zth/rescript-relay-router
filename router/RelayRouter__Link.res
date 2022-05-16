@@ -1,6 +1,6 @@
-open RelayRouterTypes
+open RelayRouter__Types
 open RelayRouter__Bindings
-open RelayRouterScroll
+open RelayRouter__Scroll
 
 let isModifiedEvent = e => {
   open ReactEvent.Mouse
@@ -54,7 +54,7 @@ let make = (
 ) => {
   let linkElement = React.useRef(Js.Nullable.null)
   let hasPreloaded = React.useRef(false)
-  let router = RelayRouter.useRouterContext()
+  let router = RelayRouter__Context.useRouterContext()
   let {history} = router
   let targetElementRef = TargetScrollElement.useTargetElement()
 

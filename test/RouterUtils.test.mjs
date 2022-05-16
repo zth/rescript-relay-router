@@ -3,9 +3,9 @@
 import * as Vitest from "../src/bindings/Vitest.mjs";
 import * as Vitest$1 from "vitest";
 import * as Belt_Array from "rescript/lib/es6/belt_Array.js";
-import * as RelayRouterUtils from "../router/RelayRouterUtils.mjs";
+import * as RelayRouter__Utils from "../router/RelayRouter__Utils.mjs";
 
-Vitest.describe("RelayRouterUtils", undefined, (function (param) {
+Vitest.describe("RelayRouter__Utils", undefined, (function (param) {
         return Vitest.describe("isRouteActive", undefined, (function (param) {
                       var testCases = [
                         {
@@ -59,7 +59,7 @@ Vitest.describe("RelayRouterUtils", undefined, (function (param) {
                                     return Vitest.test("pattern: \"" + routePattern + "\", path: \"" + pathname + "\", exact: " + (
                                                 exact ? "true" : "false"
                                               ), undefined, (function (_t) {
-                                                  Vitest$1.expect(RelayRouterUtils.isRouteActive(pathname, routePattern, exact, undefined)).toBe(expected);
+                                                  Vitest$1.expect(RelayRouter__Utils.isRouteActive(pathname, routePattern, exact, undefined)).toBe(expected);
                                                   
                                                 }));
                                   }));

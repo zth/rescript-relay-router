@@ -2,7 +2,7 @@
   "name": "rescript-relay-router",
   "version": "0.0.15-editor-tooling.1",
   "engines": {
-    "node": "16"
+    "node": ">=16"
   },
   "main": "./RescriptRelayVitePlugin.mjs",
   "exports": {

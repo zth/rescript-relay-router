@@ -1,1 +1,1 @@
-let make: (~prepareDisposeTimeout: int=?, unit) => array<RelayRouterTypes.route>
+let make: (~prepareDisposeTimeout: int=?, unit) => array<RelayRouter.Types.route>

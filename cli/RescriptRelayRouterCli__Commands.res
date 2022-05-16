@@ -237,7 +237,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
     ~config,
     ~fileName="RouteDeclarations.resi",
     (),
-  )->Fs.writeFileIfChanged(`let make: (~prepareDisposeTimeout: int=?, unit) => array<RelayRouterTypes.route>`)
+  )->Fs.writeFileIfChanged(`let make: (~prepareDisposeTimeout: int=?, unit) => array<RelayRouter.Types.route>`)
 
   if scaffoldAfter {
     scaffoldRouteRenderers(~deleteRemoved, ~config)

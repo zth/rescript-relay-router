@@ -862,7 +862,13 @@ let rec parseRouteFile = (
     | None => None->Decode.decode(~ctx, ~parentContext=nextParentContext)
     }
 
-    parseErrors->Belt.Array.forEach(parseError => {
+    // Use only the first parse error, since broken sources might produce a ton
+    // of parse errors, and that's just annoying. Essentially, all you need to
+    // know is that syntax is broken - fix it, and if there are still errors
+    // you'll get them 1 by 1.
+    parseErrors
+    ->Belt.Array.get(0)
+    ->Belt.Option.forEach(parseError => {
       let linesAndColumns = Bindings.LinesAndColumns.make(content)
 
       let _ = decodeErrors->Js.Array2.push({

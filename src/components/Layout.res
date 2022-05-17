@@ -1,8 +1,6 @@
 module Query = %relay(`
   query LayoutQuery {
-    siteStatistics {
-      currentVisitorsOnline
-    }
+    ...LayoutDisplay_query
   }
 `)
 
@@ -21,7 +19,8 @@ let make = (~queryRef, ~children) => {
       )
       ->React.array}
     </div>
-    <div> {React.string(data.siteStatistics.currentVisitorsOnline->Belt.Int.toString)} </div>
-    <div> {children} </div>
+    <React.Suspense fallback={<div> {React.string("Loading...")} </div>}>
+      <LayoutDisplay query={data.fragmentRefs}> {children} </LayoutDisplay>
+    </React.Suspense>
   </div>
 }

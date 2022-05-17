@@ -31,12 +31,6 @@ export class RescriptRelayWritable extends Writable {
         )
         .join("");
 
-      console.log("[debug-stream] writing preloaded query data", {
-        id,
-        response,
-        final,
-      });
-
       this._writable.write(`<script type="text/javascript">
   window.__RELAY_DATA = window.__RELAY_DATA || [];
 ${appendDataText}

@@ -72,13 +72,13 @@ async function createServer() {
           // as soon as it loads.
           bootstrapScriptContent:
             "window.__READY_TO_BOOT ? window.__BOOT() : (window.__READY_TO_BOOT = true)",
-          onCompleteShell() {
+          onShellReady() {
             // The shell is complete, and React is ready to start streaming.
             // Pipe the results to the intermediate stream.
             console.log("[debug-react-stream] shell completed");
             pipe(s);
           },
-          onCompleteAll() {
+          onAllReady() {
             // Write the end of the HTML document when React has streamed
             // everything it wants.
             console.log("[debug-react-stream] writing end");
@@ -87,6 +87,11 @@ async function createServer() {
           onError(x) {
             didError = true;
             console.error(x);
+          },
+          onShellError(x) {
+            console.error(x);
+            res.status = 500;
+            res.send(template);
           },
         },
         // TODO: Unify to handle all things the server should push to the stream

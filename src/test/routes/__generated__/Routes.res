@@ -7,29 +7,9 @@ module Root = {
   module Todos = {
     module Route = Route__Root__Todos_route
 
-    module Active = {
-      module Route = Route__Root__Todos__Active_route
-
-    }
-    module Inactive = {
-      module Route = Route__Root__Todos__Inactive_route
-
-    }
     module Single = {
       module Route = Route__Root__Todos__Single_route
 
     }
   }
-  module Users = {
-    module Route = Route__Root__Users_route
-
-    module Single = {
-      module Route = Route__Root__Users__Single_route
-
-    }
-  }
-}
-module OrgDeep = {
-  module Route = Route__OrgDeep_route
-
 }

@@ -1,9 +1,20 @@
+module SingleTodo = %relay.deferredComponent(SingleTodo.make)
+
 let renderer = Routes.Root.Todos.Single.Route.makeRenderer(
-  ~prepare=_ => {
-    ()
+  ~prepareCode=_ => [SingleTodo.preload()],
+  ~prepare=({environment, showMore, todoId}) => {
+    SingleTodoQuery_graphql.load(
+      ~environment,
+      ~fetchPolicy=StoreOrNetwork,
+      ~variables={
+        id: todoId,
+        showMore: showMore->Belt.Option.getWithDefault(false),
+      },
+      (),
+    )
   },
-  ~render=_ => {
-    React.null
+  ~render=({prepared}) => {
+    <SingleTodo queryRef=prepared />
   },
   (),
 )

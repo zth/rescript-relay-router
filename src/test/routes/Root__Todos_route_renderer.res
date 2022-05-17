@@ -2,11 +2,11 @@ module TodosList = %relay.deferredComponent(TodosList.make)
 
 let renderer = Route__Root__Todos_route.makeRenderer(
   ~prepareCode=_ => [TodosList.preload()],
-  ~prepare=_ => {
-    ()
+  ~prepare=({environment}) => {
+    TodosListQuery_graphql.load(~environment, ~fetchPolicy=StoreOrNetwork, ~variables=(), ())
   },
-  ~render=_ => {
-    <TodosList />
+  ~render=({prepared, childRoutes}) => {
+    <TodosList queryRef=prepared> {childRoutes} </TodosList>
   },
   (),
 )

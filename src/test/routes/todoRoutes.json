@@ -1,18 +1,8 @@
 [
   {
-    "path": "todos?datePeriod=DatePeriod.t&statuses=array<TodoStatus.t>",
+    "path": "todos",
     "name": "Todos",
     "children": [
-      {
-        "path": "active",
-        "name": "Active",
-        "children": []
-      },
-      {
-        "path": "inactive",
-        "name": "Inactive",
-        "children": []
-      },
       {
         "path": ":todoId?showMore=bool",
         "name": "Single",

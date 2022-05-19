@@ -22,7 +22,7 @@ let isRouteActive = ({pathname}: RelayRouter.Bindings.History.location, ~exact: 
 @live
 let useIsRouteActive = (~exact=false, ()) => {
   let location = RelayRouter.Utils.useLocation()
-  React.useMemo1(() => isRouteActive(location, ~exact, ()), [location])
+  React.useMemo2(() => isRouteActive(location, ~exact, ()), (location, exact))
 }
 
 @live

@@ -43,6 +43,7 @@
     "graphql": "16.2.0",
     "graphql-ws": "5.5.0",
     "lines-and-columns": "^2.0.3",
+    "meros": "^1.2.0",
     "postcss": "8.2.15",
     "react": "18.1.0",
     "react-dom": "18.1.0",

@@ -1,5 +1,5 @@
 @live
-let bootOnClient: (~rootElementId: string, ~render: React.element) => unit
+let bootOnClient: (~rootElementId: string, ~render: unit => React.element) => unit
 
 @live
 let setHasPreparedInitialRoutes: unit => unit

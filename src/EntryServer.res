@@ -16,7 +16,11 @@ let getStream = (
 
   let routes = RouteDeclarations.make()
 
-  let (_cleanup, routerContext) = RelayRouter.Router.make(~routes, ~environment, ~routerEnvironment)
+  let (_cleanup, routerContext, _) = RelayRouter.Router.make(
+    ~routes,
+    ~environment,
+    ~routerEnvironment,
+  )
   renderToPipeableStream(
     <RelaySSRUtils.AssetRegisterer.Provider
       value={asset => {

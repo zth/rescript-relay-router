@@ -74,13 +74,13 @@ module PreloadAssets = {
 
 let _ = PreloadAssets.preloadAssetViaLinkTag
 
-module Router: {
-  let make: (
-    ~routes: array<route>,
-    ~routerEnvironment: RouterEnvironment.t,
-    ~environment: RescriptRelay.Environment.t,
-  ) => (cleanupFn, routerContext)
-} = {
+let getRouteMatches = (routes, ~routerEnvironment) => {
+  let location = History.getLocation(routerEnvironment)
+  let matchLocation = matchRoutes(routes)
+  matchLocation(location)->Belt.Option.getWithDefault([])
+}
+
+module Router = {
   let dictDelete: (
     Js.Dict.t<'any>,
     string,
@@ -98,6 +98,7 @@ module Router: {
     let location = History.getLocation(history)
     let initialQueryParams = QueryParams.parse(location.search)
     let initialMatches = matchLocation(location)->Belt.Option.getWithDefault([])
+
     let preparedMatches =
       initialMatches->prepareMatches(~environment, ~queryParams=initialQueryParams, ~location)
 
@@ -241,6 +242,13 @@ module Router: {
         postRouterEvent: event => {
           routerEventListeners.contents->Belt.Array.forEach(cb => cb(event))
         },
+      },
+      () => {
+        Js.log("[debug] starting to load route renderers")
+        initialMatches
+        ->Belt.Array.map(({route}) => route.loadRouteRenderer())
+        ->Js.Promise.all
+        ->Js.Promise.then_(_ => Js.Promise.resolve(), _)
       },
     )
   }

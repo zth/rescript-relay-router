@@ -75,7 +75,24 @@ external setStreamCompleteFn: (window, unit => unit) => unit = "__STREAM_COMPLET
 external hydrateRoot: (Dom.node, React.element) => unit = "hydrateRoot"
 
 let bootOnClient = (~rootElementId, ~render) => {
-  let boot = () => rootElementId->getElementById->hydrateRoot(render)
+  let boot = () => {
+    window
+    ->unsafe_initialRelayData
+    ->Belt.Option.getWithDefault([])
+    ->Belt.Array.forEach(streamedEntry => {
+      handleIncomingStreamedDataEntry(streamedEntry)
+    })
+
+    window->setRelayDataStructure({
+      push: (. streamedEntry) => {
+        Js.log2("[debug] Got stream response when client was ready: ", streamedEntry)
+        handleIncomingStreamedDataEntry(streamedEntry)
+      },
+    })
+
+    Js.log("[debug] Booting because stream said so...")
+    rootElementId->getElementById->hydrateRoot(render())
+  }
 
   window->setBootFn(boot)
 
@@ -83,27 +100,14 @@ let bootOnClient = (~rootElementId, ~render) => {
     boot()
   }
 
-  window
-  ->unsafe_initialRelayData
-  ->Belt.Option.getWithDefault([])
-  ->Belt.Array.forEach(streamedEntry => {
-    handleIncomingStreamedDataEntry(streamedEntry)
-  })
-
-  window->setRelayDataStructure({
-    push: (. streamedEntry) => {
-      handleIncomingStreamedDataEntry(streamedEntry)
-    },
-  })
-
   window->setStreamCompleteFn(() => {
     Js.log("[debug] completing stream: " ++ replaySubjects->Js.Dict.keys->Js.Array2.joinWith(", "))
     // Remove all replay subjects when stream has completed
-    replaySubjects
+    /* replaySubjects
     ->Js.Dict.keys
     ->Belt.Array.forEach(key => {
       replaySubjects->deleteKey(key)
-    })
+    })*/
   })
 }
 

@@ -15,11 +15,12 @@ let make = () => {
   <>
     <RescriptReactErrorBoundary
       fallback={_ => {
-        React.string("Error!")
+        <div> {React.string("Error!")} </div>
       }}>
       <RelayRouter.RouteRenderer
         renderFallback={() => {
-          React.string("Fallback...")
+          Js.log("[OH-NO] Rendering fallback...")
+          <div> {React.string("Fallback...")} </div>
         }}
         renderPending={pending => <PendingIndicatorBar pending />}
       />

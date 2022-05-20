@@ -13,12 +13,17 @@ module RouterEnvironment: {
   let makeServerEnvironment: (~initialUrl: string) => t
 }
 
+let getRouteMatches: (
+  array<Types.route>,
+  ~routerEnvironment: RouterEnvironment.t,
+) => array<Types.routeMatch>
+
 module Router: {
   let make: (
     ~routes: array<Types.route>,
     ~routerEnvironment: RouterEnvironment.t,
     ~environment: RescriptRelay.Environment.t,
-  ) => (Types.cleanupFn, Types.routerContext)
+  ) => (Types.cleanupFn, Types.routerContext, Types.awaitAllRouteRenderers)
 }
 
 module Provider: {

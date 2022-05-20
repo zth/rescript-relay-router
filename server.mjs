@@ -5,7 +5,10 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fetch from "node-fetch";
 import stream from "stream";
-import { RescriptRelayWritable } from "./streamUtils.mjs";
+import {
+  RescriptRelayWritable,
+  writeAssetsIntoStream,
+} from "./streamUtils.mjs";
 import { findGeneratedModule } from "./lookup.mjs";
 
 global.fetch = fetch;
@@ -79,6 +82,12 @@ async function createServer() {
             // The shell is complete, and React is ready to start streaming.
             // Pipe the results to the intermediate stream.
             console.log("[debug-react-stream] shell completed");
+            writeAssetsIntoStream({
+              queryDataHolder,
+              preloadAssetHolder,
+              writable: s,
+            });
+
             pipe(s);
           },
           onAllReady() {

@@ -151,32 +151,6 @@ let applyPreCacheData = (replaySubject, ~id) => {
   }
 }
 
-let handleClientRequestForId = (~id, ~sink: RescriptRelay.Observable.sink<_>) => {
-  switch replaySubjects->Js.Dict.get(id) {
-  | Some(replaySubject) =>
-    // If there's already a ReplaySubject, subscribe to it
-    replaySubject->subscribeToReplaySubject(~id, ~sink)->Handled
-  | None =>
-    // No replay subject already, check if there's data we haven't handled
-    switch streamedPreCache->Js.Dict.get(id) {
-    | None =>
-      // No data, we can safely say this wasn't handled
-      NotHandled
-    | Some(preCacheData) =>
-      switch preCacheData->Js.Array2.length {
-      | 0 => NotHandled
-      | _ =>
-        // Data found! Create the replay subject, subscribe to it with the sink,
-        // and send the initial data
-        let replaySubject = RelayReplaySubject.make()
-        let subscription = replaySubject->subscribeToReplaySubject(~id, ~sink)
-        replaySubject->applyPreCacheData(~id)
-        subscription->Handled
-      }
-    }
-  }
-}
-
 let makeIdentifier = (operation: RescriptRelay.Network.operation, variables) =>
   operation.name ++ variables->Js.Json.stringify
 

@@ -8,11 +8,10 @@ type fetchOpts = {
 type response
 
 @val
-external fetch: (string, fetchOpts) => Promise.t<{"json": (. unit) => Promise.t<Js.Json.t>}> =
-  "fetch"
+external fetch: (string, fetchOpts) => Promise.t<'any> = "fetch"
 
-@val
-external fetch2: (string, fetchOpts) => Promise.t<response> = "fetch"
+@module("@remix-run/web-fetch")
+external fetchServer: (string, fetchOpts) => Promise.t<'any> = "fetch"
 
 module Meros = {
   type parts
@@ -36,7 +35,8 @@ module Meros = {
   ) => Js.Promise.t<unit> = %raw(`async function(parts, onNext, onError) {
     for await (const part of parts) {
 			if (!part.json) {
-				onError(new Error('Failed to parse part as json.'));
+        // console.log("no json from part", part);
+				// onError(new Error('Failed to parse part as json.'));
 				break;
 			}
 
@@ -44,7 +44,7 @@ module Meros = {
     }
   }`)
 
-  @module("meros")
+  @module("meros/browser")
   external meros: response => Js.Promise.t<parts> = "meros"
 
   let getChunks = (response: response, ~onNext, ~onError, ~onComplete): Js.Promise.t<unit> => {
@@ -78,7 +78,7 @@ let fetchQuery = RelaySSRUtils.makeClientFetchFunction((
   _cacheConfig,
   _uploads,
 ) => {
-  fetch2(
+  fetch(
     "http://localhost:4000/graphql",
     fetchOpts(
       ~_method="POST",
@@ -104,15 +104,18 @@ let fetchQuery = RelaySSRUtils.makeClientFetchFunction((
   None
 })
 
-let makeServerFetchQuery = (~onResponseReceived): RescriptRelay.Network.fetchFunctionObservable => {
-  RelaySSRUtils.makeServerFetchFunction(onResponseReceived, (
+let makeServerFetchQuery = (
+  ~onResponseReceived,
+  ~onQueryInitiated,
+): RescriptRelay.Network.fetchFunctionObservable => {
+  RelaySSRUtils.makeServerFetchFunction(onResponseReceived, onQueryInitiated, (
     sink,
     operation,
     variables,
     _cacheConfig,
     _uploads,
   ) => {
-    fetch2(
+    fetchServer(
       "http://localhost:4000/graphql",
       fetchOpts(
         ~_method="POST",
@@ -122,8 +125,7 @@ let makeServerFetchQuery = (~onResponseReceived): RescriptRelay.Network.fetchFun
         ->Belt.Option.getWithDefault(""),
       ),
     )
-    ->Promise.then(r => {
-      Js.log(r)
+    ->Promise.thenResolve(r => {
       r->Meros.getChunks(
         ~onNext=(. part) => {
           sink.next(. part)
@@ -131,7 +133,9 @@ let makeServerFetchQuery = (~onResponseReceived): RescriptRelay.Network.fetchFun
         ~onError=(. err) => {
           sink.error(. err)
         },
-        ~onComplete=sink.complete,
+        ~onComplete=(. ()) => {
+          sink.complete(.)
+        },
       )
     })
     ->ignore

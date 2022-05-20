@@ -4,8 +4,14 @@ type stream
 external renderToPipeableStream: (React.element, 'opts) => stream = "renderToPipeableStream"
 
 @live
-let getStream = (~url, ~options, ~onResponseReceived, ~onEmitPreloadAsset: (. {..}) => unit) => {
-  let environment = RelayEnv.makeServer(~onResponseReceived)
+let getStream = (
+  ~url,
+  ~options,
+  ~onResponseReceived,
+  ~onQueryInitiated,
+  ~onEmitPreloadAsset: (. {..}) => unit,
+) => {
+  let environment = RelayEnv.makeServer(~onResponseReceived, ~onQueryInitiated)
   let routerEnvironment = RelayRouter.RouterEnvironment.makeServerEnvironment(~initialUrl=url)
 
   let routes = RouteDeclarations.make()

@@ -59,6 +59,9 @@ async function createServer() {
       s.write(start);
 
       s.on("finish", () => {
+        res.write(
+          `<script type="text/javascript">window.__STREAM_COMPLETE();</script>`
+        );
         strm.end();
       });
 
@@ -81,7 +84,6 @@ async function createServer() {
           onAllReady() {
             // Write the end of the HTML document when React has streamed
             // everything it wants.
-            console.log("[debug-react-stream] writing end");
             res.write(end);
           },
           onError(x) {
@@ -97,7 +99,22 @@ async function createServer() {
         // TODO: Unify to handle all things the server should push to the stream
         // here? Module preloads, images, responses, etc.
         (id, response, final) => {
+          console.log(
+            `[debug-datalayer] pushing response: ${JSON.stringify({
+              id,
+              final,
+              response,
+            })}`
+          );
           queryDataHolder.queryData.push({ id, response, final });
+        },
+        (id) => {
+          console.log(
+            `[debug-datalayer] notifying client about started query: ${JSON.stringify(
+              id
+            )}`
+          );
+          queryDataHolder.queryData.push({ id });
         },
         // Handle asset preloading. Ideally this should be handled in ReScript
         // code instead, giving that handler the server manifest.

@@ -113,8 +113,8 @@ module URL: {
 
 type streamedEntry = {
   id: string,
-  response: Js.Json.t,
-  final: bool,
+  response: option<Js.Json.t>,
+  final: option<bool>,
 }
 
 module RelayReplaySubject: {

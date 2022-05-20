@@ -21,14 +21,19 @@ export class RescriptRelayWritable extends Writable {
       this._queryDataHolder.queryData = [];
 
       let appendDataText = queryData
-        .map(
-          ({ id, response, final }) =>
-            `\n  window.__RELAY_DATA.push({ id: ${JSON.stringify(
+        .map(({ id, response, final }) => {
+          if (response == null) {
+            return `\n  window.__RELAY_DATA.push({ id: ${JSON.stringify(
               id
-            )}, response: ${JSON.stringify(response)}, final: ${JSON.stringify(
-              final
-            )}});`
-        )
+            )}});`;
+          }
+
+          return `\n  window.__RELAY_DATA.push({ id: ${JSON.stringify(
+            id
+          )}, response: ${JSON.stringify(response)}, final: ${JSON.stringify(
+            final
+          )}});`;
+        })
         .join("");
 
       this._writable.write(`<script type="text/javascript">

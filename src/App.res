@@ -13,9 +13,14 @@ if !RelaySSRUtils.ssr {
 @react.component
 let make = () => {
   <>
-    <RescriptReactErrorBoundary fallback={_ => React.string("Error!")}>
+    <RescriptReactErrorBoundary
+      fallback={_ => {
+        React.string("Error!")
+      }}>
       <RelayRouter.RouteRenderer
-        renderFallback={_ => React.string("Fallback...")}
+        renderFallback={() => {
+          React.string("Fallback...")
+        }}
         renderPending={pending => <PendingIndicatorBar pending />}
       />
     </RescriptReactErrorBoundary>

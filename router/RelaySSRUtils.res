@@ -49,16 +49,6 @@ let handleIncomingStreamedDataEntry = (streamedEntry: streamedEntry) => {
   }
 }
 
-let hasPreparedInitialRoutesRef = ref(false)
-
-let setHasPreparedInitialRoutes = () => {
-  hasPreparedInitialRoutesRef.contents = true
-}
-
-let hasPreparedInitialRoutes = () => {
-  hasPreparedInitialRoutesRef.contents
-}
-
 @val
 external getElementById: string => Dom.node = "document.getElementById"
 
@@ -103,17 +93,15 @@ let bootOnClient = (~rootElementId, ~render) => {
   window->setStreamCompleteFn(() => {
     Js.log("[debug] completing stream: " ++ replaySubjects->Js.Dict.keys->Js.Array2.joinWith(", "))
     // Remove all replay subjects when stream has completed
-    /* replaySubjects
+    replaySubjects
     ->Js.Dict.keys
     ->Belt.Array.forEach(key => {
       replaySubjects->deleteKey(key)
-    })*/
+    })
   })
 }
 
-type ssrHandleResult = Handled(RescriptRelay.Observable.subscription) | NotHandled
-
-let subscribeToReplaySubject = (replaySubject, ~id, ~sink: RescriptRelay.Observable.sink<_>) =>
+let subscribeToReplaySubject = (replaySubject, ~sink: RescriptRelay.Observable.sink<_>) =>
   replaySubject->RelayReplaySubject.subscribe(
     RescriptRelay.Observable.makeObserver(
       ~next=data => {
@@ -121,11 +109,9 @@ let subscribeToReplaySubject = (replaySubject, ~id, ~sink: RescriptRelay.Observa
       },
       ~complete=() => {
         sink.complete(.)
-        // cleanupId(id)
       },
       ~error=e => {
         sink.error(. e)
-        // cleanupId(id)
       },
       (),
     ),
@@ -152,7 +138,7 @@ let applyPreCacheData = (replaySubject, ~id) => {
 }
 
 let makeIdentifier = (operation: RescriptRelay.Network.operation, variables) =>
-  operation.name ++ variables->Js.Json.stringify
+  operation.name ++ variables->Js.Json.stringifyAny->Belt.Option.getWithDefault("{}")
 
 let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObservable => {
   (operation, variables, _cacheConfig, _uploads) => {
@@ -163,7 +149,7 @@ let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObserv
       | Some(replaySubject) =>
         Js.log("[debug] request " ++ id ++ " had ReplaySubject")
         // Subscribe and apply any precache data
-        let subscription = replaySubject->subscribeToReplaySubject(~id, ~sink)
+        let subscription = replaySubject->subscribeToReplaySubject(~sink)
         replaySubject->applyPreCacheData(~id)
         Some(subscription)
       | None =>

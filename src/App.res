@@ -19,7 +19,6 @@ let make = () => {
       }}>
       <RelayRouter.RouteRenderer
         renderFallback={() => {
-          Js.log("[OH-NO] Rendering fallback...")
           <div> {React.string("Fallback...")} </div>
         }}
         renderPending={pending => <PendingIndicatorBar pending />}

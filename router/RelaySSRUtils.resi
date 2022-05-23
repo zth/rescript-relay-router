@@ -2,9 +2,6 @@
 let bootOnClient: (~rootElementId: string, ~render: unit => React.element) => unit
 
 @live
-let setHasPreparedInitialRoutes: unit => unit
-
-@live
 let makeClientFetchFunction: (
   (
     RescriptRelay.Observable.sink<Js.Json.t>,

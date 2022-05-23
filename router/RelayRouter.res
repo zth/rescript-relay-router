@@ -102,8 +102,6 @@ module Router = {
     let preparedMatches =
       initialMatches->prepareMatches(~environment, ~queryParams=initialQueryParams, ~location)
 
-    RelaySSRUtils.setHasPreparedInitialRoutes()
-
     let currentEntry = ref({
       location: location,
       preparedMatches: preparedMatches,
@@ -244,7 +242,6 @@ module Router = {
         },
       },
       () => {
-        Js.log("[debug] starting to load route renderers")
         initialMatches
         ->Belt.Array.map(({route}) => route.loadRouteRenderer())
         ->Js.Promise.all

@@ -74,12 +74,6 @@ module PreloadAssets = {
 
 let _ = PreloadAssets.preloadAssetViaLinkTag
 
-let getRouteMatches = (routes, ~routerEnvironment) => {
-  let location = History.getLocation(routerEnvironment)
-  let matchLocation = matchRoutes(routes)
-  matchLocation(location)->Belt.Option.getWithDefault([])
-}
-
 module Router = {
   let dictDelete: (
     Js.Dict.t<'any>,
@@ -311,6 +305,7 @@ module RouteRenderer = {
   }
 }
 
+@live
 let useRegisterPreloadedAsset = asset => {
   let registerAsset = RelaySSRUtils.AssetRegisterer.use()
   try {

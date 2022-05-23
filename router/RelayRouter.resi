@@ -13,11 +13,6 @@ module RouterEnvironment: {
   let makeServerEnvironment: (~initialUrl: string) => t
 }
 
-let getRouteMatches: (
-  array<Types.route>,
-  ~routerEnvironment: RouterEnvironment.t,
-) => array<Types.routeMatch>
-
 module Router: {
   let make: (
     ~routes: array<Types.route>,
@@ -47,4 +42,5 @@ module RouteRenderer: {
   ) => React.element
 }
 
+@live
 let useRegisterPreloadedAsset: Types.preloadAsset => unit

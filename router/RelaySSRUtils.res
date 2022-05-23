@@ -154,45 +154,6 @@ let applyPreCacheData = (replaySubject, ~id) => {
 let makeIdentifier = (operation: RescriptRelay.Network.operation, variables) =>
   operation.name ++ variables->Js.Json.stringify
 
-let _makeClientFetchFunction_old = (fetch): RescriptRelay.Network.fetchFunctionObservable => {
-  (operation, variables, _cacheConfig, _uploads) => {
-    RescriptRelay.Observable.make(sink => {
-      let id = makeIdentifier(operation, variables)
-
-      if !hasPreparedInitialRoutes() {
-        // In the cases where we haven't prepared the initial routes, we know
-        // that we should always expect the data to come via the stream from the
-        // server. This means we need to set up and use replay subjects.
-        let replaySubject = switch replaySubjects->Js.Dict.get(id) {
-        | None =>
-          let replaySubject = RelayReplaySubject.make()
-          replaySubjects->Js.Dict.set(id, replaySubject)
-          replaySubject
-        | Some(replaySubject) => replaySubject
-        }
-
-        // Subscribe and apply any precache data
-        let subscription = replaySubject->subscribeToReplaySubject(~id, ~sink)
-        replaySubject->applyPreCacheData(~id)
-        Some(subscription)
-      } else {
-        // If we have indeed prepared the initial routes already, we know that
-        // this request is not one of the initial ones. However, we still need
-        // to check whether the server has streamed data for this request, as
-        // lazy queries etc might be loaded later in the stream.
-        switch handleClientRequestForId(~id, ~sink) {
-        | Handled(subscription) =>
-          // If our SSR handler hit, we return the subscription it produces
-          Some(subscription)
-        | NotHandled =>
-          // But if it didn't, we delegate fetching to the actual network layer fetch implementation.
-          fetch(sink, operation, variables, _cacheConfig, _uploads)
-        }
-      }
-    })
-  }
-}
-
 let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObservable => {
   (operation, variables, _cacheConfig, _uploads) => {
     RescriptRelay.Observable.make(sink => {

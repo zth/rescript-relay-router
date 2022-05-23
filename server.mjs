@@ -62,6 +62,8 @@ async function createServer() {
       s.write(start);
 
       s.on("finish", () => {
+        console.log("[debug] writing end...");
+        strm.write(end);
         strm.end();
       });
 
@@ -90,7 +92,8 @@ async function createServer() {
           onAllReady() {
             // Write the end of the HTML document when React has streamed
             // everything it wants.
-            res.write(end);
+            // console.log("[debug] writing end");
+            // res.write(end);
           },
           onError(x) {
             didError = true;

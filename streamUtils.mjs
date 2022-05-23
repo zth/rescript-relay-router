@@ -23,9 +23,15 @@ export function writeAssetsIntoStream({
       })
       .join("");
 
-    writable.write(`<script type="text/javascript">
+    writable.write(`<script type="text/javascript" class="__relay_data">
 window.__RELAY_DATA = window.__RELAY_DATA || [];
 ${appendDataText}
+Array.prototype.forEach.call(
+  document.getElementsByClassName("__relay_data"), 
+  function (element) {
+    element.remove()
+  }
+);
 </script>`);
 
     if (preloadAssetHolder.assets.length > 0) {

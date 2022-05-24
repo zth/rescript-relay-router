@@ -25,9 +25,15 @@ let cleanupId = id => {
   replaySubjects->deleteKey(id)
 }
 
-let handleIncomingStreamedDataEntry = (streamedEntry: streamedEntry) =>
+let handleIncomingStreamedDataEntry = (streamedEntry: streamedEntry) => {
+  Js.log(
+    "[debug] Got streamed entry: " ++
+    Js.Json.stringifyAny(streamedEntry)->Belt.Option.getWithDefault("-"),
+  )
   switch replaySubjects->Js.Dict.get(streamedEntry.id) {
   | None =>
+    // No existing subject means this is the init request. Create a replay subject.
+    replaySubjects->Js.Dict.set(streamedEntry.id, RelayReplaySubject.make())
     switch streamedPreCache->Js.Dict.get(streamedEntry.id) {
     | None => streamedPreCache->Js.Dict.set(streamedEntry.id, [streamedEntry])
     | Some(data) =>
@@ -35,20 +41,12 @@ let handleIncomingStreamedDataEntry = (streamedEntry: streamedEntry) =>
     }
   | Some(replaySubject) =>
     replaySubject->RelayReplaySubject.applyPayload(streamedEntry)
-    if streamedEntry.final {
+
+    if streamedEntry.final->Belt.Option.getWithDefault(false) {
+      Js.log("[debug] completing replay subject with id " ++ streamedEntry.id)
       replaySubject->RelayReplaySubject.complete
-      cleanupId(streamedEntry.id)
     }
   }
-
-let hasPreparedInitialRoutesRef = ref(false)
-
-let setHasPreparedInitialRoutes = () => {
-  hasPreparedInitialRoutesRef.contents = true
-}
-
-let hasPreparedInitialRoutes = () => {
-  hasPreparedInitialRoutesRef.contents
 }
 
 @val
@@ -60,11 +58,31 @@ external isReadyToBoot: window => option<bool> = "__READY_TO_BOOT"
 @set
 external setBootFn: (window, unit => unit) => unit = "__BOOT"
 
-@module("react-dom")
+@set
+external setStreamCompleteFn: (window, unit => unit) => unit = "__STREAM_COMPLETE"
+
+@module("react-dom/client")
 external hydrateRoot: (Dom.node, React.element) => unit = "hydrateRoot"
 
 let bootOnClient = (~rootElementId, ~render) => {
-  let boot = () => rootElementId->getElementById->hydrateRoot(render)
+  let boot = () => {
+    window
+    ->unsafe_initialRelayData
+    ->Belt.Option.getWithDefault([])
+    ->Belt.Array.forEach(streamedEntry => {
+      handleIncomingStreamedDataEntry(streamedEntry)
+    })
+
+    window->setRelayDataStructure({
+      push: (. streamedEntry) => {
+        Js.log2("[debug] Got stream response when client was ready: ", streamedEntry)
+        handleIncomingStreamedDataEntry(streamedEntry)
+      },
+    })
+
+    Js.log("[debug] Booting because stream said so...")
+    rootElementId->getElementById->hydrateRoot(render())
+  }
 
   window->setBootFn(boot)
 
@@ -72,23 +90,18 @@ let bootOnClient = (~rootElementId, ~render) => {
     boot()
   }
 
-  window
-  ->unsafe_initialRelayData
-  ->Belt.Option.getWithDefault([])
-  ->Belt.Array.forEach(streamedEntry => {
-    handleIncomingStreamedDataEntry(streamedEntry)
-  })
-
-  window->setRelayDataStructure({
-    push: (. streamedEntry) => {
-      handleIncomingStreamedDataEntry(streamedEntry)
-    },
+  window->setStreamCompleteFn(() => {
+    Js.log("[debug] completing stream: " ++ replaySubjects->Js.Dict.keys->Js.Array2.joinWith(", "))
+    // Remove all replay subjects when stream has completed
+    replaySubjects
+    ->Js.Dict.keys
+    ->Belt.Array.forEach(key => {
+      replaySubjects->deleteKey(key)
+    })
   })
 }
 
-type ssrHandleResult = Handled(RescriptRelay.Observable.subscription) | NotHandled
-
-let subscribeToReplaySubject = (replaySubject, ~id, ~sink: RescriptRelay.Observable.sink<_>) =>
+let subscribeToReplaySubject = (replaySubject, ~sink: RescriptRelay.Observable.sink<_>) =>
   replaySubject->RelayReplaySubject.subscribe(
     RescriptRelay.Observable.makeObserver(
       ~next=data => {
@@ -96,11 +109,9 @@ let subscribeToReplaySubject = (replaySubject, ~id, ~sink: RescriptRelay.Observa
       },
       ~complete=() => {
         sink.complete(.)
-        cleanupId(id)
       },
       ~error=e => {
         sink.error(. e)
-        cleanupId(id)
       },
       (),
     ),
@@ -111,10 +122,14 @@ let applyPreCacheData = (replaySubject, ~id) => {
   | None => ()
   | Some(preCacheData) =>
     preCacheData->Belt.Array.forEach(data => {
-      replaySubject->RelayReplaySubject.next(data.response)
-      if data.final {
-        replaySubject->RelayReplaySubject.complete
-        cleanupId(id)
+      switch data {
+      | {response: Some(response), final: Some(final)} =>
+        replaySubject->RelayReplaySubject.next(response)
+        if final {
+          replaySubject->RelayReplaySubject.complete
+          cleanupId(id)
+        }
+      | _ => ()
       }
     })
 
@@ -122,69 +137,24 @@ let applyPreCacheData = (replaySubject, ~id) => {
   }
 }
 
-let handleClientRequestForId = (~id, ~sink: RescriptRelay.Observable.sink<_>) => {
-  switch replaySubjects->Js.Dict.get(id) {
-  | Some(replaySubject) =>
-    // If there's already a ReplaySubject, subscribe to it
-    replaySubject->subscribeToReplaySubject(~id, ~sink)->Handled
-  | None =>
-    // No replay subject already, check if there's data we haven't handled
-    switch streamedPreCache->Js.Dict.get(id) {
-    | None =>
-      // No data, we can safely say this wasn't handled
-      NotHandled
-    | Some(preCacheData) =>
-      switch preCacheData->Js.Array2.length {
-      | 0 => NotHandled
-      | _ =>
-        // Data found! Create the replay subject, subscribe to it with the sink,
-        // and send the initial data
-        let replaySubject = RelayReplaySubject.make()
-        let subscription = replaySubject->subscribeToReplaySubject(~id, ~sink)
-        replaySubject->applyPreCacheData(~id)
-        subscription->Handled
-      }
-    }
-  }
-}
-
 let makeIdentifier = (operation: RescriptRelay.Network.operation, variables) =>
-  operation.name ++ variables->Js.Json.stringify
+  operation.name ++ variables->Js.Json.stringifyAny->Belt.Option.getWithDefault("{}")
 
 let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObservable => {
   (operation, variables, _cacheConfig, _uploads) => {
     RescriptRelay.Observable.make(sink => {
       let id = makeIdentifier(operation, variables)
 
-      if !hasPreparedInitialRoutes() {
-        // In the cases where we haven't prepared the initial routes, we know
-        // that we should always expect the data to come via the stream from the
-        // server. This means we need to set up and use replay subjects.
-        let replaySubject = switch replaySubjects->Js.Dict.get(id) {
-        | None =>
-          let replaySubject = RelayReplaySubject.make()
-          replaySubjects->Js.Dict.set(id, replaySubject)
-          replaySubject
-        | Some(replaySubject) => replaySubject
-        }
-
+      switch replaySubjects->Js.Dict.get(id) {
+      | Some(replaySubject) =>
+        Js.log("[debug] request " ++ id ++ " had ReplaySubject")
         // Subscribe and apply any precache data
-        let subscription = replaySubject->subscribeToReplaySubject(~id, ~sink)
+        let subscription = replaySubject->subscribeToReplaySubject(~sink)
         replaySubject->applyPreCacheData(~id)
         Some(subscription)
-      } else {
-        // If we have indeed prepared the initial routes already, we know that
-        // this request is not one of the initial ones. However, we still need
-        // to check whether the server has streamed data for this request, as
-        // lazy queries etc might be loaded later in the stream.
-        switch handleClientRequestForId(~id, ~sink) {
-        | Handled(subscription) =>
-          // If our SSR handler hit, we return the subscription it produces
-          Some(subscription)
-        | NotHandled =>
-          // But if it didn't, we delegate fetching to the actual network layer fetch implementation.
-          fetch(sink, operation, variables, _cacheConfig, _uploads)
-        }
+      | None =>
+        Js.log("[debug] request " ++ id ++ " did not have ReplaySubject")
+        fetch(sink, operation, variables, _cacheConfig, _uploads)
       }
     })
   }
@@ -192,9 +162,14 @@ let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObserv
 
 let makeServerFetchFunction = (
   onResponseReceived,
+  onQueryInitiated,
   fetch,
 ): RescriptRelay.Network.fetchFunctionObservable => {
   (operation, variables, cacheConfig, uploads) => {
+    let queryId = makeIdentifier(operation, variables)
+
+    onQueryInitiated(~queryId)
+
     let observable = RescriptRelay.Observable.make(sink => {
       fetch(sink, operation, variables, cacheConfig, uploads)
     })
@@ -205,9 +180,20 @@ let makeServerFetchFunction = (
       observable->RescriptRelay.Observable.subscribe(
         RescriptRelay.Observable.makeObserver(~next=payload => {
           onResponseReceived(
-            ~queryId=makeIdentifier(operation, variables),
+            ~queryId,
             ~response=payload,
-            ~final=true,
+            ~final=switch payload->Js.Json.decodeObject {
+            | Some(obj) =>
+              switch obj->Js.Dict.get("hasNext") {
+              | None => true
+              | Some(hasNext) =>
+                switch hasNext->Js.Json.decodeBoolean {
+                | Some(true) => false
+                | _ => true
+                }
+              }
+            | None => true
+            },
           )
         }, ()),
       )

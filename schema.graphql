@@ -1,3 +1,28 @@
+"""
+Directs the executor to defer this fragment when the `if` argument is true or undefined.
+"""
+directive @defer(
+  """Deferred when true or undefined."""
+  if: Boolean
+
+  """Unique name"""
+  label: String
+) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"""
+Directs the executor to stream plural fields when the `if` argument is true or undefined.
+"""
+directive @stream(
+  """Stream when true or undefined."""
+  if: Boolean
+
+  """Unique name"""
+  label: String
+
+  """Number of items to return immediately"""
+  initialCount: Int = 0
+) on FIELD
+
 input AddTodoItemInput {
   text: String!
   clientMutationId: String
@@ -5,6 +30,7 @@ input AddTodoItemInput {
 
 type AddTodoItemPayload {
   addedTodoItem: TodoItem
+  addedTodoItemEdge: TodoItemEdge
   clientMutationId: String
 }
 
@@ -69,9 +95,35 @@ type Query {
   ): Node
   userById(id: ID!): User
   siteStatistics: SiteStatistics!
-  ticketsConnection(status: TicketStatus, after: String, first: Int, before: String, last: Int): TicketConnection!
+  ticketsConnection(
+    status: TicketStatus
+
+    """Returns the items in the list that come after the specified cursor."""
+    after: String
+
+    """Returns the first n items from the list."""
+    first: Int
+
+    """Returns the items in the list that come before the specified cursor."""
+    before: String
+
+    """Returns the last n items from the list."""
+    last: Int
+  ): TicketConnection!
   tickets(status: TicketStatus, limit: Int!, offset: Int!): TicketsPaginated!
-  todosConnection(after: String, first: Int, before: String, last: Int): TodoItemConnection!
+  todosConnection(
+    """Returns the items in the list that come after the specified cursor."""
+    after: String
+
+    """Returns the first n items from the list."""
+    first: Int
+
+    """Returns the items in the list that come before the specified cursor."""
+    before: String
+
+    """Returns the last n items from the list."""
+    last: Int
+  ): TodoItemConnection!
   todos(limit: Int!, offset: Int!): TodosPaginated!
   allTodos: [TodoItem!]!
 }

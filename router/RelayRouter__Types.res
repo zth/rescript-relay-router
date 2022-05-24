@@ -45,6 +45,7 @@ type subFn = currentRouterEntry => unit
 type unsubFn = unit => unit
 type cleanupFn = unit => unit
 type callback = unit => unit
+type awaitAllRouteRenderers = unit => Js.Promise.t<unit>
 
 type routerEvent =
   | OnBeforeNavigation({currentLocation: RelayRouter__Bindings.History.location})
@@ -70,6 +71,7 @@ type streamedEntry = {
 }
 
 type onResponseReceivedFn = (~queryId: string, ~response: Js.Json.t, ~final: bool) => unit
+type onQueryInitiatedFn = (~queryId: string) => unit
 
 @live
 type setQueryParamsMode = Push | Replace

@@ -1,6 +1,6 @@
 module Query = %relay(`
   query LayoutQuery {
-    ...LayoutDisplay_query
+    ...LayoutDisplay_query @defer
   }
 `)
 

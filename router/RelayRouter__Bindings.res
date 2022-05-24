@@ -186,8 +186,8 @@ module URL = {
 
 type streamedEntry = {
   id: string,
-  response: Js.Json.t,
-  final: bool,
+  response: option<Js.Json.t>,
+  final: option<bool>,
 }
 
 module RelayReplaySubject = {
@@ -218,10 +218,13 @@ module RelayReplaySubject = {
   external getObserverCount: t => int = "getObserverCount"
 
   let applyPayload = (t, entry: streamedEntry) => {
-    t->next(entry.response)
-
-    if entry.final {
-      complete(t)
+    switch entry {
+    | {final: Some(final), response: Some(response)} =>
+      t->next(response)
+      if final {
+        complete(t)
+      }
+    | _ => ()
     }
   }
 }

@@ -5,7 +5,10 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fetch from "node-fetch";
 import stream from "stream";
-import { RescriptRelayWritable } from "./streamUtils.mjs";
+import {
+  RescriptRelayWritable,
+  writeAssetsIntoStream,
+} from "./streamUtils.mjs";
 import { findGeneratedModule } from "./lookup.mjs";
 
 global.fetch = fetch;
@@ -59,6 +62,11 @@ async function createServer() {
       s.write(start);
 
       s.on("finish", () => {
+        console.log("[debug] writing end...");
+        strm.write(
+          `<script type="text/javascript">window.__STREAM_COMPLETE();</script>`
+        );
+        strm.write(end);
         strm.end();
       });
 
@@ -76,13 +84,19 @@ async function createServer() {
             // The shell is complete, and React is ready to start streaming.
             // Pipe the results to the intermediate stream.
             console.log("[debug-react-stream] shell completed");
+            writeAssetsIntoStream({
+              queryDataHolder,
+              preloadAssetHolder,
+              writable: s,
+            });
+
             pipe(s);
           },
           onAllReady() {
             // Write the end of the HTML document when React has streamed
             // everything it wants.
-            console.log("[debug-react-stream] writing end");
-            res.write(end);
+            // console.log("[debug] writing end");
+            // res.write(end);
           },
           onError(x) {
             didError = true;
@@ -97,7 +111,22 @@ async function createServer() {
         // TODO: Unify to handle all things the server should push to the stream
         // here? Module preloads, images, responses, etc.
         (id, response, final) => {
+          console.log(
+            `[debug-datalayer] pushing response: ${JSON.stringify({
+              id,
+              final,
+              response,
+            })}`
+          );
           queryDataHolder.queryData.push({ id, response, final });
+        },
+        (id) => {
+          console.log(
+            `[debug-datalayer] notifying client about started query: ${JSON.stringify(
+              id
+            )}`
+          );
+          queryDataHolder.queryData.push({ id });
         },
         // Handle asset preloading. Ideally this should be handled in ReScript
         // code instead, giving that handler the server manifest.

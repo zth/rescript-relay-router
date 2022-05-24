@@ -18,7 +18,7 @@ module Router: {
     ~routes: array<Types.route>,
     ~routerEnvironment: RouterEnvironment.t,
     ~environment: RescriptRelay.Environment.t,
-  ) => (Types.cleanupFn, Types.routerContext)
+  ) => (Types.cleanupFn, Types.routerContext, Types.awaitAllRouteRenderers)
 }
 
 module Provider: {
@@ -42,4 +42,5 @@ module RouteRenderer: {
   ) => React.element
 }
 
+@live
 let useRegisterPreloadedAsset: Types.preloadAsset => unit

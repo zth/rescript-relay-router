@@ -1,8 +1,5 @@
 @live
-let bootOnClient: (~rootElementId: string, ~render: React.element) => unit
-
-@live
-let setHasPreparedInitialRoutes: unit => unit
+let bootOnClient: (~rootElementId: string, ~render: unit => React.element) => unit
 
 @live
 let makeClientFetchFunction: (
@@ -18,6 +15,7 @@ let makeClientFetchFunction: (
 @live
 let makeServerFetchFunction: (
   RelayRouter__Types.onResponseReceivedFn,
+  RelayRouter__Types.onQueryInitiatedFn,
   (
     RescriptRelay.Observable.sink<Js.Json.t>,
     RescriptRelay.Network.operation,

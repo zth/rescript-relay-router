@@ -1,5 +1,49 @@
 import { Writable } from "stream";
 
+export function writeAssetsIntoStream({
+  queryDataHolder,
+  preloadAssetHolder,
+  writable,
+}) {
+  if (queryDataHolder.queryData.length > 0) {
+    let { queryData } = queryDataHolder;
+    queryDataHolder.queryData = [];
+
+    let appendDataText = queryData
+      .map(({ id, response, final }) => {
+        if (response == null) {
+          return `\n  window.__RELAY_DATA.push({ id: ${JSON.stringify(id)}});`;
+        }
+
+        return `\n  window.__RELAY_DATA.push({ id: ${JSON.stringify(
+          id
+        )}, response: ${JSON.stringify(response)}, final: ${JSON.stringify(
+          final
+        )}});`;
+      })
+      .join("");
+
+    writable.write(`<script type="text/javascript" class="__relay_data">
+window.__RELAY_DATA = window.__RELAY_DATA || [];
+${appendDataText}
+Array.prototype.forEach.call(
+  document.getElementsByClassName("__relay_data"), 
+  function (element) {
+    element.remove()
+  }
+);
+</script>`);
+
+    if (preloadAssetHolder.assets.length > 0) {
+      let { assets } = preloadAssetHolder;
+      preloadAssetHolder.assets = [];
+      let appendDataText = assets.join("\n");
+      console.log("[debug-stream] writing preloaded assets", appendDataText);
+      writable.write(appendDataText);
+    }
+  }
+}
+
 export class RescriptRelayWritable extends Writable {
   constructor(writable, queryDataHolder, preloadAssetHolder) {
     super();
@@ -16,36 +60,11 @@ export class RescriptRelayWritable extends Writable {
     // React wants to write something to the stream, which incidentally makes it
     // a great place for us to check if there are any new assets to push to the
     // stream.
-    if (this._queryDataHolder.queryData.length > 0) {
-      let { queryData } = this._queryDataHolder;
-      this._queryDataHolder.queryData = [];
-
-      let appendDataText = queryData
-        .map(
-          ({ id, response, final }) =>
-            `\n  window.__RELAY_DATA.push({ id: ${JSON.stringify(
-              id
-            )}, response: ${JSON.stringify(response)}, final: ${JSON.stringify(
-              final
-            )}});`
-        )
-        .join("");
-
-      this._writable.write(`<script type="text/javascript">
-  window.__RELAY_DATA = window.__RELAY_DATA || [];
-${appendDataText}
-</script>`);
-    }
-
-    if (this._preloadAssetHolder.assets.length > 0) {
-      let { assets } = this._preloadAssetHolder;
-      this._preloadAssetHolder.assets = [];
-      let appendDataText = assets.join("\n");
-      console.log("[debug-stream] writing preloaded assets", appendDataText);
-      this._writable.write(appendDataText);
-    }
-
-    console.log("[debug-stream] writing chunk");
+    writeAssetsIntoStream({
+      queryDataHolder: this._queryDataHolder,
+      preloadAssetHolder: this._preloadAssetHolder,
+      writable: this._writable,
+    });
 
     this._writable.write(chunk, encoding, callback);
   }

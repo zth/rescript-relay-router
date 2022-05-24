@@ -606,6 +606,7 @@ module Decode = {
           },
           content: [],
           parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+          parentRouteLoc: parentContext.parentRouteLoc,
         })
 
         // Route files must end with .json
@@ -629,6 +630,7 @@ module Decode = {
                 fileName: {loc: valueLoc, text: fileName},
                 content: content,
                 parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+                parentRouteLoc: parentContext.parentRouteLoc,
               }),
             )
           }
@@ -662,6 +664,7 @@ module Decode = {
               children: None,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+              parentRouteLoc: parentContext.parentRouteLoc,
             }),
           )
         | (None, Some(name)) =>
@@ -680,6 +683,7 @@ module Decode = {
               children: None,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+              parentRouteLoc: parentContext.parentRouteLoc,
             }),
           )
         | (Some(path), Some(name)) =>
@@ -689,7 +693,7 @@ module Decode = {
             path.pathRaw->RoutePath.make(~currentRoutePath=parentContext.currentRoutePath)
 
           let children = switch children {
-          | Some({value: Array({children})}) =>
+          | Some({value: Array({children, loc})}) =>
             Some(
               children->decodeRouteChildren(
                 ~ctx,
@@ -707,6 +711,9 @@ module Decode = {
                   currentRouteNamePath: thisRouteNamePath,
                   seenQueryParams: path.queryParams,
                   traversedRouteFiles: parentContext.traversedRouteFiles,
+                  parentRouteLoc: Some({
+                    childrenArray: loc,
+                  }),
                 },
               ),
             )
@@ -730,6 +737,7 @@ module Decode = {
               children: children,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+              parentRouteLoc: parentContext.parentRouteLoc,
             }),
           )
 
@@ -776,7 +784,16 @@ module Decode = {
     | Some(Array({loc, children: []})) =>
       ctx.addDecodeError(~loc, ~message=`Empty route file. Route files should not be empty.`)
       []
-    | Some(Array({children})) => children->decodeRouteChildren(~ctx, ~parentContext)
+    | Some(Array({children, loc})) =>
+      children->decodeRouteChildren(
+        ~ctx,
+        ~parentContext={
+          ...parentContext,
+          parentRouteLoc: Some({
+            childrenArray: loc,
+          }),
+        },
+      )
     }
   }
 }
@@ -922,6 +939,7 @@ let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
       currentRoutePath: RoutePath.empty(),
       seenPathParams: list{},
       traversedRouteFiles: list{},
+      parentRouteLoc: None,
     },
     ~parserContext={
       routeFiles: routeFiles,

@@ -21,6 +21,11 @@ type decodeError = {
   loc: range,
 }
 
+type parentRouteLoc = {
+  // The loc for the children array
+  childrenArray: range,
+}
+
 type rec queryParam =
   Array(queryParam) | String | Boolean | Int | Float | CustomModule({moduleName: string})
 
@@ -140,6 +145,7 @@ type rec includeEntry = {
   fileName: textNode,
   content: array<routeChild>,
   parentRouteFiles: array<string>,
+  parentRouteLoc: option<parentRouteLoc>,
 }
 and routeEntry = {
   loc: range,
@@ -151,6 +157,7 @@ and routeEntry = {
   children: option<array<routeChild>>,
   sourceFile: string,
   parentRouteFiles: array<string>,
+  parentRouteLoc: option<parentRouteLoc>,
 }
 and routeChild = Include(includeEntry) | RouteEntry(routeEntry)
 
@@ -192,6 +199,7 @@ type parentContext = {
   currentRouteNamePath: list<string>,
   seenPathParams: list<seenPathParam>,
   traversedRouteFiles: list<string>,
+  parentRouteLoc: option<parentRouteLoc>,
 }
 
 // This is the route structure produced

@@ -22,6 +22,7 @@ let streamedPreCache: Js.Dict.t<array<streamedEntry>> = Js.Dict.empty()
 let replaySubjects: Js.Dict.t<RelayReplaySubject.t> = Js.Dict.empty()
 
 let cleanupId = id => {
+  Js.log("[debug] Cleaning up id \"" ++ id ++ "\"")
   replaySubjects->deleteKey(id)
 }
 
@@ -150,8 +151,22 @@ let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObserv
         Js.log("[debug] request " ++ id ++ " had ReplaySubject")
         // Subscribe and apply any precache data
         let subscription = replaySubject->subscribeToReplaySubject(~sink)
+        // Subscribe with a new observer so we can clean up the replay subject after it finishes
+        let cleanupSubscription =
+          replaySubject->RelayReplaySubject.subscribe(
+            RescriptRelay.Observable.makeObserver(~complete=() => {
+              cleanupId(id)
+            }, ()),
+          )
+
         replaySubject->applyPreCacheData(~id)
-        Some(subscription)
+        Some({
+          closed: false,
+          unsubscribe: () => {
+            subscription.unsubscribe()
+            cleanupSubscription.unsubscribe()
+          },
+        })
       | None =>
         Js.log("[debug] request " ++ id ++ " did not have ReplaySubject")
         fetch(sink, operation, variables, _cacheConfig, _uploads)

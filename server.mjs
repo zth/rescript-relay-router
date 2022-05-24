@@ -63,9 +63,6 @@ async function createServer() {
 
       s.on("finish", () => {
         console.log("[debug] writing end...");
-        strm.write(
-          `<script type="text/javascript">window.__STREAM_COMPLETE();</script>`
-        );
         strm.write(end);
         strm.end();
       });

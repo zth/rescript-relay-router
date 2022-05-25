@@ -165,6 +165,7 @@ async function createServer() {
   });
 
   app.listen(9999);
+  console.log("Listening on http://localhost:9999 🚀");
 }
 
 createServer();

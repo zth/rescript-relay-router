@@ -32,4 +32,6 @@ export default defineConfig({
       },
     },
   },
+  // Prevent ReScript messages from being lost when we run all things at the same time.
+  clearScreen: false,
 });

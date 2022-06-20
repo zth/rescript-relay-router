@@ -32,19 +32,20 @@
   },
   "peerDependencies": {
     "@rescript/react": "^0.10.3",
-    "vite": "^2.8.0-beta.3",
-    "rescript-relay": "^1.0.0-beta.11"
+    "react": ">=18.2.0",
+    "rescript-relay": "^1.0.0-beta.11",
+    "vite": "^2.8.0-beta.3"
   },
   "dependencies": {
-    "history": "^5.2.0",
-    "react-router": "^6.2.1",
+    "chalk": "^5.0.1",
     "chokidar": "^3.5.3",
     "cosmiconfig": "^7.0.1",
-    "fast-glob": "^3.2.11",
-    "vscode-jsonrpc": "^5.0.1",
     "fast-fuzzy": "^1.11.1",
+    "fast-glob": "^3.2.11",
+    "history": "^5.2.0",
     "jsonc-parser": "^3.0.0",
-    "chalk": "^5.0.1",
-    "lines-and-columns": "^2.0.3"
+    "lines-and-columns": "^2.0.3",
+    "react-router": "^6.2.1",
+    "vscode-jsonrpc": "^5.0.1"
   }
 }

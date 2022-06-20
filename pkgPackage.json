@@ -32,6 +32,7 @@
   },
   "peerDependencies": {
     "@rescript/react": "^0.10.3",
+    "react": ">=18.2.0",
     "rescript-relay": "^1.0.0-beta.11",
     "vite": "^2.8.0-beta.3"
   },

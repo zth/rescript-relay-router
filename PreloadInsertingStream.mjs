@@ -46,8 +46,7 @@ export default class PreloadInsertingStream extends Writable {
     let scriptTags = '';
 
     if (this._queryData.length > 0) {
-      scriptTags += `
-        <script type="text/javascript" class="__relay_data">
+      scriptTags += `<script type="text/javascript" class="__relay_data">
           window.__RELAY_DATA = window.__RELAY_DATA || [];
           ${this._queryData.map(asRelayDataAppend).join("\n")}
           Array.prototype.forEach.call(
@@ -56,14 +55,13 @@ export default class PreloadInsertingStream extends Writable {
               element.remove()
             }
           );
-          </script>
-      `;
+          </script>`;
 
       this._queryData = [];
     }
 
     if (this._assetLoaderTags.length > 0) {
-      scriptTags += this._assetLoaderTags.join("\n");
+      scriptTags += this._assetLoaderTags.join("");
 
       this._assetLoaderTags = [];
     }

@@ -5,11 +5,8 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fetch from "node-fetch";
 import stream from "stream";
-import {
-  RescriptRelayWritable,
-  writeAssetsIntoStream,
-} from "./streamUtils.mjs";
 import { findGeneratedModule } from "./lookup.mjs";
+import PreloadInsertingStream from "./PreloadInsertingStream.mjs";
 
 global.fetch = fetch;
 
@@ -39,16 +36,9 @@ async function createServer() {
 
       let [start, end] = template.split("<!--ssr-outlet-->");
 
-      let queryDataHolder = { queryData: [] };
-      let preloadAssetHolder = { assets: [] };
-
       let strm = new stream.PassThrough();
 
-      let s = new RescriptRelayWritable(
-        strm,
-        queryDataHolder,
-        preloadAssetHolder
-      );
+      let preloadInsertingStream = new PreloadInsertingStream(strm);
 
       // Pipe everything from our pass through stream into res so it goes to the
       // client.
@@ -57,13 +47,13 @@ async function createServer() {
       // This here is a trade off. It lets us start streaming early, but it also
       // means we'll always return 200 since there's no way we can catch error
       // before starting the stream, as we do it early.
+      // TODO: We can move this into `on*Ready` without any performance penalty. At that point we at least know whether the shell (initial suspense boundaries) was successful.
       res.statusCode = didError ? 500 : 200;
       res.setHeader("Content-type", "text/html");
-      s.write(start);
+      preloadInsertingStream.write(start);
 
-      s.on("finish", () => {
-        console.log("[debug] writing end...");
-        strm.write(end);
+      preloadInsertingStream.on("finish", () => {
+
         strm.end();
       });
 
@@ -81,13 +71,11 @@ async function createServer() {
             // The shell is complete, and React is ready to start streaming.
             // Pipe the results to the intermediate stream.
             console.log("[debug-react-stream] shell completed");
-            writeAssetsIntoStream({
-              queryDataHolder,
-              preloadAssetHolder,
-              writable: s,
-            });
 
-            pipe(s);
+            pipe(preloadInsertingStream);
+
+            console.log("[debug] writing end...");
+            strm.write(end);
           },
           onAllReady() {
             // Write the end of the HTML document when React has streamed
@@ -115,7 +103,7 @@ async function createServer() {
               response,
             })}`
           );
-          queryDataHolder.queryData.push({ id, response, final });
+          preloadInsertingStream.onQuery(id, response, final);
         },
         (id) => {
           console.log(
@@ -123,7 +111,7 @@ async function createServer() {
               id
             )}`
           );
-          queryDataHolder.queryData.push({ id });
+          preloadInsertingStream.onQuery(id)
         },
         // Handle asset preloading. Ideally this should be handled in ReScript
         // code instead, giving that handler the server manifest.
@@ -140,7 +128,7 @@ async function createServer() {
                 const mod = vite.moduleGraph.getModuleById(rescriptModuleLoc);
 
                 if (mod != null) {
-                  preloadAssetHolder.assets.push(
+                  preloadInsertingStream.onAssetPreload(
                     `<script type="module" src="${mod.url}" async></script>`
                   );
                 }

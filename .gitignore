@@ -10,4 +10,5 @@ src/__generated__/**
 src/**/*.mjs
 router/**/*.mjs
 cli/**/*.mjs
+Server.mjs
 _release

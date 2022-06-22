@@ -1,6 +1,3 @@
-// TODO: Convert lookup.mjs to ReScript by leveraging Vite.
-%%raw(`import { findGeneratedModule } from "./lookup.mjs";`)
-
 // TODO: Move this into the router.
 module PreloadInsertingStream = {
   // TODO: This can also be e.g. a CloudFlare writable stream.

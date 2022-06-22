@@ -60,3 +60,5 @@ let useIsRouteActive = (~href, ~routePattern, ~exact=false, ()) => {
     (pathname, href, routePattern, exact),
   )
 }
+
+@val external transformReScriptModuleToJsPath : string => string = "__transformReScriptModuleToJsPath"

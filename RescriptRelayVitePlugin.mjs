@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import readline from "readline";
+import MagicString from "magic-string";
 import { runCli } from "./cli/RescriptRelayRouterCli__Commands.mjs";
 
 // Expected to run in vite.config.js folder, right next to bsconfig.
@@ -127,53 +128,73 @@ export let rescriptRelayVitePlugin = ({
         }
       }
     },
-    // Disabled for now, until we figure out how to inline these imports
-    // properly. These should then use `magic-string` or something source
-    // map aware tool that we can use when modifying this text.
-    /*
-    async transform(code) {
-      return code;
-
-      
-      return replaceAsync(
+    // Transforms the magic string `__transformReScriptModuleToJsPath("@rescriptModule/package")`
+    // into the actual path fo the asset.
+    async transform(code, id) {
+      const transformedCode = await replaceAsyncWithMagicString(
         code,
-        /@rescriptModule\/([A-Za-z0-9_]*)/gm,
-        async (match, moduleName) => {
-          if (moduleName != null && moduleName !== "") {
-            const resolved = await this.resolve(match);
+        /__transformReScriptModuleToJsPath\("@rescriptModule\/([A-Za-z0-9_]*)"\)/gm,
+        async (fullMatch, moduleId) => {
+          if (moduleId != null && moduleId !== "") {
+            let resolved = await findGeneratedModule(moduleId);
             if (resolved != null) {
-              return resolved.id;
+              // Transform the absolute path from findGeneratedModule to a relative path.
+              if (path.isAbsolute(resolved)) {
+                resolved = path.normalize(path.relative(process.cwd(), resolved))
+              }
+              return `"${resolved}"`;
             }
+            console.warn(`Could not resolve Rescript Module '${moduleId}' for match '${fullMatch}'.`);
+          }
+          else {
+            console.warn(`Tried to resolve ReScript module to path but match '${fullMatch}' didn't contain a moduleId.`);
           }
 
-          return match;
+          return fullMatch;
         }
       );
-    },*/
+
+      const sourceMap = transformedCode.generateMap({
+        source: id,
+        file: `${id}.map`,
+      });
+
+      return {
+        code: transformedCode.toString(),
+        map: sourceMap.toString(),
+      }
+    },
   };
 };
 
-function replaceAsync(string, searchValue, replacer) {
+/**
+ * Performs a string replace with an async replacer function returning a source map.
+ *
+ * Takes the following steps:
+ * 1. Run fake pass of `replace`, collect values from `replacer` calls
+ * 2. Resolve them with `Promise.all`
+ * 3. Create a 'MagicString' (using the magic-string package).
+ * 4. Run `replace` with resolved values
+ */
+function replaceAsyncWithMagicString(string, searchValue, replacer) {
+  if (typeof replacer !== "function") {
+    throw new Error("Must provide a replacer function, otherwise just call replace directly.");
+  }
   try {
-    if (typeof replacer === "function") {
-      // 1. Run fake pass of `replace`, collect values from `replacer` calls
-      // 2. Resolve them with `Promise.all`
-      // 3. Run `replace` with resolved values
-      var values = [];
-      String.prototype.replace.call(string, searchValue, function () {
-        values.push(replacer.apply(undefined, arguments));
-        return "";
-      });
-      return Promise.all(values).then(function (resolvedValues) {
-        return String.prototype.replace.call(string, searchValue, function () {
-          return resolvedValues.shift();
-        });
-      });
-    } else {
-      return Promise.resolve(
-        String.prototype.replace.call(string, searchValue, replacer)
+    var values = [];
+    String.prototype.replace.call(string, searchValue, function () {
+      values.push(replacer.apply(undefined, arguments));
+      return "";
+    });
+    let mapTrackingString = new MagicString(string)
+    return Promise.all(values).then(function (resolvedValues) {
+      // Call replace again, this time on the string that tracks a sourcemap.
+      // We use the replacerFunction so each occurrence can be replaced by the
+      // previously resolved value for that index.
+      return mapTrackingString.replace(searchValue,
+        () => resolvedValues.shift()
       );
-    }
+    });
   } catch (error) {
     return Promise.reject(error);
   }

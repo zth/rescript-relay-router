@@ -116,11 +116,13 @@ async function createServer() {
         async (asset) => {
           switch (asset.type) {
             case "component": {
-              // TODO: In prod this should look up via SSR manifest
-              let chunk = asset.chunk;
+              // TODO: This is for dev only. In prod this should look up via SSR
+              // manifest
+              let viteModule = vite.moduleGraph.getModuleById(asset.chunk);
+              let url = viteModule.url;
 
               preloadInsertingStream.onAssetPreload(
-                `<script type="module" src="${chunk}" async></script>`
+                `<script type="module" src="${url}" async></script>`
               );
             }
           }

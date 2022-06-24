@@ -19,6 +19,8 @@ type preloadAsset =
 @live
 type rec route = {
   path: string,
+  name: string,
+  @as("__$rescriptChunkName__") chunk: string,
   loadRouteRenderer: unit => Js.Promise.t<unit>,
   preloadCode: (
     . ~environment: RescriptRelay.Environment.t,
@@ -51,7 +53,6 @@ type subFn = currentRouterEntry => unit
 type unsubFn = unit => unit
 type cleanupFn = unit => unit
 type callback = unit => unit
-type awaitAllRouteRenderers = unit => Js.Promise.t<unit>
 
 type routerEvent =
   | OnBeforeNavigation({currentLocation: RelayRouter__Bindings.History.location})

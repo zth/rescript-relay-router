@@ -40,6 +40,7 @@ module RouteName: {
   let getRouteName: t => string
   let getFullRouteName: t => string
   let getFullRouteAccessPath: t => string
+  let getRouteRendererName: t => string
   let getRouteRendererFileName: t => string
   let toGeneratedRouteModuleName: t => string
   let getLoc: t => range
@@ -54,7 +55,8 @@ module RouteName: {
   let getFullRouteName = t => t.routeNamePath->Belt.List.toArray->Js.Array2.joinWith("__")
   let getFullRouteAccessPath = t =>
     t.routeNamePath->Belt.List.toArray->Js.Array2.joinWith(".") ++ ".Route"
-  let getRouteRendererFileName = t => t->getFullRouteName ++ "_route_renderer.res"
+  let getRouteRendererName = t => t->getFullRouteName ++ "_route_renderer"
+  let getRouteRendererFileName = t => t->getRouteRendererName ++ ".res"
   let toGeneratedRouteModuleName = t => "Route__" ++ t->getFullRouteName ++ "_route"
   let getLoc = t => t.loc
 }

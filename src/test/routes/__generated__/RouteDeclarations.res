@@ -97,6 +97,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
   
     {
       path: "/",
+      name: "Root",
+      chunk: "Root_route_renderer",
       loadRouteRenderer,
       preloadCode: (
         . ~environment: RescriptRelay.Environment.t,
@@ -248,6 +250,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
       
         {
           path: "todos",
+          name: "Root__Todos",
+          chunk: "Root__Todos_route_renderer",
           loadRouteRenderer,
           preloadCode: (
             . ~environment: RescriptRelay.Environment.t,
@@ -399,6 +403,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             
               {
                 path: ":todoId",
+                name: "Root__Todos__Single",
+                chunk: "Root__Todos__Single_route_renderer",
                 loadRouteRenderer,
                 preloadCode: (
                   . ~environment: RescriptRelay.Environment.t,

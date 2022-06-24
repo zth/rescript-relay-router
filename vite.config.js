@@ -22,14 +22,13 @@ export default defineConfig({
     target: "esnext",
     rollupOptions: {
       plugins: [visualizer()],
-      // TODO: Enable for regular build, disable for SSR
-      /*output: {
+      output: {
         manualChunks: {
           react: ["react", "react-dom"],
           relay: ["react-relay", "relay-runtime"],
           vendor: ["react-helmet"],
         },
-      },*/
+      },
     },
   },
   // Prevent ReScript messages from being lost when we run all things at the same time.

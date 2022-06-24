@@ -75,6 +75,17 @@ export let rescriptRelayVitePlugin = ({
 
   return {
     name: "rescript-relay",
+    config(userConfig) {
+      // Remove manualChunks if this is SSR, since it doesn't work in SSR mode.
+      if (
+        Boolean(userConfig.build.ssr) &&
+        userConfig.build?.rollupOptions?.output?.manualChunks != null
+      ) {
+        delete userConfig.build.rollupOptions.output.manualChunks;
+      }
+
+      return userConfig;
+    },
     configResolved(resolvedConfig) {
       config = resolvedConfig;
       outputCount = 0;

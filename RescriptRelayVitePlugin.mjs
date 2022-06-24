@@ -203,11 +203,8 @@ export let rescriptRelayVitePlugin = ({
     generateBundle(_, bundle) {
       for (let file in bundle) {
         let chunk = bundle[file];
-        if (chunk.type === "chunk" && chunk.facadeModuleId != null) {
-          let moduleName = path.basename(chunk.facadeModuleId).split(".")[0];
-          if (moduleName != null) {
-            manifest[moduleName] = chunk.fileName;
-          }
+        if (chunk.type === "chunk" && chunk.isDynamicEntry) {
+          manifest[chunk.name] = chunk.fileName;
         }
       }
 

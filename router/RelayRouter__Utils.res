@@ -66,7 +66,3 @@ let useIsRouteActive = (~href, ~routePattern, ~exact=false, ()) => {
     (pathname, href, routePattern, exact),
   )
 }
-
-let makePlaceholderChunkName: string => RelayRouter__Types.placeholderChunkName = %raw(`import`)
-external placeholderChunkNameToChunkString: RelayRouter__Types.placeholderChunkName => string =
-  "%identity"

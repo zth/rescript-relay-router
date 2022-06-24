@@ -19,7 +19,3 @@ let isRouteActive: (~pathname: string, ~routePattern: string, ~exact: bool=?, un
 
 @live
 let useIsRouteActive: (~href: string, ~routePattern: string, ~exact: bool=?, unit) => bool
-
-let makePlaceholderChunkName: string => RelayRouter__Types.placeholderChunkName
-external placeholderChunkNameToChunkString: RelayRouter__Types.placeholderChunkName => string =
-  "%identity"

@@ -60,7 +60,7 @@ module PreloadAssets = {
 
     switch asset {
     | Component({chunk}) =>
-      element->setHref(chunk->Utils.placeholderChunkNameToChunkString)
+      element->setHref(chunk)
       element->setRel(#modulepreload)
     | Image({url}) =>
       element->setHref(url)

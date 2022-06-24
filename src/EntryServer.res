@@ -25,8 +25,8 @@ let getStream = (
     <RelaySSRUtils.AssetRegisterer.Provider
       value={asset => {
         switch asset {
-        | RelayRouter.Types.Component({moduleName}) =>
-          onEmitPreloadAsset(. {"type": "component", "moduleName": moduleName})
+        | RelayRouter.Types.Component({chunk, moduleName}) =>
+          onEmitPreloadAsset(. {"type": "component", "chunk": chunk, "moduleName": moduleName})
         | Image(_) => () // onEmitPreloadAsset(. {"type": "image", "url": url})
         }
       }}>

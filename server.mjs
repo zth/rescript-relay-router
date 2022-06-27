@@ -9,6 +9,8 @@ import PreloadInsertingStream from "./PreloadInsertingStream.mjs";
 
 global.fetch = fetch;
 
+let isProd = process.env.NODE_ENV === "production";
+
 async function createServer() {
   let app = express();
   let vite = await createViteServer({
@@ -22,6 +24,10 @@ async function createServer() {
   app.use("*", async (req, res) => {
     let url = req.originalUrl;
     try {
+      let prodAssetManifest = isProd
+        ? await import("./dist/client/res-manifest.json")
+        : {};
+
       let template = fs.readFileSync(
         path.join(path.dirname(fileURLToPath(import.meta.url)), "./index.html"),
         "utf-8"
@@ -118,14 +124,22 @@ async function createServer() {
             case "component": {
               // TODO: This is for dev only. In prod this should look up via SSR
               // manifest
-              let viteModule = await vite.moduleGraph.getModuleByUrl(
-                asset.chunk
-              );
-              let url = viteModule?.url ?? asset.chunk;
+              let url = null;
 
-              preloadInsertingStream.onAssetPreload(
-                `<script type="module" src="${url}" async></script>`
-              );
+              if (isProd) {
+                url = prodAssetManifest[asset.moduleName];
+              } else {
+                let viteModule = await vite.moduleGraph.getModuleByUrl(
+                  asset.chunk
+                );
+                url = viteModule?.url ?? asset.chunk;
+              }
+
+              if (url != null) {
+                preloadInsertingStream.onAssetPreload(
+                  `<script type="module" src="${url}" async></script>`
+                );
+              }
             }
           }
         }

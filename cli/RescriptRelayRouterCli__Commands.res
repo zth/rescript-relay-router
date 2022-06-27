@@ -132,92 +132,21 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
 
   // Write the full route declarations file
   let fileContents = `
-@val external suspend: Js.Promise.t<'any> => unit = "throw"
-
-exception Route_loading_failed(string)
+open RelayRouter__Internal__DeclarationsSupport
 
 ${routeNamesEntries
     ->Belt.Array.map(((routeName, _)) => {
       `
-module type T__${routeName} = module type of ${routeName}_route_renderer
-@val external import__${routeName}: (@as(json\`"@rescriptModule/${routeName}_route_renderer"\`) _, unit) => Js.Promise.t<module(T__${routeName})> = "import"`
+@val external import__${routeName}: (@as(json\`"@rescriptModule/${routeName}_route_renderer"\`) _, unit) => Js.Promise.t<RouteRenderer.t> = "import"`
     })
     ->Js.Array2.joinWith("\n")}
 
-type loadedRouteRenderer<'routeRendererModule> = NotInitiated | Pending(Js.Promise.t<'routeRendererModule>) | Loaded('routeRendererModule)
-
-type loadedRouteRendererMap = {
-${routeNamesEntries
-    ->Belt.Array.map(((routeName, _)) => {
-      `  mutable renderer_${routeName}: loadedRouteRenderer<module(T__${routeName})>,`
-    })
-    ->Js.Array2.joinWith("\n")}
-}
-
-let loadedRouteRenderers: loadedRouteRendererMap = {
-${routeNamesEntries
-    ->Belt.Array.map(((routeName, _)) => {
-      `  renderer_${routeName}: NotInitiated,`
-    })
-    ->Js.Array2.joinWith("\n")}
-}
-
-type preparedContainer = {
-  dispose: (. unit) => unit,
-  render: RelayRouter.Types.renderRouteFn,
-  mutable timeout: option<Js.Global.timeoutId>
-}
+let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.HashMap.String.make(
+  ~hintSize=${routeNamesEntries->Belt.Array.length->Belt.Int.toString},
+)
 
 let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.route> => {
-  let preparedMap: Belt.HashMap.String.t<preparedContainer> = Belt.HashMap.String.make(~hintSize=${routeNamesEntries
-    ->Js.Array2.length
-    ->Belt.Int.toString})
-
-  let getPrepared = (~routeKey) => 
-    preparedMap->Belt.HashMap.String.get(routeKey)
-
-  let disposeOfPrepared = (~routeKey) => {
-    switch getPrepared(~routeKey) {
-      | None => ()
-      | Some({dispose}) => dispose(.)
-    }
-  }
-
-  let clearTimeout = (~routeKey) => {
-    switch getPrepared(~routeKey) {
-      | Some({timeout: Some(timeoutId)}) => Js.Global.clearTimeout(timeoutId)
-      | _ => ()
-    }
-  }
-
-  let expirePrepared = (~routeKey) => {
-    disposeOfPrepared(~routeKey)
-    clearTimeout(~routeKey)
-    preparedMap->Belt.HashMap.String.remove(routeKey)
-  }
-
-  let setTimeout = (~routeKey) => {
-    clearTimeout(~routeKey)
-    switch getPrepared(~routeKey) {
-      | Some(r) => 
-        r.timeout = Some(Js.Global.setTimeout(() => {
-          disposeOfPrepared(~routeKey)
-          expirePrepared(~routeKey)
-        }, prepareDisposeTimeout))
-      | None => ()
-    }
-  }
-
-  let addPrepared = (~routeKey, ~dispose, ~render) => {
-    preparedMap->Belt.HashMap.String.set(routeKey, {
-      dispose,
-      render,
-      timeout: None
-    })
-
-
-    setTimeout(~routeKey)
-  }
+  let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
 
   [
     ${routes

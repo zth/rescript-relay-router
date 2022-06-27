@@ -401,40 +401,14 @@ let addIndentation = (str, indentation) => {
 
 let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
   let routeName = route.name->RouteName.getFullRouteName
-  let prepareParamsQueryParamsStr = `${route.params
-    ->Belt.Array.map(param => {
-      let safeParamName =
-        Param(param)->SafeParam.makeSafeParamName(~params=route.params)->SafeParam.getSafeKey
-      "                " ++ safeParamName ++ ": " ++ "preparedProps." ++ safeParamName ++ ","
-    })
-    ->Js.Array2.joinWith("\n")}
-${route.queryParams
-    ->Js.Dict.entries
-    ->Belt.Array.map(((key, _param)) => {
-      let safeParam = QueryParam(key)->SafeParam.makeSafeParamName(~params=route.params)
-      "                " ++
-      safeParam->SafeParam.getSafeKey ++
-      ": " ++
-      "preparedProps." ++
-      safeParam->SafeParam.getSafeKey ++ ","
-    })
-    ->Js.Array2.joinWith("\n")}`
 
   let str = `{
-  let loadRouteRenderer = () => {
-    let promise = import__${routeName}()
-    loadedRouteRenderers.renderer_${routeName} = Pending(promise)
-
-    promise->Js.Promise.then_(m => {
-      let module(M: T__${routeName}) = m
-      loadedRouteRenderers.renderer_${routeName} = Loaded(module(M))
-      Js.Promise.resolve()
-    }, _)
-  }
+  let routeName = "${routeName}"
+  let loadRouteRenderer = () => import__${routeName}->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
 
   {
     path: "${route.path->RoutePath.getPathSegment}",
-    name: "${route.name->RouteName.getFullRouteName}",
+    name: routeName,
     chunk: "${route.name->RouteName.getRouteRendererName}",
     loadRouteRenderer,
     preloadCode: (
@@ -442,136 +416,33 @@ ${route.queryParams
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.Bindings.History.location,
-    ) => {
-      let apply = (module(RouteRenderer: T__${routeName})) => {
-        let preparedProps = Route__${routeName}_route.makePrepareProps(.
-          ~environment,
-          ~pathParams,
-          ~queryParams,
-          ~location,
-        )
-      
-        switch RouteRenderer.renderer.prepareCode {
-          | Some(prepareCode) => prepareCode(. preparedProps)
-          | None => []
-        }
-      }
-
-      switch loadedRouteRenderers.renderer_${routeName} {
-      | NotInitiated => loadRouteRenderer()->Js.Promise.then_(() => {
-        switch loadedRouteRenderers.renderer_${routeName} {
-          | Loaded(module(RouteRenderer)) => module(RouteRenderer)->apply->Js.Promise.resolve
-          | _ => raise(Route_loading_failed("Invalid state after loading route renderer. Please report this error."))
-        }
-      }, _)
-      | Pending(promise) => promise->Js.Promise.then_((module(RouteRenderer: T__${routeName})) => {
-          module(RouteRenderer)->apply->Js.Promise.resolve
-        }, _)
-      | Loaded(module(RouteRenderer)) => 
-        Js.Promise.make((~resolve, ~reject as _) => {
-          resolve(. apply(module(RouteRenderer)))
-        })
-      }
-    },
+    ) => preloadCode(
+      ~loadedRouteRenderers,
+      ~routeName,
+      ~loadRouteRenderer,
+      ~environment,
+      ~location,
+      ~makePrepareProps=Route__${routeName}_route.makePrepareProps->Obj.magic,
+      ~pathParams,
+      ~queryParams,
+    ),
     prepare: (
       . ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.Bindings.History.location,
-    ) => {
-      let preparedProps = Route__${routeName}_route.makePrepareProps(.
-        ~environment,
-        ~pathParams,
-        ~queryParams,
-        ~location,
-      )
-      let routeKey = Route__${routeName}_route.makeRouteKey(~pathParams, ~queryParams)
-
-      switch getPrepared(~routeKey) {
-        | Some({render}) => render
-        | None => 
-
-        let preparedRef = ref(NotInitiated)
-
-        let doPrepare = (module(RouteRenderer: T__${routeName})) => {
-          switch RouteRenderer.renderer.prepareCode {
-          | Some(prepareCode) =>
-            let _ = prepareCode(. preparedProps)
-          | None => ()
-          }
-
-          let prepared = RouteRenderer.renderer.prepare(preparedProps)
-          preparedRef.contents = Loaded(prepared)
-
-          prepared
-        }
-        
-        switch loadedRouteRenderers.renderer_${routeName} {
-        | NotInitiated =>
-          let preparePromise = loadRouteRenderer()->Js.Promise.then_(() => {
-            switch loadedRouteRenderers.renderer_${routeName} {
-            | Loaded(module(RouteRenderer)) => doPrepare(module(RouteRenderer))->Js.Promise.resolve
-            | _ => raise(Route_loading_failed("Route renderer not in loaded state even though it should be. This should be impossible, please report this error."))
-            }
-          }, _)
-          preparedRef.contents = Pending(preparePromise)
-        | Pending(promise) =>
-          let preparePromise = promise->Js.Promise.then_((module(RouteRenderer: T__${routeName})) => {
-            doPrepare(module(RouteRenderer))->Js.Promise.resolve
-          }, _)
-          preparedRef.contents = Pending(preparePromise)
-        | Loaded(module(RouteRenderer)) => let _ = doPrepare(module(RouteRenderer))
-        }
-
-        let render = (. ~childRoutes) => {
-          React.useEffect0(() => {
-            clearTimeout(~routeKey)
-
-            Some(() => {
-              expirePrepared(~routeKey)
-            })
-          })
-
-          switch (
-            loadedRouteRenderers.renderer_${routeName},
-            preparedRef.contents,
-          ) {
-          | (_, NotInitiated) =>
-            Js.log(
-              "Warning: Tried to render route with prepared not initiated. This should not happen, prepare should be called prior to any rendering.",
-            )
-            React.null
-          | (_, Pending(promise)) =>
-            suspend(promise)
-            React.null
-          | (Loaded(module(RouteRenderer: T__${routeName})), Loaded(prepared)) =>
-            RouteRenderer.renderer.render({
-              environment: environment,
-              childRoutes: childRoutes,
-              location: location,
-              prepared: prepared,
-${prepareParamsQueryParamsStr}
-            })
-          | _ =>
-            Js.log("Warning: Invalid state")
-            React.null
-          }
-        }
-
-        addPrepared(~routeKey, ~render, ~dispose=(. ) => {
-          switch preparedRef.contents {
-            | Loaded(prepared) => 
-              RelayRouter.Internal.extractDisposables(. prepared)
-              ->Belt.Array.forEach(dispose => {
-                dispose(.)
-              })
-            | _ => ()
-          }
-        })
-
-        render
-      }
-    },
+    ) => prepareRoute(
+      .
+      ~environment,
+      ~pathParams,
+      ~queryParams,
+      ~location,
+      ~getPrepared,
+      ~loadRouteRenderer,
+      ~makePrepareProps=Route__${routeName}_route.makePrepareProps->Obj.magic,
+      ~makeRouteKey=Route__${routeName}_route.makeRouteKey,
+      ~routeName,
+    ),
     children: [${route.children
     ->Belt.Array.map(r => getRouteDefinition(r, ~indentation=indentation + 1))
     ->Js.Array2.joinWith(",\n")}],

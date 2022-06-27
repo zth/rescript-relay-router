@@ -179,6 +179,7 @@ module ScrollRestoration = {
             | Some(hashElement) => hashElement->scrollElementIntoView
             }
           }
+        | OnRouteWillUnmount(_) => ()
         }
       })
 

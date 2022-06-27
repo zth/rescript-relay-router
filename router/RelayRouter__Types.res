@@ -16,6 +16,8 @@ type preloadAsset =
   | Component(preloadComponentAsset)
   | Image({url: string})
 
+type preparedRoute = {routeKey: string, render: renderRouteFn}
+
 @live
 type rec route = {
   path: string,
@@ -33,7 +35,7 @@ type rec route = {
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: QueryParams.t,
     ~location: RelayRouter__Bindings.History.location,
-  ) => renderRouteFn,
+  ) => preparedRoute,
   children: array<route>,
 }
 
@@ -42,7 +44,7 @@ type routeMatch = {
   route: route,
 }
 
-type preparedMatch = {render: renderRouteFn}
+type preparedMatch = {routeKey: string, render: renderRouteFn}
 
 type currentRouterEntry = {
   location: History.location,
@@ -57,6 +59,8 @@ type callback = unit => unit
 type routerEvent =
   | OnBeforeNavigation({currentLocation: RelayRouter__Bindings.History.location})
   | RestoreScroll(RelayRouter__Bindings.History.location)
+  | OnRouteWillUnmount({routeKey: string})
+
 type onRouterEventFn = routerEvent => unit
 
 @live

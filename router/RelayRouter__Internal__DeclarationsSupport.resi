@@ -58,7 +58,7 @@ type prepareAssets = {
     ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
     ~routeName: string,
     ~loadRouteRenderer: unit => Js.Promise.t<unit>,
-  ) => RelayRouter.Types.renderRouteFn,
+  ) => RelayRouter.Types.preparedRoute,
 }
 
 let makePrepareAssets: (

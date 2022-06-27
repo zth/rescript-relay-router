@@ -432,6 +432,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.Bindings.History.location,
     ) => prepareRoute(
+      .
       ~environment,
       ~pathParams,
       ~queryParams,

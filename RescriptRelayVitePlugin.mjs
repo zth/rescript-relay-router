@@ -175,9 +175,13 @@ export let rescriptRelayVitePlugin = ({
             let loc = await findGeneratedModule(moduleName);
 
             if (loc != null) {
+              // This transforms the found loc to a URL relative to the project
+              // root. That's also what vite uses internally as URL for src
+              // assets.
+              let locRelativeToProjectRoot = loc.replace(config.root, "");
               didReplace = true;
               // TODO: Source maps
-              return `__$rescriptChunkName__: "${loc}"`;
+              return `__$rescriptChunkName__: "${locRelativeToProjectRoot}"`;
             }
           }
         }
@@ -203,11 +207,8 @@ export let rescriptRelayVitePlugin = ({
     generateBundle(_, bundle) {
       for (let file in bundle) {
         let chunk = bundle[file];
-        if (chunk.type === "chunk" && chunk.facadeModuleId != null) {
-          let moduleName = path.basename(chunk.facadeModuleId).split(".")[0];
-          if (moduleName != null) {
-            manifest[moduleName] = chunk.fileName;
-          }
+        if (chunk.type === "chunk" && chunk.isDynamicEntry) {
+          manifest[chunk.name] = chunk.fileName;
         }
       }
 

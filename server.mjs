@@ -5,7 +5,6 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fetch from "node-fetch";
 import stream from "stream";
-import { findGeneratedModule } from "./lookup.mjs";
 import PreloadInsertingStream from "./PreloadInsertingStream.mjs";
 
 global.fetch = fetch;
@@ -53,7 +52,6 @@ async function createServer() {
       preloadInsertingStream.write(start);
 
       preloadInsertingStream.on("finish", () => {
-
         strm.end();
       });
 
@@ -111,28 +109,23 @@ async function createServer() {
               id
             )}`
           );
-          preloadInsertingStream.onQuery(id)
+          preloadInsertingStream.onQuery(id);
         },
         // Handle asset preloading. Ideally this should be handled in ReScript
         // code instead, giving that handler the server manifest.
         async (asset) => {
           switch (asset.type) {
             case "component": {
-              // TODO: In prod this should look up via SSR manifest
-              const rescriptModuleLoc = await findGeneratedModule(
-                asset.moduleName,
-                "module"
+              // TODO: This is for dev only. In prod this should look up via SSR
+              // manifest
+              let viteModule = await vite.moduleGraph.getModuleByUrl(
+                asset.chunk
               );
+              let url = viteModule?.url ?? asset.chunk;
 
-              if (rescriptModuleLoc != null) {
-                const mod = vite.moduleGraph.getModuleById(rescriptModuleLoc);
-
-                if (mod != null) {
-                  preloadInsertingStream.onAssetPreload(
-                    `<script type="module" src="${mod.url}" async></script>`
-                  );
-                }
-              }
+              preloadInsertingStream.onAssetPreload(
+                `<script type="module" src="${url}" async></script>`
+              );
             }
           }
         }

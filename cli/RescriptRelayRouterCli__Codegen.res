@@ -434,6 +434,8 @@ ${route.queryParams
 
   {
     path: "${route.path->RoutePath.getPathSegment}",
+    name: "${route.name->RouteName.getFullRouteName}",
+    chunk: "${route.name->RouteName.getRouteRendererName}",
     loadRouteRenderer,
     preloadCode: (
       . ~environment: RescriptRelay.Environment.t,

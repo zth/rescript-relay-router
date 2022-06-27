@@ -118,8 +118,10 @@ async function createServer() {
             case "component": {
               // TODO: This is for dev only. In prod this should look up via SSR
               // manifest
-              let viteModule = vite.moduleGraph.getModuleById(asset.chunk);
-              let url = viteModule.url;
+              let viteModule = await vite.moduleGraph.getModuleByUrl(
+                asset.chunk
+              );
+              let url = viteModule?.url ?? asset.chunk;
 
               preloadInsertingStream.onAssetPreload(
                 `<script type="module" src="${url}" async></script>`

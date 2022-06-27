@@ -175,9 +175,13 @@ export let rescriptRelayVitePlugin = ({
             let loc = await findGeneratedModule(moduleName);
 
             if (loc != null) {
+              // This transforms the found loc to a URL relative to the project
+              // root. That's also what vite uses internally as URL for src
+              // assets.
+              let locRelativeToProjectRoot = loc.replace(config.root, "");
               didReplace = true;
               // TODO: Source maps
-              return `__$rescriptChunkName__: "${loc}"`;
+              return `__$rescriptChunkName__: "${locRelativeToProjectRoot}"`;
             }
           }
         }

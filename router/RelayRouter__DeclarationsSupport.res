@@ -41,7 +41,7 @@ type makePrepareProps = (
   ~location: RelayRouter.Bindings.History.location,
 ) => prepareProps
 
-let loadRouteRenderer = (
+let doLoadRouteRenderer = (
   loadFn: unit => Js.Promise.t<RouteRenderer.t>,
   ~routeName,
   ~loadedRouteRenderers,

@@ -175,7 +175,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
   [
       {
     let routeName = "Root"
-    let loadRouteRenderer = () => import__Root->loadRouteRenderer(~routeName)
+    let loadRouteRenderer = () => import__Root->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
   
     {
       path: "/",
@@ -188,22 +188,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
         ~location: RelayRouter.Bindings.History.location,
       ) => preloadCode(
+        ~loadedRouteRenderers,
         ~routeName,
         ~loadRouteRenderer,
         ~environment,
         ~location,
-        ~makePrepareProps=(
-          . ~environment: RescriptRelay.Environment.t,
-          ~pathParams: Js.Dict.t<string>,
-          ~queryParams: RelayRouter.Bindings.QueryParams.t,
-          ~location: RelayRouter.Bindings.History.location,
-        ) =>
-          Route__Root_route.makePrepareProps(.
-            ~environment,
-            ~pathParams,
-            ~queryParams,
-            ~location,
-          )->unsafe_asPrepareProps,
+        ~makePrepareProps=Route__Root_route.makePrepareProps->Obj.magic,
         ~pathParams,
         ~queryParams,
       ),
@@ -219,24 +209,13 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~location,
         ~getPrepared,
         ~loadRouteRenderer,
-        ~makePrepareProps=(
-          . ~environment: RescriptRelay.Environment.t,
-          ~pathParams: Js.Dict.t<string>,
-          ~queryParams: RelayRouter.Bindings.QueryParams.t,
-          ~location: RelayRouter.Bindings.History.location,
-        ) =>
-          Route__Root_route.makePrepareProps(.
-            ~environment,
-            ~pathParams,
-            ~queryParams,
-            ~location,
-          )->unsafe_asPrepareProps,
+        ~makePrepareProps=Route__Root_route.makePrepareProps->Obj.magic,
         ~makeRouteKey=Route__Root_route.makeRouteKey,
         ~routeName,
       ),
       children: [    {
         let routeName = "Root__Todos"
-        let loadRouteRenderer = () => import__Root__Todos->loadRouteRenderer(~routeName)
+        let loadRouteRenderer = () => import__Root__Todos->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
       
         {
           path: "todos",
@@ -249,22 +228,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             ~queryParams: RelayRouter.Bindings.QueryParams.t,
             ~location: RelayRouter.Bindings.History.location,
           ) => preloadCode(
+            ~loadedRouteRenderers,
             ~routeName,
             ~loadRouteRenderer,
             ~environment,
             ~location,
-            ~makePrepareProps=(
-              . ~environment: RescriptRelay.Environment.t,
-              ~pathParams: Js.Dict.t<string>,
-              ~queryParams: RelayRouter.Bindings.QueryParams.t,
-              ~location: RelayRouter.Bindings.History.location,
-            ) =>
-              Route__Root__Todos_route.makePrepareProps(.
-                ~environment,
-                ~pathParams,
-                ~queryParams,
-                ~location,
-              )->unsafe_asPrepareProps,
+            ~makePrepareProps=Route__Root__Todos_route.makePrepareProps->Obj.magic,
             ~pathParams,
             ~queryParams,
           ),
@@ -280,24 +249,13 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             ~location,
             ~getPrepared,
             ~loadRouteRenderer,
-            ~makePrepareProps=(
-              . ~environment: RescriptRelay.Environment.t,
-              ~pathParams: Js.Dict.t<string>,
-              ~queryParams: RelayRouter.Bindings.QueryParams.t,
-              ~location: RelayRouter.Bindings.History.location,
-            ) =>
-              Route__Root__Todos_route.makePrepareProps(.
-                ~environment,
-                ~pathParams,
-                ~queryParams,
-                ~location,
-              )->unsafe_asPrepareProps,
+            ~makePrepareProps=Route__Root__Todos_route.makePrepareProps->Obj.magic,
             ~makeRouteKey=Route__Root__Todos_route.makeRouteKey,
             ~routeName,
           ),
           children: [      {
               let routeName = "Root__Todos__Single"
-              let loadRouteRenderer = () => import__Root__Todos__Single->loadRouteRenderer(~routeName)
+              let loadRouteRenderer = () => import__Root__Todos__Single->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
             
               {
                 path: ":todoId",
@@ -310,22 +268,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.Bindings.History.location,
                 ) => preloadCode(
+                  ~loadedRouteRenderers,
                   ~routeName,
                   ~loadRouteRenderer,
                   ~environment,
                   ~location,
-                  ~makePrepareProps=(
-                    . ~environment: RescriptRelay.Environment.t,
-                    ~pathParams: Js.Dict.t<string>,
-                    ~queryParams: RelayRouter.Bindings.QueryParams.t,
-                    ~location: RelayRouter.Bindings.History.location,
-                  ) =>
-                    Route__Root__Todos__Single_route.makePrepareProps(.
-                      ~environment,
-                      ~pathParams,
-                      ~queryParams,
-                      ~location,
-                    )->unsafe_asPrepareProps,
+                  ~makePrepareProps=Route__Root__Todos__Single_route.makePrepareProps->Obj.magic,
                   ~pathParams,
                   ~queryParams,
                 ),
@@ -341,18 +289,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   ~location,
                   ~getPrepared,
                   ~loadRouteRenderer,
-                  ~makePrepareProps=(
-                    . ~environment: RescriptRelay.Environment.t,
-                    ~pathParams: Js.Dict.t<string>,
-                    ~queryParams: RelayRouter.Bindings.QueryParams.t,
-                    ~location: RelayRouter.Bindings.History.location,
-                  ) =>
-                    Route__Root__Todos__Single_route.makePrepareProps(.
-                      ~environment,
-                      ~pathParams,
-                      ~queryParams,
-                      ~location,
-                    )->unsafe_asPrepareProps,
+                  ~makePrepareProps=Route__Root__Todos__Single_route.makePrepareProps->Obj.magic,
                   ~makeRouteKey=Route__Root__Todos__Single_route.makeRouteKey,
                   ~routeName,
                 ),

@@ -404,7 +404,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
 
   let str = `{
   let routeName = "${routeName}"
-  let loadRouteRenderer = () => import__${routeName}->loadRouteRenderer(~routeName)
+  let loadRouteRenderer = () => import__${routeName}->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
 
   {
     path: "${route.path->RoutePath.getPathSegment}",
@@ -417,22 +417,12 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.Bindings.History.location,
     ) => preloadCode(
+      ~loadedRouteRenderers,
       ~routeName,
       ~loadRouteRenderer,
       ~environment,
       ~location,
-      ~makePrepareProps=(
-        . ~environment: RescriptRelay.Environment.t,
-        ~pathParams: Js.Dict.t<string>,
-        ~queryParams: RelayRouter.Bindings.QueryParams.t,
-        ~location: RelayRouter.Bindings.History.location,
-      ) =>
-        Route__${routeName}_route.makePrepareProps(.
-          ~environment,
-          ~pathParams,
-          ~queryParams,
-          ~location,
-        )->unsafe_asPrepareProps,
+      ~makePrepareProps=Route__${routeName}_route.makePrepareProps->Obj.magic,
       ~pathParams,
       ~queryParams,
     ),
@@ -448,18 +438,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~location,
       ~getPrepared,
       ~loadRouteRenderer,
-      ~makePrepareProps=(
-        . ~environment: RescriptRelay.Environment.t,
-        ~pathParams: Js.Dict.t<string>,
-        ~queryParams: RelayRouter.Bindings.QueryParams.t,
-        ~location: RelayRouter.Bindings.History.location,
-      ) =>
-        Route__${routeName}_route.makePrepareProps(.
-          ~environment,
-          ~pathParams,
-          ~queryParams,
-          ~location,
-        )->unsafe_asPrepareProps,
+      ~makePrepareProps=Route__${routeName}_route.makePrepareProps->Obj.magic,
       ~makeRouteKey=Route__${routeName}_route.makeRouteKey,
       ~routeName,
     ),

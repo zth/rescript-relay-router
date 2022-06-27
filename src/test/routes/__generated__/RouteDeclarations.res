@@ -1,5 +1,5 @@
 
-open RelayRouter__DeclarationsSupport
+open RelayRouter__Internal__DeclarationsSupport
 
 
 @val external import__Root: (@as(json`"@rescriptModule/Root_route_renderer"`) _, unit) => Js.Promise.t<RouteRenderer.t> = "import"

@@ -6,6 +6,9 @@ type prepareProps
 type prepared
 type renderProps
 
+//  This works because the render props for a route is always the prepared props
+//  + prepared + childRoutes. If that changes, this will also need to change
+//  accordingly.
 @val
 external unsafe_createRenderProps: (
   {"prepared": prepared},
@@ -23,10 +26,13 @@ module RouteRenderer = {
   type t = {renderer: routeRenderer}
 }
 
+// This holder makes it easy to suspend (throwing the promise) or synchronously
+// return the loaded thing once availabile.
 type suspenseEnabledHolder<'thing> = NotInitiated | Pending(Js.Promise.t<'thing>) | Loaded('thing)
 
 type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
 
+// This holds meta data for a route that has been prepared.
 type preparedContainer = {
   dispose: (. unit) => unit,
   render: RelayRouter.Types.renderRouteFn,
@@ -54,11 +60,13 @@ let doLoadRouteRenderer = (
   }, _)
 }
 
+// This does a bunch of suspense/React gymnastics for kicking off code
+// preloading for a matched route..
 let preloadCode = (
   ~loadedRouteRenderers,
   ~routeName,
   ~loadRouteRenderer,
-  ~makePrepareProps: makePrepareProps,
+  ~makePrepareProps,
   ~environment,
   ~pathParams,
   ~queryParams,
@@ -118,6 +126,7 @@ type prepareAssets = {
   ) => RelayRouter.Types.renderRouteFn,
 }
 
+// Creates the assets needed for preparing routes.
 let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepareAssets => {
   let preparedMap: Belt.HashMap.String.t<preparedContainer> = Belt.HashMap.String.make(~hintSize=3)
 
@@ -167,6 +176,8 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     setTimeout(~routeKey)
   }
 
+  // This does suspense/React gymnastics for loading all the different parts
+  // needed to prepare and render a route.
   let prepareRoute = (
     . ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,

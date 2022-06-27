@@ -132,7 +132,7 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
 
   // Write the full route declarations file
   let fileContents = `
-open RelayRouter__DeclarationsSupport
+open RelayRouter__Internal__DeclarationsSupport
 
 ${routeNamesEntries
     ->Belt.Array.map(((routeName, _)) => {

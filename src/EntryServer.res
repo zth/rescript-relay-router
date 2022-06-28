@@ -43,7 +43,7 @@ let default = (~request, ~response, ~clientScripts) => {
 
   let routes = RouteDeclarations.make()
 
-  let (cleanup, routerContext, _) = RelayRouter.Router.make(
+  let (cleanup, routerContext) = RelayRouter.Router.make(
     ~routes,
     ~environment,
     ~routerEnvironment,

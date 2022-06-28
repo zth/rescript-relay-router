@@ -5,7 +5,7 @@ let boot = () => {
   Js.log("[debug] Doing boot")
 
   RelaySSRUtils.bootOnClient(~rootElementId="root", ~render=() => {
-    let (_, routerContext, _) = RelayRouter.Router.make(
+    let (_, routerContext) = RelayRouter.Router.make(
       ~routes,
       ~environment=RelayEnv.environment,
       ~routerEnvironment,

@@ -247,13 +247,7 @@ module Router = {
           }
         },
         postRouterEvent: postRouterEvent,
-      },
-      () => {
-        initialMatches
-        ->Belt.Array.map(({route}) => route.loadRouteRenderer())
-        ->Js.Promise.all
-        ->Js.Promise.then_(_ => Js.Promise.resolve(), _)
-      },
+      }
     )
   }
 }

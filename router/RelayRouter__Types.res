@@ -5,15 +5,9 @@ type renderRouteFn = (. ~childRoutes: React.element) => React.element
 @live
 type preloadPriority = High | Default | Low
 
-type preloadComponentAsset = {
-  moduleName: string,
-  @as("__$rescriptChunkName__") chunk: string,
-  eagerPreloadFn: unit => unit,
-}
-
 @live
 type preloadAsset =
-  | Component(preloadComponentAsset)
+  | Component({moduleName: string, chunk: string, eagerPreloadFn: unit => unit})
   | Image({url: string})
 
 type preparedRoute = {routeKey: string, render: renderRouteFn}

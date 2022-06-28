@@ -22,6 +22,7 @@ export default defineConfig({
     target: "esnext",
     rollupOptions: {
       plugins: [visualizer()],
+      // TODO: Enable for regular build, disable for SSR
       output: {
         manualChunks: {
           react: ["react", "react-dom"],

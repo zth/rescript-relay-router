@@ -1,8 +1,14 @@
 import fs from "fs";
+import fsPromised from "fs/promises";
 import path from "path";
 import readline from "readline";
 import MagicString from "magic-string";
+import { normalizePath } from 'vite'
 import { runCli } from "./cli/RescriptRelayRouterCli__Commands.mjs";
+
+/**
+ * @typedef {import("vite").ResolvedConfig} ResolvedConfig
+ */
 
 // Expected to run in vite.config.js folder, right next to bsconfig.
 let cwd = process.cwd();
@@ -69,10 +75,28 @@ export let rescriptRelayVitePlugin = ({
   autoScaffoldRenderers = true,
   deleteRemoved = true,
 } = {}) => {
+  // The watcher for the ReScript Relay Router CLI.
   let watcher;
+  // An in-memory copy of the ssr-manifest.json for bundle manipulation.
+  let ssrManifest = {};
+  // The resolved Vite config to ensure we do what the rest of Vite does.
+  /** @type ResolvedConfig */
+  let config;
 
   return {
     name: "rescript-relay",
+    /**
+     * @param {ResolvedConfig} resolvedConfig
+     */
+    configResolved(resolvedConfig) {
+      config = resolvedConfig
+      // For the server build in SSR we read the client manifest from disk.
+      if (config.build.ssr) {
+        // TODO: This relies on the client and server paths being next to eachother. Perhaps add config?
+        // TODO: SSR Manifest name is configurable in Vite and may be different.
+        ssrManifest = JSON.parse(fs.readFileSync(path.resolve(config.build.outDir, "../client/ssr-manifest.json"), 'utf-8'));
+      }
+    },
     buildStart() {
       // Run single generate in prod
       if (process.env.NODE_ENV === "production") {
@@ -128,21 +152,21 @@ export let rescriptRelayVitePlugin = ({
         }
       }
     },
-    // Transforms the magic string `__transformReScriptModuleToJsPath("@rescriptModule/package")`
-    // into the actual path fo the asset.
+    // Transforms the magic object property's value `__$rescriptChunkName__` from `ModuleName` (without extension)
+    // into the actual path for the compiled asset.
     async transform(code, id) {
       const transformedCode = await replaceAsyncWithMagicString(
         code,
-        /__transformReScriptModuleToJsPath\("@rescriptModule\/([A-Za-z0-9_]*)"\)/gm,
+        /__\$rescriptChunkName__:\s*"([A-Za-z0-9_]+)"/gm,
         async (fullMatch, moduleId) => {
           if (moduleId != null && moduleId !== "") {
             let resolved = await findGeneratedModule(moduleId);
             if (resolved != null) {
-              // Transform the absolute path from findGeneratedModule to a relative path.
-              if (path.isAbsolute(resolved)) {
-                resolved = path.normalize(path.relative(process.cwd(), resolved))
-              }
-              return `"${resolved}"`;
+              // The location of findGeneratedModule is an absolute URL but we
+              // want the URL relative to the project root. That's also what
+              // vite uses internally as URL for src assets.
+              resolved = resolved.replace(config.root, "");
+              return `__$rescriptChunkName__: "${resolved}"`;
             }
             console.warn(`Could not resolve Rescript Module '${moduleId}' for match '${fullMatch}'.`);
           }
@@ -154,6 +178,10 @@ export let rescriptRelayVitePlugin = ({
         }
       );
 
+      if (!transformedCode.hasChanged()) {
+        return null;
+      }
+
       const sourceMap = transformedCode.generateMap({
         source: id,
         file: `${id}.map`,
@@ -162,8 +190,72 @@ export let rescriptRelayVitePlugin = ({
       return {
         code: transformedCode.toString(),
         map: sourceMap.toString(),
+      };
+    },
+    // In addition to the transform from ReScript module name to JS file.
+    // In production we want to change the JS file name to the corresponding chunk that contains the compiled JS.
+    // This is similar to what Rollup does for us for `import` statements.
+    // We start out by creating a lookup table of JS files to output assets.
+    // This is copied from vite/packages/vite/src/node/ssr/ssrManifestPlugin.ts but does not track CSS files.
+    generateBundle(_options, bundle) {
+      // We only have to collect the ssr-manifest during client bundling.
+      // For SSR it's just read from disk.
+      if (config.build.ssr) {
+        return;
+      }
+      for (const file in bundle) {
+        const chunk = bundle[file]
+        if (chunk.type === 'chunk') {
+          for (const id in chunk.modules) {
+            const normalizedId = normalizePath(path.relative(config.root, id))
+            const mappedChunks =
+              ssrManifest[normalizedId] ?? (ssrManifest[normalizedId] = [])
+            if (!chunk.isEntry) {
+              mappedChunks.push(config.base + chunk.fileName)
+            }
+            chunk.viteMetadata.importedAssets.forEach((file) => {
+              mappedChunks.push(config.base + file)
+            })
+          }
+        }
       }
     },
+    // We can't do the gathering of chunk names at the same time but must complete all of that
+    // before we can do the replacement so we know we replace all. Therefore we do this in
+    // writeBundle which also only runs in production like generateBundle.
+    writeBundle(outConfig, bundle) {
+      Object.entries(bundle).forEach(async ([_bundleName, bundleContents]) => {
+        const code = bundleContents.code;
+        if (typeof code === "undefined") {
+          return;
+        }
+        const transformedCode = await replaceAsyncWithMagicString(
+          code,
+          /__\$rescriptChunkName__:\s*"\/([A-Za-z0-9_\/\.]+)"/gm,
+          (fullMatch, jsUrl) => {
+            if (jsUrl != null && jsUrl !== "") {
+              let chunk = (ssrManifest[jsUrl] ?? [])[0] ?? null;
+              if (chunk !== null) {
+                return `__$rescriptChunkName__:"${chunk}"`;
+              }
+              console.warn(`Could not find chunk path for '${jsUrl}' for match '${fullMatch}'.`);
+            }
+            else {
+              console.warn(`Tried to rewrite compiled path to chunk but match '${fullMatch}' didn't contain a compiled path.`);
+            }
+
+            return fullMatch;
+          }
+        );
+
+        if (transformedCode.hasChanged()) {
+          await fsPromised.writeFile(
+            path.resolve(outConfig.dir, bundleContents.fileName),
+            transformedCode.toString()
+          );
+        }
+      });
+    }
   };
 };
 

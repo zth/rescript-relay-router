@@ -13,7 +13,7 @@ describe("RescriptRelayVitePlugin", () => {
     });
   });
 
-  test("replaces modulenames in __transformReScriptModuleToJsPath", async () => {
+  test("replaces modulenames in __$rescriptChunkName__ object properties", async () => {
     let plugin = rescriptRelayVitePlugin({
       relativePathToRoutesFolder: "./",
     });
@@ -22,7 +22,7 @@ describe("RescriptRelayVitePlugin", () => {
     const testCode = `[
         {
           type: "script",
-          url: __transformReScriptModuleToJsPath("@rescriptModule/RelayRouter"),
+          __$rescriptChunkName__: "RelayRouter",
         },
         {
           type: "image",
@@ -30,7 +30,7 @@ describe("RescriptRelayVitePlugin", () => {
         },
         {
           type: "script",
-          url: __transformReScriptModuleToJsPath("@rescriptModule/RelayRouter")
+          __$rescriptChunkName__: "RelayRouter"
         }
       ]`;
 
@@ -39,7 +39,7 @@ describe("RescriptRelayVitePlugin", () => {
       code: `[
         {
           type: "script",
-          url: "${resultPath}",
+          __$rescriptChunkName__: "${resultPath}",
         },
         {
           type: "image",
@@ -47,10 +47,10 @@ describe("RescriptRelayVitePlugin", () => {
         },
         {
           type: "script",
-          url: "${resultPath}"
+          __$rescriptChunkName__: "${resultPath}"
         }
       ]`,
-      map: '{"version":3,"file":"test.mjs.map","sources":["test.mjs"],"sourcesContent":[null],"names":[],"mappings":"AAAA;AACA;AACA;AACA,eAAe,wBAAgE;AAC/E;AACA;AACA;AACA;AACA;AACA;AACA;AACA,eAAe,wBAAgE;AAC/E;AACA"}'
+      map: '{"version":3,"file":"test.mjs.map","sources":["test.mjs"],"sourcesContent":[null],"names":[],"mappings":"AAAA;AACA;AACA;AACA,UAAU,gDAAqC;AAC/C;AACA;AACA;AACA;AACA;AACA;AACA;AACA,UAAU,gDAAqC;AAC/C;AACA"}'
     }
 
     expect(await plugin.transform(testCode, "test.mjs")).toEqual(expected);

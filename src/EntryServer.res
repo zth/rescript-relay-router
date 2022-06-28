@@ -9,7 +9,6 @@ module PreloadInsertingStream = {
   @send external onAssetPreload : (t, string) => () = "onAssetPreload"
 }
 
-
 // TODO: Remove this if the TODO around line 70 is accepted.
 // Otherwise move this into NodeJS bindings.
 @send external writeToStream : (NodeJs.Stream.Writable.t, string) => unit = "write"
@@ -56,7 +55,12 @@ let default = (~request, ~response, ~clientScripts) => {
     let stream = ref(None)
     stream := ReactDOMServer.renderToPipeableStream(
       <RelaySSRUtils.AssetRegisterer.Provider
-        value={_ => (/* TODO: Figure out asset to module converter. */)}>
+        value={asset => switch(asset) {
+          // TODO: If multiple lazy components are in the same chunk then this may load the same asset multiple times.
+          | Component({ chunk }) => transformOutputStream->PreloadInsertingStream.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
+          | _ => () // Unimplemented
+        }}
+      >
         <Main environment routerContext />
       </RelaySSRUtils.AssetRegisterer.Provider>,
       ReactDOMServer.renderToPipeableStreamOptions(

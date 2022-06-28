@@ -19,19 +19,24 @@ switch (NodeJs.isProduction) {
       ->Js.Json.decodeObject
       ->Belt.Option.getExn
 
+    // This will throw an exception if our manifest doesn't include an "index.html" entry.
+    // That's what Vite uses for our main app entry point.
+    // We must prefix with `/` (Vite's configured root) because the manifest only contains paths relative to base.
+    // TODO: This breaks if vite.base is not `/`.
+    let clientBundle = "/" ++ manifest->Js.Dict.get("index.html")
+      ->Belt.Option.getExn
+      ->Js.Json.decodeObject
+      ->Belt.Option.getExn
+      ->Js.Dict.unsafeGet("file")
+      ->Js.Json.decodeString
+      ->Belt.Option.getExn
+
+    // TODO: Read clientBundle deps from manifest so we can also immediatly load those direct dependencies.
+
     // Load our compiled production server entry.
     import_("./dist/server/EntryServer.js")
       ->Promise.then(imported => imported["default"])
       ->Promise.thenResolve(handleRequest => {
-
-        // This will throw an exception if our manifest doesn't include an "index.html" entry.
-        // That's what Vite uses for our main app entry point.
-        let clientBundle = manifest
-          ->Js.Dict.get("index.html")
-          ->Belt.Option.getExn
-          ->Js.Json.decodeObject
-          ->Belt.Option.getExn
-          ->Js.Dict.unsafeGet("file")
 
         // Production server side rendering helper.
         app->useRoute("*", (request, response) => {

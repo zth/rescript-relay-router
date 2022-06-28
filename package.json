@@ -12,6 +12,7 @@
     "build:vite": "run-s build:vite:*",
     "build:vite:client": "vite build --outDir dist/client --ssrManifest --manifest",
     "build:vite:server": "cross-env IS_VITE_SSR=1 vite build --outDir dist/server --ssr src/EntryServer.mjs",
+    "build:vite:server-fix": "perl -i -pe 's/import \\* as ReactRelay/import ReactRelay/' dist/server/EntryServer.js",
     "preview": "cross-env ENABLE_FILESERVER=true yarn start",
     "start": "cross-env NODE_ENV=production node Server.mjs",
     "dev": "run-s build:relay build:rescript && run-p dev:*",

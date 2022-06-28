@@ -18,9 +18,7 @@ module Router: {
     ~routes: array<Types.route>,
     ~routerEnvironment: RouterEnvironment.t,
     ~environment: RescriptRelay.Environment.t,
-    ~preloadAsset: [#JsModule(string, string)] => unit=?,
-    unit,
-  ) => (Types.cleanupFn, Types.routerContext)
+  ) => (Types.cleanupFn, Types.routerContext, Types.awaitAllRouteRenderers)
 }
 
 module Provider: {

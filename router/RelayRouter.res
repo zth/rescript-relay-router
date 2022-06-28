@@ -85,7 +85,7 @@ module Router = {
   @val
   external origin: string = "window.location.origin"
 
-  let make = (~routes, ~routerEnvironment as history, ~environment, ~preloadAsset=?, ()) => {
+  let make = (~routes, ~routerEnvironment as history, ~environment) => {
     // This holds a map of all assets we've preloaded, so we can track that we
     // don't try to preload the same thing multiple times.
     let preparedAssetsMap = Js.Dict.empty()
@@ -99,18 +99,6 @@ module Router = {
     let location = History.getLocation(history)
     let initialQueryParams = QueryParams.parse(location.search)
     let initialMatches = matchLocation(location)->Belt.Option.getWithDefault([])
-
-    // Emit preload tags for initial matching route renderers.
-    //
-    // TODO: This and a bunch of other side effects should probably go
-    // elsewhere...
-    switch preloadAsset {
-    | None => ()
-    | Some(preloadAsset) =>
-      initialMatches->Belt.Array.forEach(({route}) => {
-        preloadAsset(#JsModule(route.name ++ "_route_renderer", route.chunk))
-      })
-    }
 
     let preparedMatches =
       initialMatches->prepareMatches(~environment, ~queryParams=initialQueryParams, ~location)
@@ -185,7 +173,10 @@ module Router = {
       | None =>
         preparedAssetsMap->Js.Dict.set(assetIdentifier, true)
         switch (asset, priority) {
-        | (Component(_), Default | Low) => PreloadAssets.preloadAssetViaLinkTag(asset)
+        | (Component({eagerPreloadFn}), Default | Low) =>
+          // TODO: Re-enable this once we've cracked the Rollup plugin for it.
+          // PreloadAssets.preloadAssetViaLinkTag(asset)
+          eagerPreloadFn()
         | (Component({eagerPreloadFn}), High) => eagerPreloadFn()
         | _ => // Unimplemented
           ()
@@ -259,6 +250,12 @@ module Router = {
           }
         },
         postRouterEvent: postRouterEvent,
+      },
+      () => {
+        initialMatches
+        ->Belt.Array.map(({route}) => route.loadRouteRenderer())
+        ->Js.Promise.all
+        ->Js.Promise.then_(_ => Js.Promise.resolve(), _)
       },
     )
   }

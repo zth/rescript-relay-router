@@ -11,34 +11,25 @@ let getStream = (
   ~onQueryInitiated,
   ~onEmitPreloadAsset: (. {..}) => unit,
 ) => {
-  let preloadAsset = asset => {
-    switch asset {
-    | RelayRouter.Types.Component({chunk, moduleName}) =>
-      onEmitPreloadAsset(. {"type": "component", "chunk": chunk, "moduleName": moduleName})
-    | Image(_) => () // onEmitPreloadAsset(. {"type": "image", "url": url})
-    }
-  }
-
   let environment = RelayEnv.makeServer(~onResponseReceived, ~onQueryInitiated)
   let routerEnvironment = RelayRouter.RouterEnvironment.makeServerEnvironment(~initialUrl=url)
 
   let routes = RouteDeclarations.make()
 
-  let (_cleanup, routerContext) = RelayRouter.Router.make(
+  let (_cleanup, routerContext, _) = RelayRouter.Router.make(
     ~routes,
     ~environment,
     ~routerEnvironment,
-    ~preloadAsset={
-      asset =>
-        switch asset {
-        | #JsModule(moduleName, chunk) =>
-          onEmitPreloadAsset(. {"type": "component", "chunk": chunk, "moduleName": moduleName})
-        }
-    },
-    (),
   )
   renderToPipeableStream(
-    <RelaySSRUtils.AssetRegisterer.Provider value=preloadAsset>
+    <RelaySSRUtils.AssetRegisterer.Provider
+      value={asset => {
+        switch asset {
+        | RelayRouter.Types.Component({moduleName}) =>
+          onEmitPreloadAsset(. {"type": "component", "moduleName": moduleName})
+        | Image(_) => () // onEmitPreloadAsset(. {"type": "image", "url": url})
+        }
+      }}>
       <Main environment routerContext />
     </RelaySSRUtils.AssetRegisterer.Provider>,
     options,

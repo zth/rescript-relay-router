@@ -123,7 +123,7 @@ type prepareAssets = {
     ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
     ~routeName: string,
     ~loadRouteRenderer: unit => Js.Promise.t<unit>,
-  ) => RelayRouter.Types.renderRouteFn,
+  ) => RelayRouter__Types.preparedRoute,
 }
 
 // Creates the assets needed for preparing routes.
@@ -196,12 +196,12 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
     ~routeName: string,
     ~loadRouteRenderer,
-  ) => {
+  ): RelayRouter__Types.preparedRoute => {
     let preparedProps = makePrepareProps(. ~environment, ~pathParams, ~queryParams, ~location)
     let routeKey = makeRouteKey(~pathParams, ~queryParams)
 
     switch getPrepared(~routeKey) {
-    | Some({render}) => render
+    | Some({render}) => {routeKey: routeKey, render: render}
     | None =>
       let preparedRef: ref<suspenseEnabledHolder<prepared>> = ref(NotInitiated)
 
@@ -242,15 +242,26 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
       }
 
       let render = (. ~childRoutes) => {
-        React.useEffect0(() => {
+        let {subscribeToEvent} = RelayRouter__Context.useRouterContext()
+
+        React.useEffect1(() => {
           clearTimeout(~routeKey)
 
           Some(
-            () => {
-              expirePrepared(~routeKey)
-            },
+            subscribeToEvent(event => {
+              switch event {
+              | OnRouteWillUnmount({routeKey: unmountingRouteKey})
+                if routeKey == unmountingRouteKey =>
+                // TOOD: Unsure if this works as intended, or if it's a fluke.
+                // In short, we need this expire to run after the route renderer
+                // has been unmounted, or Relay gives us a "using preloaded
+                // query that was disposed" error.
+                let _ = Js.Global.setTimeout(() => {expirePrepared(~routeKey)}, 0)
+              | _ => ()
+              }
+            }),
           )
-        })
+        }, [subscribeToEvent])
 
         switch (loadedRouteRenderers->Belt.HashMap.String.get(routeName), preparedRef.contents) {
         | (_, NotInitiated) =>
@@ -285,7 +296,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
         }
       })
 
-      render
+      {routeKey: routeKey, render: render}
     }
   }
 

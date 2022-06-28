@@ -20,13 +20,15 @@ let prepareMatches = (
   ~location: Bindings.History.location,
 ): array<preparedMatch> => {
   matches->Js.Array2.map(match => {
+    let {render, routeKey} = match.route.prepare(.
+      ~pathParams=match.params,
+      ~environment,
+      ~queryParams,
+      ~location,
+    )
     {
-      render: match.route.prepare(.
-        ~pathParams=match.params,
-        ~environment,
-        ~queryParams,
-        ~location,
-      ),
+      routeKey: routeKey,
+      render: render,
     }
   })
 }
@@ -88,6 +90,11 @@ module Router = {
     // don't try to preload the same thing multiple times.
     let preparedAssetsMap = Js.Dict.empty()
 
+    let routerEventListeners = ref([])
+    let postRouterEvent = event => {
+      routerEventListeners.contents->Belt.Array.forEach(cb => cb(event))
+    }
+
     let matchLocation = matchRoutes(routes)
     let location = History.getLocation(history)
     let initialQueryParams = QueryParams.parse(location.search)
@@ -120,12 +127,25 @@ module Router = {
       if location.pathname != currentEntry.contents.location.pathname {
         let queryParams = QueryParams.parse(location.search)
 
+        let currentMatches = currentEntry.contents.preparedMatches
+
         let matches = matchLocation(location)->Belt.Option.getWithDefault([])
         let preparedMatches = matches->prepareMatches(~environment, ~queryParams, ~location)
         currentEntry.contents = {
           location: location,
           preparedMatches: preparedMatches,
         }
+
+        // Notify anyone interested about routes that will now unmount.
+        currentMatches->Belt.Array.forEach(({routeKey}) => {
+          if (
+            preparedMatches
+            ->Belt.Array.getBy(match => match.routeKey === routeKey)
+            ->Belt.Option.isNone
+          ) {
+            postRouterEvent(OnRouteWillUnmount({routeKey: routeKey}))
+          }
+        })
 
         subscribers
         ->Js.Dict.values
@@ -200,7 +220,7 @@ module Router = {
         // We don't care about the render function returned to us when
         // preparing, and we don't care about the run priority unsub
         let _ = Internal.runAtPriority(() => {
-          let _: renderRouteFn = match.route.prepare(.
+          let _: preparedRoute = match.route.prepare(.
             ~environment,
             ~pathParams=match.params,
             ~queryParams,
@@ -222,8 +242,6 @@ module Router = {
       }
     }
 
-    let routerEventListeners = ref([])
-
     (
       cleanup,
       {
@@ -240,9 +258,7 @@ module Router = {
               routerEventListeners.contents->Belt.Array.keep(cb => cb !== callback)
           }
         },
-        postRouterEvent: event => {
-          routerEventListeners.contents->Belt.Array.forEach(cb => cb(event))
-        },
+        postRouterEvent: postRouterEvent,
       },
     )
   }

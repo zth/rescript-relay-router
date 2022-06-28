@@ -173,10 +173,7 @@ module Router = {
       | None =>
         preparedAssetsMap->Js.Dict.set(assetIdentifier, true)
         switch (asset, priority) {
-        | (Component({eagerPreloadFn}), Default | Low) =>
-          // TODO: Re-enable this once we've cracked the Rollup plugin for it.
-          // PreloadAssets.preloadAssetViaLinkTag(asset)
-          eagerPreloadFn()
+        | (Component(_), Default | Low) => PreloadAssets.preloadAssetViaLinkTag(asset)
         | (Component({eagerPreloadFn}), High) => eagerPreloadFn()
         | _ => // Unimplemented
           ()

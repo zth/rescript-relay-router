@@ -2,6 +2,7 @@
   {
     "path": "todos",
     "name": "Todos",
+    "defer": true,
     "children": [
       {
         "path": ":todoId?showMore=bool",

@@ -181,6 +181,7 @@ and parsedToPrintable = (routeEntry: routeEntry): printableRoute => {
   ->Belt.Array.map(({name, queryParam: (_loc, queryParam)}) => (name.text, queryParam))
   ->Js.Dict.fromArray,
   sourceFile: routeEntry.sourceFile,
+  defer: routeEntry.defer,
 }
 
 exception Decode_error(RescriptRelayRouterCli__Types.routeStructure)

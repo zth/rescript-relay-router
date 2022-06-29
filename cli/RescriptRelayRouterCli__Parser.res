@@ -23,6 +23,8 @@ type currentFileContext = {
 let pathInRoutesFolder = (~config, ~fileName="", ()) =>
   Bindings.Path.join([config.routesFolderPath, fileName])
 
+let rootRouteSubTreeId = "__root"
+
 module QueryParams = {
   // Decodes a raw query param type value from string to an actual type.
   // Example: "array<bool>" => Array(Boolean)
@@ -544,6 +546,19 @@ module Validators = {
     | None => None
     }
   }
+
+  let validateDefer = (pathNode, ~ctx) => {
+    switch pathNode {
+    | Some({value: Boolean({loc: pathValueLoc, value})}) => Some((pathValueLoc, value))
+    | Some({loc, value: node}) =>
+      ctx.addDecodeError(
+        ~loc,
+        ~message=`"defer" needs to be a boolean. Found ${nodeToString(node)}.`,
+      )
+      Some((loc, false))
+    | None => None
+    }
+  }
 }
 
 module Decode = {
@@ -638,10 +653,17 @@ module Decode = {
       | Some(_) | None =>
         let pathProp = properties->findPropertyWithName(~name="path")
         let nameProp = properties->findPropertyWithName(~name="name")
+        let deferProp = properties->findPropertyWithName(~name="defer")
         let children = properties->findPropertyWithName(~name="children")
 
         let name = nameProp->Validators.validateName(~ctx, ~siblings)
         let path = pathProp->Validators.validatePath(~ctx, ~parentContext)
+        let defer = deferProp->Validators.validateDefer(~ctx)
+
+        let deferRoute = switch defer {
+        | None => false
+        | Some((_deferLoc, defer)) => defer
+        }
 
         switch (path, name) {
         // Hitting only one of these means we can assume the user is trying to build a route entry, but missing props
@@ -665,6 +687,7 @@ module Decode = {
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
               parentRouteLoc: parentContext.parentRouteLoc,
+              defer: deferRoute,
             }),
           )
         | (None, Some(name)) =>
@@ -684,6 +707,7 @@ module Decode = {
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
               parentRouteLoc: parentContext.parentRouteLoc,
+              defer: deferRoute,
             }),
           )
         | (Some(path), Some(name)) =>
@@ -698,6 +722,7 @@ module Decode = {
               children->decodeRouteChildren(
                 ~ctx,
                 ~parentContext={
+                  ...parentContext,
                   seenPathParams: Belt.List.concatMany([
                     parentContext.seenPathParams,
                     path.pathParams
@@ -710,7 +735,6 @@ module Decode = {
                   currentRoutePath: routePath,
                   currentRouteNamePath: thisRouteNamePath,
                   seenQueryParams: path.queryParams,
-                  traversedRouteFiles: parentContext.traversedRouteFiles,
                   parentRouteLoc: Some({
                     childrenArray: loc,
                   }),
@@ -738,6 +762,7 @@ module Decode = {
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
               parentRouteLoc: parentContext.parentRouteLoc,
+              defer: deferRoute,
             }),
           )
 
@@ -930,6 +955,8 @@ let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
   let routeFiles = Js.Dict.empty()
   let decodeErrors = []
 
+  let subTrees = []
+
   let {result, rawText} = "routes.json"->parseRouteFile(
     ~config,
     ~decodeErrors,
@@ -940,6 +967,7 @@ let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
       seenPathParams: list{},
       traversedRouteFiles: list{},
       parentRouteLoc: None,
+      currentRouteSubTree: rootRouteSubTreeId,
     },
     ~parserContext={
       routeFiles: routeFiles,
@@ -961,6 +989,7 @@ let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
   )
 
   {
+    subTrees: subTrees,
     errors: decodeErrors,
     result: result,
     routeFiles: routeFiles,

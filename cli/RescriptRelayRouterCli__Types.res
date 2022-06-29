@@ -160,6 +160,7 @@ and routeEntry = {
   sourceFile: string,
   parentRouteFiles: array<string>,
   parentRouteLoc: option<parentRouteLoc>,
+  defer: bool,
 }
 and routeChild = Include(includeEntry) | RouteEntry(routeEntry)
 
@@ -202,16 +203,11 @@ type parentContext = {
   seenPathParams: list<seenPathParam>,
   traversedRouteFiles: list<string>,
   parentRouteLoc: option<parentRouteLoc>,
+  currentRouteSubTree: string,
 }
 
 // This is the route structure produced
 type loadedRouteFile = {fileName: string, rawText: string, content: array<routeChild>}
-
-type routeStructure = {
-  errors: array<decodeError>,
-  result: array<routeChild>,
-  routeFiles: Js.Dict.t<loadedRouteFile>,
-}
 
 // For printing. A simpler AST without unecessary location info etc.
 type rec printableRoute = {
@@ -221,6 +217,19 @@ type rec printableRoute = {
   children: array<printableRoute>,
   queryParams: Js.Dict.t<queryParam>,
   sourceFile: string,
+  defer: bool,
+}
+
+type routesSubTree = {
+  name: string,
+  routes: array<printableRoute>,
+}
+
+type routeStructure = {
+  errors: array<decodeError>,
+  result: array<routeChild>,
+  subTrees: array<routesSubTree>,
+  routeFiles: Js.Dict.t<loadedRouteFile>,
 }
 
 type rec routeForCliMatching = {

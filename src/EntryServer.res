@@ -76,9 +76,7 @@ let default = (~request, ~response, ~clientScripts) => {
     let stream = ref(None)
     stream :=
       ReactDOMServer.renderToPipeableStream(
-        <RelayRouter.Utils.AssetPreloader.Provider value={preloadAsset}>
-          <Main environment routerContext />
-        </RelayRouter.Utils.AssetPreloader.Provider>,
+        <Main environment routerContext />,
         ReactDOMServer.renderToPipeableStreamOptions(
           // This renders as React is ready to start hydrating, and ensures that
           // if the client side bundle has already been downloaded, it starts

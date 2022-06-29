@@ -253,10 +253,10 @@ module RouteRenderer = {
 
 @live
 let useRegisterPreloadedAsset = asset => {
-  let registerAsset = Utils.AssetPreloader.use()
+  let {preloadAsset} = useRouterContext()
   try {
     if RelaySSRUtils.ssr {
-      registerAsset(asset, ~priority=Default)
+      preloadAsset(asset, ~priority=Default)
     }
   } catch {
   | Js.Exn.Error(_) => ()

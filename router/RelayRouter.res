@@ -86,13 +86,13 @@ module PreloadAssets = {
   }
 
   @live
-  let loadScriptTag = (src, ~module_=?, ()) => {
+  let loadScriptTag = (~isModule=false, src) => {
     let element = createScriptElement()
 
     element->setSrc(src)
     element->setAsync(true)
 
-    if module_->Belt.Option.isSome {
+    if isModule {
       element->setScriptType(#"module")
     }
 

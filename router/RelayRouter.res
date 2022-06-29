@@ -47,6 +47,9 @@ module PreloadAssets = {
   @val @scope("document")
   external createLinkElement: (@as("link") _, unit) => Dom.element = "createElement"
 
+  @val @scope("document")
+  external createScriptElement: (@as("script") _, unit) => Dom.element = "createElement"
+
   @set
   external setHref: (Dom.element, string) => unit = "href"
 
@@ -55,6 +58,15 @@ module PreloadAssets = {
 
   @set
   external setAs: (Dom.element, [#image]) => unit = "as"
+
+  @set
+  external setAsync: (Dom.element, bool) => unit = "async"
+
+  @set
+  external setSrc: (Dom.element, string) => unit = "src"
+
+  @set
+  external setScriptType: (Dom.element, [#"module"]) => unit = "type"
 
   @live
   let preloadAssetViaLinkTag = asset => {
@@ -68,6 +80,20 @@ module PreloadAssets = {
       element->setHref(url)
       element->setRel(#preload)
       element->setAs(#image)
+    }
+
+    appendToHead(element)
+  }
+
+  @live
+  let loadScriptTag = (src, ~module_=?, ()) => {
+    let element = createScriptElement()
+
+    element->setSrc(src)
+    element->setAsync(true)
+
+    if module_->Belt.Option.isSome {
+      element->setScriptType(#"module")
     }
 
     appendToHead(element)
@@ -163,7 +189,7 @@ module Router = {
 
     let doPreloadAsset = (asset, ~priority) => {
       let assetIdentifier = switch asset {
-      | Component({moduleName}) => "component:" ++ moduleName
+      | Component({chunk}) => "component:" ++ chunk
       | Image({url}) => "image:" ++ url
       }
 
@@ -174,7 +200,7 @@ module Router = {
         preparedAssetsMap->Js.Dict.set(assetIdentifier, true)
         switch (asset, priority) {
         | (Component(_), Default | Low) => PreloadAssets.preloadAssetViaLinkTag(asset)
-        | (Component({eagerPreloadFn}), High) => eagerPreloadFn()
+        | (Component({chunk}), High) => PreloadAssets.loadScriptTag(chunk, ~module_=true, ())
         | _ => // Unimplemented
           ()
         }
@@ -247,7 +273,7 @@ module Router = {
           }
         },
         postRouterEvent: postRouterEvent,
-      }
+      },
     )
   }
 }

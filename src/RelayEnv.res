@@ -1,5 +1,12 @@
+// TODO: Not that it matters too much, but we should find a way to ensure only a
+// single map is used on the client. This one is defined here, and then there's
+// another one inside of Router.make.
+let preparedAssetsMap = Js.Dict.empty()
+
 let network = RescriptRelay.Network.makeObservableBased(
-  ~observableFunction=NetworkUtils.fetchQuery,
+  ~observableFunction=NetworkUtils.makeFetchQuery(
+    ~preloadAsset=RelayRouter.Utils.AssetPreloader.preloadAsset(~preparedAssetsMap),
+  ),
   // ~subscriptionFunction=NetworkUtils.subscribeFn,
   (),
 )
@@ -20,9 +27,13 @@ let makeEnvironmentWithNetwork = (~network, ~missingFieldHandlers=?, ()) =>
 let environment = makeEnvironmentWithNetwork(~network, ())
 
 @live
-let makeServer = (~onResponseReceived, ~onQueryInitiated) => {
+let makeServer = (~onResponseReceived, ~onQueryInitiated, ~preloadAsset) => {
   let network = RescriptRelay.Network.makeObservableBased(
-    ~observableFunction=NetworkUtils.makeServerFetchQuery(~onResponseReceived, ~onQueryInitiated),
+    ~observableFunction=NetworkUtils.makeServerFetchQuery(
+      ~onResponseReceived,
+      ~onQueryInitiated,
+      ~preloadAsset,
+    ),
     (),
   )
   makeEnvironmentWithNetwork(~network, ())

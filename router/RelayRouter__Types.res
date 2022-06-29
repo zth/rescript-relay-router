@@ -63,6 +63,7 @@ type onRouterEventFn = routerEvent => unit
 type routerContext = {
   preload: (string, ~priority: preloadPriority=?, unit) => unit,
   preloadCode: (string, ~priority: preloadPriority=?, unit) => unit,
+  preloadAsset: (preloadAsset, ~priority: preloadPriority) => unit,
   get: unit => currentRouterEntry,
   subscribe: subFn => unsubFn,
   history: History.t,

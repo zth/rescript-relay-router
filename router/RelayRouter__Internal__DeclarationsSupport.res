@@ -18,7 +18,7 @@ external unsafe_createRenderProps: (
 
 module RouteRenderer = {
   type routeRenderer = {
-    prepareCode: option<(. prepareProps) => array<RelayRouterTypes.preloadAsset>>,
+    prepareCode: option<(. prepareProps) => array<RelayRouter__Types.preloadAsset>>,
     prepare: (. prepareProps) => prepared,
     render: (. renderProps) => React.element,
   }

@@ -36,7 +36,7 @@ let preloadCode: (
   ~pathParams: Js.Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter.Bindings.History.location,
-) => Js.Promise.t<array<RelayRouterTypes.preloadAsset>>
+) => Js.Promise.t<array<RelayRouter__Types.preloadAsset>>
 
 type prepareAssets = {
   getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,

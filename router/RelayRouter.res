@@ -200,7 +200,7 @@ module Router = {
         preparedAssetsMap->Js.Dict.set(assetIdentifier, true)
         switch (asset, priority) {
         | (Component(_), Default | Low) => PreloadAssets.preloadAssetViaLinkTag(asset)
-        | (Component({chunk}), High) => PreloadAssets.loadScriptTag(chunk, ~module_=true, ())
+        | (Component({chunk}), High) => chunk->PreloadAssets.loadScriptTag(~isModule=true)
         | _ => // Unimplemented
           ()
         }

@@ -24,20 +24,11 @@ export default defineConfig({
       plugins: [visualizer()],
       output: {
         format: "esm",
-        // Only enable output chunking for our client bundle.
-        // At the time of writing Vite does not allow us to know when --ssr
-        // is passed so we use a custom env variable.
-        ...(
-          process.env.IS_VITE_SSR === "1"
-            ? {}
-            : {
-              manualChunks: {
-                react: ["react", "react-dom"],
-                relay: ["react-relay", "relay-runtime"],
-                vendor: ["react-helmet"],
-              }
-            }
-        ),
+        manualChunks: {
+          react: ["react", "react-dom"],
+          relay: ["react-relay", "relay-runtime"],
+          vendor: ["react-helmet"],
+        },
       },
     },
   },

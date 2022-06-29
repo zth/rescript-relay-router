@@ -86,6 +86,23 @@ export let rescriptRelayVitePlugin = ({
   return {
     name: "rescript-relay",
     /**
+     * Workaround until we can upgrade to Vite 3.
+     *
+     * Remove manualChunks if this is SSR, since it doesn't work in SSR mode.
+     * See https://github.com/vitejs/vite/issues/8836
+     */
+    config(userConfig) {
+      //
+      if (
+        Boolean(userConfig.build.ssr) &&
+        userConfig.build?.rollupOptions?.output?.manualChunks != null
+      ) {
+        delete userConfig.build.rollupOptions.output.manualChunks;
+      }
+
+      return userConfig;
+    },
+    /**
      * @param {ResolvedConfig} resolvedConfig
      */
     configResolved(resolvedConfig) {

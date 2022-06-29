@@ -32,8 +32,16 @@ let default = (~request, ~response, ~clientScripts) => {
     response->Express.Response.asWritable->NodeJs.Stream.fromWritable->NodeJs.Stream.end
   )
 
-  let preparedAssetsMap = Js.Dict.empty()
-  let preloadAsset = RelayRouter__Utils.AssetPreloader.preloadAsset(~preparedAssetsMap)
+  // TODO: A default version of this should be provided by us/the router/the
+  // framework, or in some way be made opaque to the dev in the default case.
+  let preloadAsset: RelayRouter.Types.preloadAssetFn = (asset, ~priority as _) =>
+    switch asset {
+    // TODO: If multiple lazy components are in the same chunk then this may load the same asset multiple times.
+    | Component({chunk}) =>
+      transformOutputStream->PreloadInsertingStream.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
+    | Image({url}) =>
+      transformOutputStream->PreloadInsertingStream.onAssetPreload(j`<link rel="preload" as="image" href="$url">`)
+    }
 
   // TODO: Fix the RelayEnv.makeServer types so the extra function here isn't needed.
   let environment = RelayEnv.makeServer(
@@ -55,7 +63,12 @@ let default = (~request, ~response, ~clientScripts) => {
 
   let routes = RouteDeclarations.make()
 
-  let (cleanup, routerContext) = RelayRouter.Router.make(~routes, ~environment, ~routerEnvironment)
+  let (cleanup, routerContext) = RelayRouter.Router.make(
+    ~routes,
+    ~environment,
+    ~routerEnvironment,
+    ~preloadAsset,
+  )
 
   Promise.make((resolve, reject) => {
     let didError = ref(false)
@@ -63,16 +76,9 @@ let default = (~request, ~response, ~clientScripts) => {
     let stream = ref(None)
     stream :=
       ReactDOMServer.renderToPipeableStream(
-        <RelaySSRUtils.AssetRegisterer.Provider
-          value={asset =>
-            switch asset {
-            // TODO: If multiple lazy components are in the same chunk then this may load the same asset multiple times.
-            | Component({chunk}) =>
-              transformOutputStream->PreloadInsertingStream.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
-            | _ => () // Unimplemented
-            }}>
+        <RelayRouter.Utils.AssetPreloader.Provider value={preloadAsset}>
           <Main environment routerContext />
-        </RelaySSRUtils.AssetRegisterer.Provider>,
+        </RelayRouter.Utils.AssetPreloader.Provider>,
         ReactDOMServer.renderToPipeableStreamOptions(
           // This renders as React is ready to start hydrating, and ensures that
           // if the client side bundle has already been downloaded, it starts

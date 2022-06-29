@@ -5,7 +5,7 @@ let preparedAssetsMap = Js.Dict.empty()
 
 let network = RescriptRelay.Network.makeObservableBased(
   ~observableFunction=NetworkUtils.makeFetchQuery(
-    ~preloadAsset=RelayRouter.Utils.AssetPreloader.preloadAsset(~preparedAssetsMap),
+    ~preloadAsset=RelayRouter.Utils.AssetPreloader.clientPreloadAsset(~preparedAssetsMap),
   ),
   // ~subscriptionFunction=NetworkUtils.subscribeFn,
   (),

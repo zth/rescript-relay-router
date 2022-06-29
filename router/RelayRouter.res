@@ -49,13 +49,7 @@ module Router = {
   @val
   external origin: string = "window.location.origin"
 
-  let make = (~routes, ~routerEnvironment as history, ~environment) => {
-    // This holds a map of all assets we've preloaded, so we can track that we
-    // don't try to preload the same thing multiple times.
-    let preparedAssetsMap = Js.Dict.empty()
-
-    let preloadAsset = RelayRouter__Utils.AssetPreloader.preloadAsset(~preparedAssetsMap)
-
+  let make = (~routes, ~routerEnvironment as history, ~environment, ~preloadAsset) => {
     let routerEventListeners = ref([])
     let postRouterEvent = event => {
       routerEventListeners.contents->Belt.Array.forEach(cb => cb(event))
@@ -129,8 +123,6 @@ module Router = {
 
     @live
     let preloadCode = (preloadUrl, ~priority=Default, ()) => {
-      let doPreloadAsset = preloadAsset(~priority)
-
       preloadUrl->runOnEachRouteMatch((~match, ~queryParams, ~location as _) => {
         // We don't care about the unsub callback here
         let _ = Internal.runAtPriority(() => {
@@ -141,7 +133,7 @@ module Router = {
               ~queryParams,
               ~location,
             )->Js.Promise.then_(assetsToPreload => {
-              assetsToPreload->Belt.Array.forEach(doPreloadAsset)
+              assetsToPreload->Belt.Array.forEach(asset => asset->preloadAsset(~priority))
               Js.Promise.resolve()
             }, _)
         }, ~priority)
@@ -261,10 +253,10 @@ module RouteRenderer = {
 
 @live
 let useRegisterPreloadedAsset = asset => {
-  let registerAsset = RelaySSRUtils.AssetRegisterer.use()
+  let registerAsset = Utils.AssetPreloader.use()
   try {
     if RelaySSRUtils.ssr {
-      registerAsset(asset)
+      registerAsset(asset, ~priority=Default)
     }
   } catch {
   | Js.Exn.Error(_) => ()

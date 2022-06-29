@@ -21,9 +21,28 @@ let isRouteActive: (~pathname: string, ~routePattern: string, ~exact: bool=?, un
 let useIsRouteActive: (~href: string, ~routePattern: string, ~exact: bool=?, unit) => bool
 
 module AssetPreloader: {
-  let preloadAsset: (
+  let clientPreloadAsset: (
     RelayRouter__Types.preloadAsset,
     ~priority: RelayRouter__Types.preloadPriority,
     ~preparedAssetsMap: Js.Dict.t<bool>,
   ) => unit
+
+  type context = RelayRouter__Types.preloadAssetFn
+
+  @live
+  let use: unit => context
+
+  module Provider: {
+    @live
+    let make: React.component<{
+      "children": React.element,
+      "value": context,
+    }>
+    @live
+    let makeProps: (
+      ~value: context,
+      ~children: React.element,
+      unit,
+    ) => {"children": React.element, "value": context}
+  }
 }

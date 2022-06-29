@@ -126,7 +126,7 @@ module AssetPreloader = {
     appendToHead(element)
   }
 
-  let preloadAsset = (asset, ~priority, ~preparedAssetsMap) => {
+  let clientPreloadAsset = (asset, ~priority, ~preparedAssetsMap) => {
     let assetIdentifier = switch asset {
     | RelayRouter__Types.Component({chunk}) => "component:" ++ chunk
     | Image({url}) => "image:" ++ url
@@ -145,4 +145,19 @@ module AssetPreloader = {
       }
     }
   }
+
+  type context = RelayRouter__Types.preloadAssetFn
+  let context = React.createContext((_, ~priority as _) => ())
+
+  module Provider = {
+    let make = React.Context.provider(context)
+
+    let makeProps = (~value, ~children, ()) =>
+      {
+        "value": value,
+        "children": children,
+      }
+  }
+
+  let use = (): context => React.useContext(context)
 }

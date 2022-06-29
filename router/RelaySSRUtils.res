@@ -217,22 +217,5 @@ let makeServerFetchFunction = (
   }
 }
 
-module AssetRegisterer = {
-  type context = RelayRouter__Types.preloadAsset => unit
-  let context = React.createContext(_ => ())
-
-  module Provider = {
-    let make = React.Context.provider(context)
-
-    let makeProps = (~value, ~children, ()) =>
-      {
-        "value": value,
-        "children": children,
-      }
-  }
-
-  let use = (): context => React.useContext(context)
-}
-
 @val
 external ssr: bool = "import.meta.env.SSR"

@@ -9,6 +9,7 @@
       "dir": "src",
       "subdirs": true
     },
+    { "dir": ".", "files": ["Server.res"] },
     {
       "dir": "cli",
       "subdirs": true
@@ -22,6 +23,7 @@
       "subdirs": true,
       "dev": true
     }
+
   ],
   "package-specs": [
     {

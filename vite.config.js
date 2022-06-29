@@ -23,6 +23,7 @@ export default defineConfig({
     rollupOptions: {
       plugins: [visualizer()],
       output: {
+        format: "esm",
         manualChunks: {
           react: ["react", "react-dom"],
           relay: ["react-relay", "relay-runtime"],

@@ -9,7 +9,6 @@ let boot = () => {
       ~routes,
       ~environment=RelayEnv.environment,
       ~routerEnvironment,
-      (),
     )
 
     <Main environment=RelayEnv.environment routerContext />

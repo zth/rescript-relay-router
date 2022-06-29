@@ -203,7 +203,6 @@ type parentContext = {
   seenPathParams: list<seenPathParam>,
   traversedRouteFiles: list<string>,
   parentRouteLoc: option<parentRouteLoc>,
-  currentRouteSubTree: string,
 }
 
 // This is the route structure produced

@@ -967,7 +967,6 @@ let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
       seenPathParams: list{},
       traversedRouteFiles: list{},
       parentRouteLoc: None,
-      currentRouteSubTree: rootRouteSubTreeId,
     },
     ~parserContext={
       routeFiles: routeFiles,

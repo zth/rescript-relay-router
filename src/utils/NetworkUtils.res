@@ -1,3 +1,4 @@
+// TODO: Move parts of this file into a RelayRouter__NetorkUtils module?
 @deriving(abstract) @live
 type fetchOpts = {
   _method: string,
@@ -171,24 +172,3 @@ let makeServerFetchQuery = (
     None
   })
 }
-
-/* let subscriptionsClient = GraphQLWs.Client.make(
-  GraphQLWs.Client.makeOptions(~url="ws://localhost:4000/graphql", ()),
-)
-
-let subscribeFn: RescriptRelay.Network.subscribeFn = (operation, variables, _cacheConfig) =>
-  RescriptRelay.Observable.make(sink => {
-    let unsubscribe = subscriptionsClient->GraphQLWs.Client.subscribe(
-      {
-        operationName: operation.name,
-        query: operation.text,
-        variables: variables,
-      },
-      sink,
-    )
-
-    Some({
-      unsubscribe: unsubscribe,
-      closed: false,
-    })
-  })*/

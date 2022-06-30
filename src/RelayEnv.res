@@ -4,7 +4,6 @@ let network = RescriptRelay.Network.makeObservableBased(
   ~observableFunction=NetworkUtils.makeFetchQuery(
     ~preloadAsset=RelayRouter.AssetPreloader.clientPreloadAsset(~preparedAssetsMap),
   ),
-  // ~subscriptionFunction=NetworkUtils.subscribeFn,
   (),
 )
 

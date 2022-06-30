@@ -12,3 +12,4 @@ router/**/*.mjs
 cli/**/*.mjs
 Server.mjs
 _release
+stats.html

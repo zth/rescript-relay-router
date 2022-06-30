@@ -35,7 +35,7 @@ jobs:
           yarn build:rescript
       - name: Sync router code generation
         run: |
-          yarn build:router:local
+          yarn router:generate
       - name: git status
         id: git_status
         run: |

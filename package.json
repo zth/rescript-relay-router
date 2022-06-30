@@ -51,7 +51,7 @@
     "react-relay": "13.2.0",
     "relay-runtime": "13.2.0",
     "rescript": "9.1.4",
-    "rescript-relay": "1.0.0-beta.22",
+    "rescript-relay": "1.0.0-beta.23",
     "rollup-plugin-visualizer": "5.5.0",
     "vite": "2.9.9",
     "vite-plugin-html": "3.2.0",

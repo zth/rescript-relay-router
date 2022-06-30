@@ -30,6 +30,17 @@ jobs:
       - name: Build Relay artifacts
         run: |
           yarn build:relay
+      - name: Format ReScript
+        run: |
+          yarn rescript format -all
+      - name: git status
+        id: git_status
+        run: |
+          echo "::set-output name=status::$( git status --porcelain )"
+      - name: Exit if there's ReScript code that was not properly formatted
+        run: |
+          exit 1
+        if: steps.git_status.outputs.status
       - name: Build ReScript
         run: |
           yarn build:rescript
@@ -40,7 +51,7 @@ jobs:
         id: git_status
         run: |
           echo "::set-output name=status::$( git status --porcelain )"
-      - name: Exit if any generated artifacts (Relay or router) are modified
+      - name: Exit if routes have not been properly regenerated and commited
         run: |
           exit 1
         if: steps.git_status.outputs.status

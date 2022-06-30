@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "run-s build:*",
+    "build:router:local": "node cli/RescriptRelayRouterCli.mjs generate",
     "build:relay": "rescript-relay-compiler",
     "build:rescript": "rescript build -with-deps",
     "build:vite": "run-s build:vite:*",
@@ -19,8 +20,6 @@
     "dev:relay": "yarn build:relay --watch",
     "dev:rescript": "yarn build:rescript -w",
     "dev:server": "nodemon -w Server.mjs Server.mjs",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook",
     "schema": "npx -y get-graphql-schema http://localhost:4000/graphql > schema.graphql",
     "remove-unused-fields": "rescript-relay-cli remove-unused-fields",
     "test": "vitest run",

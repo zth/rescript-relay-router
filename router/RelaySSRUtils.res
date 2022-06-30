@@ -197,6 +197,8 @@ let makeServerFetchFunction = (
           onResponseReceived(
             ~queryId,
             ~response=payload,
+            // TODO: This should also account for is_final, which is what Relay
+            // is actually
             ~final=switch payload->Js.Json.decodeObject {
             | Some(obj) =>
               switch obj->Js.Dict.get("hasNext") {

@@ -9,6 +9,9 @@ let boot = () => {
       ~routes,
       ~environment=RelayEnv.environment,
       ~routerEnvironment,
+      ~preloadAsset=RelayRouter.AssetPreloader.clientPreloadAsset(
+        ~preparedAssetsMap=RelayEnv.preparedAssetsMap,
+      ),
     )
 
     <Main environment=RelayEnv.environment routerContext />

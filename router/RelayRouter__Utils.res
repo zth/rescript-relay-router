@@ -12,7 +12,13 @@ type routerHelpers = {
 
 @live
 let useRouter = (): routerHelpers => {
-  let {history, preload, preloadCode, postRouterEvent, get} = RelayRouter__Context.useRouterContext()
+  let {
+    history,
+    preload,
+    preloadCode,
+    postRouterEvent,
+    get,
+  } = RelayRouter__Context.useRouterContext()
   let push = React.useCallback2(path => {
     postRouterEvent(OnBeforeNavigation({currentLocation: get().location}))
     history->History.push(path)

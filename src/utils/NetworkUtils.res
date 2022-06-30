@@ -71,42 +71,69 @@ module Meros = {
   }
 }
 
-let fetchQuery = RelaySSRUtils.makeClientFetchFunction((
-  sink,
-  operation,
-  variables,
-  _cacheConfig,
-  _uploads,
-) => {
-  fetch(
-    "http://localhost:4000/graphql",
-    fetchOpts(
-      ~_method="POST",
-      ~headers=Js.Dict.fromArray([("content-type", "application/json")]),
-      ~body={"query": operation.text, "variables": variables}
-      ->Js.Json.stringifyAny
-      ->Belt.Option.getWithDefault(""),
-    ),
-  )
-  ->Promise.then(r =>
-    r->Meros.getChunks(
-      ~onNext=(. part) => {
-        sink.next(. part)
-      },
-      ~onError=(. err) => {
-        sink.error(. err)
-      },
-      ~onComplete=sink.complete,
-    )
-  )
-  ->ignore
+// This is a simple example of how one could leverage `preloadAsset` to preload
+// things from the GraphQL response. We should package this up in a good way
+// before a proper release.
+let preloadFromResponse = (part: Js.Json.t, ~preloadAsset) => {
+  switch part->Js.Json.decodeObject {
+  | None => ()
+  | Some(obj) =>
+    switch obj->Js.Dict.get("extensions") {
+    | None => ()
+    | Some(extensions) =>
+      switch extensions->Js.Json.decodeObject {
+      | None => ()
+      | Some(extensions) =>
+        extensions
+        ->Js.Dict.get("preloadableImages")
+        ->Belt.Option.map(images =>
+          images
+          ->Js.Json.decodeArray
+          ->Belt.Option.getWithDefault([])
+          ->Belt.Array.keepMap(item => item->Js.Json.decodeString)
+        )
+        ->Belt.Option.getWithDefault([])
+        ->Belt.Array.forEach(imgUrl => {
+          preloadAsset(RelayRouter.Types.Image({url: imgUrl}), ~priority=RelayRouter.Types.Default)
+        })
+      }
+    }
+  }
+}
 
-  None
-})
+let makeFetchQuery = (~preloadAsset) =>
+  RelaySSRUtils.makeClientFetchFunction((sink, operation, variables, _cacheConfig, _uploads) => {
+    fetch(
+      "http://localhost:4000/graphql",
+      fetchOpts(
+        ~_method="POST",
+        ~headers=Js.Dict.fromArray([("content-type", "application/json")]),
+        ~body={"query": operation.text, "variables": variables}
+        ->Js.Json.stringifyAny
+        ->Belt.Option.getWithDefault(""),
+      ),
+    )
+    ->Promise.then(r =>
+      r->Meros.getChunks(
+        ~onNext=(. part) => {
+          part->preloadFromResponse(~preloadAsset)
+          sink.next(. part)
+        },
+        ~onError=(. err) => {
+          sink.error(. err)
+        },
+        ~onComplete=sink.complete,
+      )
+    )
+    ->ignore
+
+    None
+  })
 
 let makeServerFetchQuery = (
   ~onResponseReceived,
   ~onQueryInitiated,
+  ~preloadAsset,
 ): RescriptRelay.Network.fetchFunctionObservable => {
   RelaySSRUtils.makeServerFetchFunction(onResponseReceived, onQueryInitiated, (
     sink,
@@ -128,6 +155,7 @@ let makeServerFetchQuery = (
     ->Promise.thenResolve(r => {
       r->Meros.getChunks(
         ~onNext=(. part) => {
+          part->preloadFromResponse(~preloadAsset)
           sink.next(. part)
         },
         ~onError=(. err) => {

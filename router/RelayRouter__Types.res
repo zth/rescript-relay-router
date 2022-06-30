@@ -12,6 +12,7 @@ type preloadAsset =
   | Component(preloadComponentAsset)
   | Image({url: string})
 
+type preloadAssetFn = (preloadAsset, ~priority: preloadPriority) => unit
 type preparedRoute = {routeKey: string, render: renderRouteFn}
 
 @live
@@ -63,6 +64,7 @@ type onRouterEventFn = routerEvent => unit
 type routerContext = {
   preload: (string, ~priority: preloadPriority=?, unit) => unit,
   preloadCode: (string, ~priority: preloadPriority=?, unit) => unit,
+  preloadAsset: preloadAssetFn,
   get: unit => currentRouterEntry,
   subscribe: subFn => unsubFn,
   history: History.t,

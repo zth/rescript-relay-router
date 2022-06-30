@@ -27,24 +27,3 @@ let makeServerFetchFunction: (
 
 @live
 let ssr: bool
-
-module AssetRegisterer: {
-  type context = RelayRouter__Types.preloadAsset => unit
-
-  @live
-  let use: unit => context
-
-  module Provider: {
-    @live
-    let make: React.component<{
-      "children": React.element,
-      "value": context,
-    }>
-    @live
-    let makeProps: (
-      ~value: context,
-      ~children: React.element,
-      unit,
-    ) => {"children": React.element, "value": context}
-  }
-}

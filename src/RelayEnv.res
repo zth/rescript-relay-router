@@ -1,5 +1,9 @@
+let preparedAssetsMap = Js.Dict.empty()
+
 let network = RescriptRelay.Network.makeObservableBased(
-  ~observableFunction=NetworkUtils.fetchQuery,
+  ~observableFunction=NetworkUtils.makeFetchQuery(
+    ~preloadAsset=RelayRouter.AssetPreloader.clientPreloadAsset(~preparedAssetsMap),
+  ),
   // ~subscriptionFunction=NetworkUtils.subscribeFn,
   (),
 )
@@ -20,9 +24,13 @@ let makeEnvironmentWithNetwork = (~network, ~missingFieldHandlers=?, ()) =>
 let environment = makeEnvironmentWithNetwork(~network, ())
 
 @live
-let makeServer = (~onResponseReceived, ~onQueryInitiated) => {
+let makeServer = (~onResponseReceived, ~onQueryInitiated, ~preloadAsset) => {
   let network = RescriptRelay.Network.makeObservableBased(
-    ~observableFunction=NetworkUtils.makeServerFetchQuery(~onResponseReceived, ~onQueryInitiated),
+    ~observableFunction=NetworkUtils.makeServerFetchQuery(
+      ~onResponseReceived,
+      ~onQueryInitiated,
+      ~preloadAsset,
+    ),
     (),
   )
   makeEnvironmentWithNetwork(~network, ())

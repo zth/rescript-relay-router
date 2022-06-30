@@ -2,6 +2,7 @@ module Types = RelayRouter__Types
 module Bindings = RelayRouter__Bindings
 module Link = RelayRouter__Link
 module Scroll = RelayRouter__Scroll
+module AssetPreloader = RelayRouter__AssetPreloader
 
 // TODO: This is now exposing RelayRouter internals because it's needed by the generated code.
 module Internal = RelayRouter__Internal
@@ -40,68 +41,6 @@ module RouterEnvironment = {
     History.createMemoryHistory(~options={"initialEntries": [initialUrl]})
 }
 
-module PreloadAssets = {
-  @val
-  external appendToHead: Dom.element => unit = "document.head.appendChild"
-
-  @val @scope("document")
-  external createLinkElement: (@as("link") _, unit) => Dom.element = "createElement"
-
-  @val @scope("document")
-  external createScriptElement: (@as("script") _, unit) => Dom.element = "createElement"
-
-  @set
-  external setHref: (Dom.element, string) => unit = "href"
-
-  @set
-  external setRel: (Dom.element, [#modulepreload | #preload]) => unit = "rel"
-
-  @set
-  external setAs: (Dom.element, [#image]) => unit = "as"
-
-  @set
-  external setAsync: (Dom.element, bool) => unit = "async"
-
-  @set
-  external setSrc: (Dom.element, string) => unit = "src"
-
-  @set
-  external setScriptType: (Dom.element, [#"module"]) => unit = "type"
-
-  @live
-  let preloadAssetViaLinkTag = asset => {
-    let element = createLinkElement()
-
-    switch asset {
-    | Component({chunk}) =>
-      element->setHref(chunk)
-      element->setRel(#modulepreload)
-    | Image({url}) =>
-      element->setHref(url)
-      element->setRel(#preload)
-      element->setAs(#image)
-    }
-
-    appendToHead(element)
-  }
-
-  @live
-  let loadScriptTag = (~isModule=false, src) => {
-    let element = createScriptElement()
-
-    element->setSrc(src)
-    element->setAsync(true)
-
-    if isModule {
-      element->setScriptType(#"module")
-    }
-
-    appendToHead(element)
-  }
-}
-
-let _ = PreloadAssets.preloadAssetViaLinkTag
-
 module Router = {
   let dictDelete: (
     Js.Dict.t<'any>,
@@ -111,11 +50,7 @@ module Router = {
   @val
   external origin: string = "window.location.origin"
 
-  let make = (~routes, ~routerEnvironment as history, ~environment) => {
-    // This holds a map of all assets we've preloaded, so we can track that we
-    // don't try to preload the same thing multiple times.
-    let preparedAssetsMap = Js.Dict.empty()
-
+  let make = (~routes, ~routerEnvironment as history, ~environment, ~preloadAsset) => {
     let routerEventListeners = ref([])
     let postRouterEvent = event => {
       routerEventListeners.contents->Belt.Array.forEach(cb => cb(event))
@@ -187,30 +122,8 @@ module Router = {
       })
     }
 
-    let doPreloadAsset = (asset, ~priority) => {
-      let assetIdentifier = switch asset {
-      | Component({chunk}) => "component:" ++ chunk
-      | Image({url}) => "image:" ++ url
-      }
-
-      switch preparedAssetsMap->Js.Dict.get(assetIdentifier) {
-      | Some(_) => // Already preloaded
-        ()
-      | None =>
-        preparedAssetsMap->Js.Dict.set(assetIdentifier, true)
-        switch (asset, priority) {
-        | (Component(_), Default | Low) => PreloadAssets.preloadAssetViaLinkTag(asset)
-        | (Component({chunk}), High) => chunk->PreloadAssets.loadScriptTag(~isModule=true)
-        | _ => // Unimplemented
-          ()
-        }
-      }
-    }
-
     @live
     let preloadCode = (preloadUrl, ~priority=Default, ()) => {
-      let doPreloadAsset = doPreloadAsset(~priority)
-
       preloadUrl->runOnEachRouteMatch((~match, ~queryParams, ~location as _) => {
         // We don't care about the unsub callback here
         let _ = Internal.runAtPriority(() => {
@@ -221,7 +134,7 @@ module Router = {
               ~queryParams,
               ~location,
             )->Js.Promise.then_(assetsToPreload => {
-              assetsToPreload->Belt.Array.forEach(doPreloadAsset)
+              assetsToPreload->Belt.Array.forEach(asset => asset->preloadAsset(~priority))
               Js.Promise.resolve()
             }, _)
         }, ~priority)
@@ -261,6 +174,7 @@ module Router = {
       {
         preloadCode: preloadCode,
         preload: preload,
+        preloadAsset: preloadAsset,
         get: get,
         subscribe: subscribe,
         history: history,
@@ -340,10 +254,10 @@ module RouteRenderer = {
 
 @live
 let useRegisterPreloadedAsset = asset => {
-  let registerAsset = RelaySSRUtils.AssetRegisterer.use()
+  let {preloadAsset} = useRouterContext()
   try {
     if RelaySSRUtils.ssr {
-      registerAsset(asset)
+      preloadAsset(asset, ~priority=Default)
     }
   } catch {
   | Js.Exn.Error(_) => ()

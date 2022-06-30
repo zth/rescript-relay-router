@@ -197,6 +197,12 @@ let makeServerFetchFunction = (
           onResponseReceived(
             ~queryId,
             ~response=payload,
+            // TODO: This should also account for is_final, which is what Relay
+            // is actually using for checking whether chunks are final or not.
+            // The reason both exists is because isNext is what's proposed in
+            // the spec, so that's what most server implementations uses, but
+            // Relay is using is_final and haven't adapted to the spec yet
+            // because it's not quite finalized.
             ~final=switch payload->Js.Json.decodeObject {
             | Some(obj) =>
               switch obj->Js.Dict.get("hasNext") {

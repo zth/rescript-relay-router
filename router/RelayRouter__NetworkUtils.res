@@ -33,7 +33,10 @@ let decodeEachChunk: (
     }
   }`)
 
-// This import is correct, even if we're on the server. This is because we're telling the us
+// TODO: We'll might need to revisit this later and provide a helper that also
+// works with other types of fetch responses. This one is tailored to work with
+// fetch responses that follow the browser standard, like `@remix-run/web-fetch`
+// etc.
 @module("meros/browser")
 external meros: response => Js.Promise.t<parts> = "meros"
 

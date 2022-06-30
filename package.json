@@ -21,7 +21,6 @@
     "dev:rescript": "yarn build:rescript -w",
     "dev:server": "nodemon -w Server.mjs Server.mjs",
     "schema": "npx -y get-graphql-schema http://localhost:4000/graphql > schema.graphql",
-    "remove-unused-fields": "rescript-relay-cli remove-unused-fields",
     "test": "vitest run",
     "test:watch": "vitest watch"
   },
@@ -36,9 +35,7 @@
     "express": "^4.17.2",
     "fast-fuzzy": "^1.11.1",
     "fast-glob": "^3.2.11",
-    "fetch-multipart-graphql": "2.0.1",
     "graphql": "16.2.0",
-    "graphql-ws": "5.5.0",
     "lines-and-columns": "^2.0.3",
     "magic-string": "^0.26.2",
     "meros": "^1.2.0",
@@ -46,7 +43,6 @@
     "npm-run-all": "^4.1.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-helmet": "6.1.0",
     "react-relay": "13.2.0",
     "relay-runtime": "13.2.0",
     "rescript": "9.1.4",
@@ -63,7 +59,6 @@
     "jsonc-parser": "^3.0.0",
     "node-fetch": "^3.2.0",
     "react-router": "^6.2.1",
-    "vscode-jsonrpc": "^5.0.1",
-    "xhr": "^2.6.0"
+    "vscode-jsonrpc": "^5.0.1"
   }
 }

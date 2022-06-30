@@ -27,7 +27,6 @@ export default defineConfig({
         manualChunks: {
           react: ["react", "react-dom"],
           relay: ["react-relay", "relay-runtime"],
-          vendor: ["react-helmet"],
         },
       },
     },

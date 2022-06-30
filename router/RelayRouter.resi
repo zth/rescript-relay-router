@@ -2,6 +2,7 @@ module Types = RelayRouter__Types
 module Bindings = RelayRouter__Bindings
 module Link = RelayRouter__Link
 module Scroll = RelayRouter__Scroll
+module AssetPreloader = RelayRouter__AssetPreloader
 
 // TODO: This is now exposing RelayRouter internals because it's needed by the generated code.
 module Internal = RelayRouter__Internal

@@ -9,7 +9,7 @@ let boot = () => {
       ~routes,
       ~environment=RelayEnv.environment,
       ~routerEnvironment,
-      ~preloadAsset=RelayRouter.Utils.AssetPreloader.clientPreloadAsset(
+      ~preloadAsset=RelayRouter.AssetPreloader.clientPreloadAsset(
         ~preparedAssetsMap=RelayEnv.preparedAssetsMap,
       ),
     )

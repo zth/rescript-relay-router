@@ -19,11 +19,3 @@ let isRouteActive: (~pathname: string, ~routePattern: string, ~exact: bool=?, un
 
 @live
 let useIsRouteActive: (~href: string, ~routePattern: string, ~exact: bool=?, unit) => bool
-
-module AssetPreloader: {
-  let clientPreloadAsset: (
-    RelayRouter__Types.preloadAsset,
-    ~priority: RelayRouter__Types.preloadPriority,
-    ~preparedAssetsMap: Js.Dict.t<bool>,
-  ) => unit
-}

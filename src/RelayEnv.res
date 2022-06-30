@@ -1,6 +1,3 @@
-// TODO: Not that it matters too much, but we should find a way to ensure only a
-// single map is used on the client. This one is defined here, and then there's
-// another one inside of Router.make.
 let preparedAssetsMap = Js.Dict.empty()
 
 let network = RescriptRelay.Network.makeObservableBased(

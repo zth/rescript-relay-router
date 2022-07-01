@@ -1,7 +1,7 @@
 type response
 
 @module("@remix-run/web-fetch")
-external fetch: (string, 'fetchOpts) => Promise.t<response> = "fetch"
+external fetch: (string, 'fetchOpts) => Js.Promise.t<response> = "fetch"
 
 type parts
 

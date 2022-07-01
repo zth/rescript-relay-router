@@ -643,6 +643,29 @@ module Decode = {
         let name = nameProp->Validators.validateName(~ctx, ~siblings)
         let path = pathProp->Validators.validatePath(~ctx, ~parentContext)
 
+        // Params are inherited from all parent routes. This concatenates the
+        // previously seen path params from the parents.
+        let pathParams = switch path {
+        | None => []
+        | Some({pathParams}) =>
+          let params = []
+          pathParams
+          ->Belt.Array.concat(
+            parentContext.seenPathParams
+            ->Belt.List.map(({seenAtPosition}) => seenAtPosition)
+            ->Belt.List.toArray,
+          )
+          ->Belt.Array.forEach(param =>
+            switch params->Js.Array2.includes(param) {
+            | true => ()
+            | false =>
+              let _ = params->Js.Array2.push(param)
+            }
+          )
+
+          params
+        }
+
         switch (path, name) {
         // Hitting only one of these means we can assume the user is trying to build a route entry, but missing props
         | (Some(path), None) =>
@@ -658,7 +681,7 @@ module Decode = {
                 loc: path.loc,
                 text: path.pathRaw,
               },
-              pathParams: path.pathParams,
+              pathParams: pathParams,
               routePath: routePath,
               queryParams: path.queryParams->Js.Array2.copy,
               children: None,
@@ -677,7 +700,7 @@ module Decode = {
                 loc: dummyPos,
                 text: "_",
               },
-              pathParams: [],
+              pathParams: pathParams,
               queryParams: [],
               routePath: RoutePath.empty(),
               children: None,
@@ -732,7 +755,7 @@ module Decode = {
                 text: path.pathRaw,
               },
               routePath: routePath,
-              pathParams: path.pathParams,
+              pathParams: pathParams,
               queryParams: path.queryParams->Js.Array2.copy,
               children: children,
               sourceFile: ctx.routeFileName,
@@ -926,6 +949,15 @@ let rec parseRouteFile = (
   }
 }
 
+let emptyParentCtx = () => {
+  currentRouteNamePath: list{},
+  seenQueryParams: [],
+  currentRoutePath: RoutePath.empty(),
+  seenPathParams: list{},
+  traversedRouteFiles: list{},
+  parentRouteLoc: None,
+}
+
 let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
   let routeFiles = Js.Dict.empty()
   let decodeErrors = []
@@ -933,14 +965,7 @@ let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
   let {result, rawText} = "routes.json"->parseRouteFile(
     ~config,
     ~decodeErrors,
-    ~parentContext={
-      currentRouteNamePath: list{},
-      seenQueryParams: [],
-      currentRoutePath: RoutePath.empty(),
-      seenPathParams: list{},
-      traversedRouteFiles: list{},
-      parentRouteLoc: None,
-    },
+    ~parentContext=emptyParentCtx(),
     ~parserContext={
       routeFiles: routeFiles,
       routeFileNames: Bindings.Glob.glob.sync(

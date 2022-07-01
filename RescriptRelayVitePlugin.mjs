@@ -3,7 +3,7 @@ import fsPromised from "fs/promises";
 import path from "path";
 import readline from "readline";
 import MagicString from "magic-string";
-import { normalizePath } from 'vite'
+import { normalizePath } from "vite";
 import { runCli } from "./cli/RescriptRelayRouterCli__Commands.mjs";
 
 /**
@@ -106,12 +106,17 @@ export let rescriptRelayVitePlugin = ({
      * @param {ResolvedConfig} resolvedConfig
      */
     configResolved(resolvedConfig) {
-      config = resolvedConfig
+      config = resolvedConfig;
       // For the server build in SSR we read the client manifest from disk.
       if (config.build.ssr) {
         // TODO: This relies on the client and server paths being next to eachother. Perhaps add config?
         // TODO: SSR Manifest name is configurable in Vite and may be different.
-        ssrManifest = JSON.parse(fs.readFileSync(path.resolve(config.build.outDir, "../client/ssr-manifest.json"), 'utf-8'));
+        ssrManifest = JSON.parse(
+          fs.readFileSync(
+            path.resolve(config.build.outDir, "../client/ssr-manifest.json"),
+            "utf-8"
+          )
+        );
       }
     },
     buildStart() {
@@ -192,10 +197,13 @@ export let rescriptRelayVitePlugin = ({
               resolved = resolved.replace(config.root, "");
               return `__$rescriptChunkName__: "${resolved}"`;
             }
-            console.warn(`Could not resolve Rescript Module '${moduleId}' for match '${fullMatch}'.`);
-          }
-          else {
-            console.warn(`Tried to resolve ReScript module to path but match '${fullMatch}' didn't contain a moduleId.`);
+            console.warn(
+              `Could not resolve Rescript Module '${moduleId}' for match '${fullMatch}'.`
+            );
+          } else {
+            console.warn(
+              `Tried to resolve ReScript module to path but match '${fullMatch}' didn't contain a moduleId.`
+            );
           }
 
           return fullMatch;
@@ -228,18 +236,18 @@ export let rescriptRelayVitePlugin = ({
         return;
       }
       for (const file in bundle) {
-        const chunk = bundle[file]
-        if (chunk.type === 'chunk') {
+        const chunk = bundle[file];
+        if (chunk.type === "chunk") {
           for (const id in chunk.modules) {
-            const normalizedId = normalizePath(path.relative(config.root, id))
+            const normalizedId = normalizePath(path.relative(config.root, id));
             const mappedChunks =
-              ssrManifest[normalizedId] ?? (ssrManifest[normalizedId] = [])
+              ssrManifest[normalizedId] ?? (ssrManifest[normalizedId] = []);
             if (!chunk.isEntry) {
-              mappedChunks.push(config.base + chunk.fileName)
+              mappedChunks.push(config.base + chunk.fileName);
             }
             chunk.viteMetadata.importedAssets.forEach((file) => {
-              mappedChunks.push(config.base + file)
-            })
+              mappedChunks.push(config.base + file);
+            });
           }
         }
       }
@@ -262,10 +270,13 @@ export let rescriptRelayVitePlugin = ({
               if (chunk !== null) {
                 return `__$rescriptChunkName__:"${chunk}"`;
               }
-              console.warn(`Could not find chunk path for '${jsUrl}' for match '${fullMatch}'.`);
-            }
-            else {
-              console.warn(`Tried to rewrite compiled path to chunk but match '${fullMatch}' didn't contain a compiled path.`);
+              console.warn(
+                `Could not find chunk path for '${jsUrl}' for match '${fullMatch}'.`
+              );
+            } else {
+              console.warn(
+                `Tried to rewrite compiled path to chunk but match '${fullMatch}' didn't contain a compiled path.`
+              );
             }
 
             return fullMatch;
@@ -279,7 +290,7 @@ export let rescriptRelayVitePlugin = ({
           );
         }
       });
-    }
+    },
   };
 };
 
@@ -294,7 +305,9 @@ export let rescriptRelayVitePlugin = ({
  */
 function replaceAsyncWithMagicString(string, searchValue, replacer) {
   if (typeof replacer !== "function") {
-    throw new Error("Must provide a replacer function, otherwise just call replace directly.");
+    throw new Error(
+      "Must provide a replacer function, otherwise just call replace directly."
+    );
   }
   try {
     var values = [];
@@ -302,13 +315,13 @@ function replaceAsyncWithMagicString(string, searchValue, replacer) {
       values.push(replacer.apply(undefined, arguments));
       return "";
     });
-    let mapTrackingString = new MagicString(string)
+    let mapTrackingString = new MagicString(string);
     return Promise.all(values).then(function (resolvedValues) {
       // Call replace again, this time on the string that tracks a sourcemap.
       // We use the replacerFunction so each occurrence can be replaced by the
       // previously resolved value for that index.
-      return mapTrackingString.replace(searchValue,
-        () => resolvedValues.shift()
+      return mapTrackingString.replace(searchValue, () =>
+        resolvedValues.shift()
       );
     });
   } catch (error) {

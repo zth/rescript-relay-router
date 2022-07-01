@@ -2,6 +2,8 @@ type vitest
 
 type suite
 
+exception Test_failed
+
 @module("vitest") @val
 external suite: suite = "expect"
 
@@ -427,6 +429,15 @@ external afterAllPromise: (@uncurry (unit => Promise.t<'a>), Js.Undefined.t<int>
 @inline
 let afterAllPromise = (~timeout=?, callback) =>
   afterAllPromise(callback, timeout->Js.Undefined.fromOption)
+
+module ExpectObj = {
+  type t
+
+  @module("vitest") external expect: t = "expect"
+
+  @send external assertions: (t, int) => unit = "assertions"
+}
+
 module Expect = {
   @send external not: expected<'a> => expected<'a> = "not"
 

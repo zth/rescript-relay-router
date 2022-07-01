@@ -83,7 +83,13 @@ let getRouteMaker = (route: printableRoute) => {
 
   str.contents = str.contents ++ ") => {\n"
 
-  let urlTemplateString = route.path->RoutePath.toTemplateString(~pathParams=route.params)
+  let urlTemplateString = try route.path->RoutePath.toTemplateString(
+    ~pathParams=route.params,
+  ) catch {
+  | Unmapped_url_part =>
+    Js.log(`Route ${route.name->RouteName.getFullRouteName} has invalid path and/or params config.`)
+    raise(Unmapped_url_part)
+  }
 
   if hasQueryParams {
     str.contents =

@@ -355,10 +355,11 @@ let runCli = args => {
         | Js.Exn.Error(e) => Js.log(e->Js.Exn.message)
         | Utils.Decode_error(routeStructure) =>
           routeStructure->Diagnostics.printDiagnostics(~config)
-        | _ =>
+        | err =>
           Js.log(
             "Something went wrong generating your routes. Please check the validity of `routes.json`.",
           )
+          Js.log(err)
         }
       }
 

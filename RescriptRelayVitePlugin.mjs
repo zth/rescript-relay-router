@@ -245,7 +245,7 @@ export let rescriptRelayVitePlugin = ({
             if (!chunk.isEntry) {
               mappedChunks.push(config.base + chunk.fileName);
             }
-            chunk.viteMetadata.importedAssets.forEach((file) => {
+            chunk.viteMetadata?.importedAssets.forEach((file) => {
               mappedChunks.push(config.base + file);
             });
           }

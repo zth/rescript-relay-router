@@ -134,6 +134,8 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
   let fileContents = `
 open RelayRouter__Internal__DeclarationsSupport
 
+external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
+
 ${routeNamesEntries
     ->Belt.Array.map(((routeName, _)) => {
       `

@@ -252,20 +252,22 @@ let useQueryParams = (): useQueryParamsReturn => {
   }
 }
 
-let getPrepareAssets = (route: printableRoute) => {
-  let hasQueryParams = route.queryParams->Js.Dict.keys->Js.Array2.length > 0
-  let params = route.params
-  let str = ref(`@live\ntype prepareProps = {\n`)
+let standardRecordFields = [
+  ("environment", "RescriptRelay.Environment.t"),
+  ("location", "RelayRouter.Bindings.History.location"),
+]
 
-  let standardRecordFields = [
-    ("environment", "RescriptRelay.Environment.t"),
-    ("location", "RelayRouter.Bindings.History.location"),
-  ]
+type routeParamFields = {
+  pathParamsRecordFields: array<(string, string)>,
+  queryParamsRecordFields: array<(string, string)>,
+  allRecordFields: array<(string, string)>,
+}
 
+let getRouteParamRecordFields = (route: printableRoute) => {
   let pathParamsRecordFields = []
   let queryParamsRecordFields = []
 
-  params->Belt.Array.forEach(param => {
+  route.params->Belt.Array.forEach(param => {
     let _ =
       pathParamsRecordFields->Js.Array2.push((
         Param(param)->SafeParam.makeSafeParamName(~params=route.params)->SafeParam.getSafeKey,
@@ -287,50 +289,30 @@ let getPrepareAssets = (route: printableRoute) => {
   let recordFields =
     standardRecordFields->Js.Array2.concatMany([pathParamsRecordFields, queryParamsRecordFields])
 
-  recordFields->Belt.Array.forEach(((key, typ)) => {
-    str.contents = str.contents ++ `  ${key}: ${typ},\n`
-  })
-
-  str.contents = str.contents ++ "}\n\n"
-
-  str.contents =
-    str.contents ++
-    `let makeRouteKey = (
-  ~pathParams: Js.Dict.t<string>,
-  ~queryParams: RelayRouter.Bindings.QueryParams.t
-): string => {
-${if pathParamsRecordFields->Js.Array2.length == 0 {
-        "  ignore(pathParams)\n"
-      } else {
-        ""
-      }}${if queryParamsRecordFields->Js.Array2.length == 0 {
-        "  ignore(queryParams)\n"
-      } else {
-        ""
-      }}
-  "${route.name->RouteName.getFullRouteName}:"
-${pathParamsRecordFields
-      ->Belt.Array.map(((key, _)) =>
-        "    ++ pathParams->Js.Dict.get(\"" ++ key ++ "\")->Belt.Option.getWithDefault(\"\")"
-      )
-      ->Js.Array2.joinWith("\n")}
-${queryParamsRecordFields
-      ->Belt.Array.map(((key, _)) =>
-        "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
-        key ++ "\")->Belt.Option.getWithDefault(\"\")"
-      )
-      ->Js.Array2.joinWith("\n")}
+  {
+    pathParamsRecordFields: pathParamsRecordFields,
+    queryParamsRecordFields: queryParamsRecordFields,
+    allRecordFields: recordFields,
+  }
 }
 
-`
+// Controls whether the generated function is targeting the individual dedicated
+// route file, or the general route structure in the generated
+// RouteDeclarations.
+type makePreparePropsReturnMode = ForInlinedRouteFn | ForDedicatedRouteFile
 
-  str.contents =
-    str.contents ++ `@live\nlet makePrepareProps = (. 
+// This function will take the raw location, path params, query params etc, and
+// transform that into prepared (type safe) props for the route render function.
+let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
+  let hasQueryParams = route.queryParams->Js.Dict.keys->Js.Array2.length > 0
+  let params = route.params
+
+  let str = ref(`(. 
   ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter.Bindings.History.location,
-): prepareProps => {\n`
+): prepareProps => {\n`)
 
   let propsToIgnore = [
     params->Js.Array2.length === 0 ? Some("pathParams") : None,
@@ -342,6 +324,14 @@ ${queryParamsRecordFields
   ->Belt.Array.forEach(propName => {
     str.contents = str.contents ++ `  ignore(${propName})\n`
   })
+
+  if returnMode == ForInlinedRouteFn {
+    // We preserve type safety by making sure that what we generate type checks,
+    // before we cast it to an abstract type (which we do to save bundle size).
+    str.contents =
+      str.contents ++
+      `  let prepareProps: Route__${route.name->RouteName.getFullRouteName}_route.prepareProps = `
+  }
 
   str.contents =
     str.contents ++ "  {
@@ -370,7 +360,70 @@ ${queryParamsRecordFields
     })
   }
 
-  str.contents = str.contents ++ "  }\n}\n\n"
+  str.contents = str.contents ++ "  }\n"
+
+  if returnMode == ForInlinedRouteFn {
+    str.contents = str.contents ++ `  prepareProps->unsafe_toPrepareProps\n`
+  }
+
+  str.contents = str.contents ++ "}"
+
+  str.contents
+}
+
+// Creates a unique identifier for the supplied route + the params it has been
+// initialized with. Used to identify a route, make sure it can be prepared,
+// cached, and cleaned up, etc.
+let getMakeRouteKeyFn = (route: printableRoute) => {
+  let {pathParamsRecordFields, queryParamsRecordFields} = getRouteParamRecordFields(route)
+
+  `(
+  ~pathParams: Js.Dict.t<string>,
+  ~queryParams: RelayRouter.Bindings.QueryParams.t
+): string => {
+${if pathParamsRecordFields->Js.Array2.length == 0 {
+      "  ignore(pathParams)\n"
+    } else {
+      ""
+    }}${if queryParamsRecordFields->Js.Array2.length == 0 {
+      "  ignore(queryParams)\n"
+    } else {
+      ""
+    }}
+  "${route.name->RouteName.getFullRouteName}:"
+${pathParamsRecordFields
+    ->Belt.Array.map(((key, _)) =>
+      "    ++ pathParams->Js.Dict.get(\"" ++ key ++ "\")->Belt.Option.getWithDefault(\"\")"
+    )
+    ->Js.Array2.joinWith("\n")}
+${queryParamsRecordFields
+    ->Belt.Array.map(((key, _)) =>
+      "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
+      key ++ "\")->Belt.Option.getWithDefault(\"\")"
+    )
+    ->Js.Array2.joinWith("\n")}
+}
+
+`
+}
+
+let getPrepareAssets = (route: printableRoute) => {
+  let str = ref(`@live\ntype prepareProps = {\n`)
+
+  let {allRecordFields: recordFields} = getRouteParamRecordFields(route)
+
+  recordFields->Belt.Array.forEach(((key, typ)) => {
+    str.contents = str.contents ++ `  ${key}: ${typ},\n`
+  })
+
+  str.contents = str.contents ++ "}\n\n"
+
+  str.contents = str.contents ++ `let makeRouteKey = ${getMakeRouteKeyFn(route)}`
+
+  str.contents =
+    str.contents ++
+    "@live\nlet makePrepareProps = " ++
+    route->getMakePrepareProps(~returnMode=ForDedicatedRouteFile) ++ "\n\n"
 
   str.contents =
     str.contents ++ `@live\ntype renderProps<'prepared> = {
@@ -411,6 +464,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
   let str = `{
   let routeName = "${routeName}"
   let loadRouteRenderer = () => import__${routeName}->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+  let makePrepareProps = ${route->getMakePrepareProps(~returnMode=ForInlinedRouteFn)}
 
   {
     path: "${route.path->RoutePath.getPathSegment}",
@@ -428,7 +482,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~loadRouteRenderer,
       ~environment,
       ~location,
-      ~makePrepareProps=Route__${routeName}_route.makePrepareProps->Obj.magic,
+      ~makePrepareProps,
       ~pathParams,
       ~queryParams,
     ),
@@ -445,8 +499,8 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~location,
       ~getPrepared,
       ~loadRouteRenderer,
-      ~makePrepareProps=Route__${routeName}_route.makePrepareProps->Obj.magic,
-      ~makeRouteKey=Route__${routeName}_route.makeRouteKey,
+      ~makePrepareProps,
+      ~makeRouteKey=${getMakeRouteKeyFn(route)},
       ~routeName,
     ),
     children: [${route.children

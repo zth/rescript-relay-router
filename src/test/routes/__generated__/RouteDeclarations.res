@@ -1,6 +1,8 @@
 
 open RelayRouter__Internal__DeclarationsSupport
 
+external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
+
 
 @val external import__Root: (@as(json`"@rescriptModule/Root_route_renderer"`) _, unit) => Js.Promise.t<RouteRenderer.t> = "import"
 
@@ -19,6 +21,21 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
       {
     let routeName = "Root"
     let loadRouteRenderer = () => import__Root->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+    let makePrepareProps = (. 
+    ~environment: RescriptRelay.Environment.t,
+    ~pathParams: Js.Dict.t<string>,
+    ~queryParams: RelayRouter.Bindings.QueryParams.t,
+    ~location: RelayRouter.Bindings.History.location,
+  ): prepareProps => {
+    ignore(pathParams)
+    ignore(queryParams)
+    let prepareProps: Route__Root_route.prepareProps =   {
+      environment: environment,
+  
+      location: location,
+    }
+    prepareProps->unsafe_toPrepareProps
+  }
   
     {
       path: "/",
@@ -36,7 +53,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~loadRouteRenderer,
         ~environment,
         ~location,
-        ~makePrepareProps=Route__Root_route.makePrepareProps->Obj.magic,
+        ~makePrepareProps,
         ~pathParams,
         ~queryParams,
       ),
@@ -53,13 +70,40 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~location,
         ~getPrepared,
         ~loadRouteRenderer,
-        ~makePrepareProps=Route__Root_route.makePrepareProps->Obj.magic,
-        ~makeRouteKey=Route__Root_route.makeRouteKey,
+        ~makePrepareProps,
+        ~makeRouteKey=(
+    ~pathParams: Js.Dict.t<string>,
+    ~queryParams: RelayRouter.Bindings.QueryParams.t
+  ): string => {
+    ignore(pathParams)
+    ignore(queryParams)
+  
+    "Root:"
+  
+  
+  }
+  
+  ,
         ~routeName,
       ),
       children: [    {
         let routeName = "Root__Todos"
         let loadRouteRenderer = () => import__Root__Todos->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+        let makePrepareProps = (. 
+        ~environment: RescriptRelay.Environment.t,
+        ~pathParams: Js.Dict.t<string>,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t,
+        ~location: RelayRouter.Bindings.History.location,
+      ): prepareProps => {
+        ignore(pathParams)
+        ignore(queryParams)
+        let prepareProps: Route__Root__Todos_route.prepareProps =   {
+          environment: environment,
+      
+          location: location,
+        }
+        prepareProps->unsafe_toPrepareProps
+      }
       
         {
           path: "todos",
@@ -77,7 +121,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             ~loadRouteRenderer,
             ~environment,
             ~location,
-            ~makePrepareProps=Route__Root__Todos_route.makePrepareProps->Obj.magic,
+            ~makePrepareProps,
             ~pathParams,
             ~queryParams,
           ),
@@ -94,13 +138,44 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             ~location,
             ~getPrepared,
             ~loadRouteRenderer,
-            ~makePrepareProps=Route__Root__Todos_route.makePrepareProps->Obj.magic,
-            ~makeRouteKey=Route__Root__Todos_route.makeRouteKey,
+            ~makePrepareProps,
+            ~makeRouteKey=(
+        ~pathParams: Js.Dict.t<string>,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t
+      ): string => {
+        ignore(pathParams)
+        ignore(queryParams)
+      
+        "Root__Todos:"
+      
+      
+      }
+      
+      ,
             ~routeName,
           ),
           children: [      {
               let routeName = "Root__Todos__Single"
               let loadRouteRenderer = () => import__Root__Todos__Single->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+              let makePrepareProps = (. 
+              ~environment: RescriptRelay.Environment.t,
+              ~pathParams: Js.Dict.t<string>,
+              ~queryParams: RelayRouter.Bindings.QueryParams.t,
+              ~location: RelayRouter.Bindings.History.location,
+            ): prepareProps => {
+              let prepareProps: Route__Root__Todos__Single_route.prepareProps =   {
+                environment: environment,
+            
+                location: location,
+                todoId: pathParams->Js.Dict.unsafeGet("todoId"),
+                showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.flatMap(value => switch value {
+                  | "true" => Some(true)
+                  | "false" => Some(false)
+                  | _ => None
+                  }),
+              }
+              prepareProps->unsafe_toPrepareProps
+            }
             
               {
                 path: ":todoId",
@@ -118,7 +193,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   ~loadRouteRenderer,
                   ~environment,
                   ~location,
-                  ~makePrepareProps=Route__Root__Todos__Single_route.makePrepareProps->Obj.magic,
+                  ~makePrepareProps,
                   ~pathParams,
                   ~queryParams,
                 ),
@@ -135,8 +210,18 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   ~location,
                   ~getPrepared,
                   ~loadRouteRenderer,
-                  ~makePrepareProps=Route__Root__Todos__Single_route.makePrepareProps->Obj.magic,
-                  ~makeRouteKey=Route__Root__Todos__Single_route.makeRouteKey,
+                  ~makePrepareProps,
+                  ~makeRouteKey=(
+              ~pathParams: Js.Dict.t<string>,
+              ~queryParams: RelayRouter.Bindings.QueryParams.t
+            ): string => {
+            
+              "Root__Todos__Single:"
+                ++ pathParams->Js.Dict.get("todoId")->Belt.Option.getWithDefault("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.getWithDefault("")
+            }
+            
+            ,
                   ~routeName,
                 ),
                 children: [],

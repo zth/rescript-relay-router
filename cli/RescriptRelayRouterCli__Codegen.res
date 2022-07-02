@@ -364,7 +364,9 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   str.contents
 }
 
-let getMakeRouteKey = (route: printableRoute) => {
+// Creates a unique identifier for the supplied route + the params it has been
+// initialized with
+let getMakeRouteKeyFn = (route: printableRoute) => {
   let {pathParamsRecordFields, queryParamsRecordFields} = getRouteParamRecordFields(route)
 
   `(
@@ -408,7 +410,7 @@ let getPrepareAssets = (route: printableRoute) => {
 
   str.contents = str.contents ++ "}\n\n"
 
-  str.contents = str.contents ++ `let makeRouteKey = ${getMakeRouteKey(route)}`
+  str.contents = str.contents ++ `let makeRouteKey = ${getMakeRouteKeyFn(route)}`
 
   str.contents =
     str.contents ++
@@ -490,7 +492,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~getPrepared,
       ~loadRouteRenderer,
       ~makePrepareProps,
-      ~makeRouteKey=${getMakeRouteKey(route)},
+      ~makeRouteKey=${getMakeRouteKeyFn(route)},
       ~routeName,
     ),
     children: [${route.children

@@ -296,8 +296,13 @@ let getRouteParamRecordFields = (route: printableRoute) => {
   }
 }
 
+// Controls whether the generated function is targeting the individual dedicated
+// route file, or the general route structure in the generated
+// RouteDeclarations.
 type makePreparePropsReturnMode = ForInlinedRouteFn | ForDedicatedRouteFile
 
+// This function will take the raw location, path params, query params etc, and
+// transform that into prepared (type safe) props for the route render function.
 let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   let hasQueryParams = route.queryParams->Js.Dict.keys->Js.Array2.length > 0
   let params = route.params
@@ -321,6 +326,8 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   })
 
   if returnMode == ForInlinedRouteFn {
+    // We preserve type safety by making sure that what we generate type checks,
+    // before we cast it to an abstract type (which we do to save bundle size).
     str.contents =
       str.contents ++
       `  let prepareProps: Route__${route.name->RouteName.getFullRouteName}_route.prepareProps = `
@@ -365,7 +372,8 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
 }
 
 // Creates a unique identifier for the supplied route + the params it has been
-// initialized with
+// initialized with. Used to identify a route, make sure it can be prepared,
+// cached, and cleaned up, etc.
 let getMakeRouteKeyFn = (route: printableRoute) => {
   let {pathParamsRecordFields, queryParamsRecordFields} = getRouteParamRecordFields(route)
 

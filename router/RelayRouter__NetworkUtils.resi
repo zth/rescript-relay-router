@@ -1,7 +1,9 @@
 type response
 
-// TODO: Decide on whether we want to ship full type safe bindings here.
 @module("@remix-run/web-fetch")
+external fetchServer: (string, 'fetchOpts) => Js.Promise.t<response> = "fetch"
+
+@val
 external fetch: (string, 'fetchOpts) => Js.Promise.t<response> = "fetch"
 
 let getChunks: (

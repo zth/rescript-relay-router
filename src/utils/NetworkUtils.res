@@ -78,7 +78,7 @@ let makeServerFetchQuery = (
   ) => {
     open RelayRouter.NetworkUtils
 
-    fetch(
+    fetchServer(
       "http://localhost:4000/graphql",
       {
         "method": "POST",

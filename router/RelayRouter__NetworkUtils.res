@@ -1,6 +1,10 @@
+// TODO: The fetch functions shouldn't be contained in this package.
 type response
 
 @module("@remix-run/web-fetch")
+external fetchServer: (string, 'fetchOpts) => Js.Promise.t<response> = "fetch"
+
+@val
 external fetch: (string, 'fetchOpts) => Js.Promise.t<response> = "fetch"
 
 type parts

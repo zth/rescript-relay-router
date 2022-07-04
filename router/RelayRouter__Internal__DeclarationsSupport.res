@@ -160,7 +160,6 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     clearTimeout(~routeKey)
     switch getPrepared(~routeKey) {
     | Some(r) => r.timeout = Some(Js.Global.setTimeout(() => {
-          disposeOfPrepared(~routeKey)
           expirePrepared(~routeKey)
         }, prepareDisposeTimeout))
     | None => ()
@@ -168,37 +167,55 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
   }
 
   let addPrepared = (~routeKey, ~disposables, ~intent, ~render) => {
-    let preparedRecord = switch (intent, getPrepared(~routeKey)) {
+    let (preparedRecord, shouldSetCleanupTimeout) = switch (intent, getPrepared(~routeKey)) {
     // Set new render, and ensure the old disposables were disposed properly
     // before setting the new ones.
     | (RelayRouter.Types.Render, Some(preparedEntry)) =>
-      let _ = Js.Global.setTimeout(() =>
-        preparedEntry.disposables->Js.Array2.forEach(dispose => {
+      // Clear any existing cleanup timeout for this route, because we know
+      // it'll render.
+      clearTimeout(~routeKey)
+
+      // Dispose disposables within a timeout of 0 to ensure it's disposed after
+      // the new query refs have had a chance to be used by React.
+      let {disposables: oldDisposables} = preparedEntry
+
+      let _ = Js.Global.setTimeout(() => {
+        oldDisposables->Js.Array2.forEach(dispose => {
           dispose(.)
         })
-      , 0)
-      Some({
-        ...preparedEntry,
-        render: render,
-        disposables: disposables,
-      })
+      }, 0)
+      (
+        Some({
+          ...preparedEntry,
+          render: render,
+          disposables: disposables,
+        }),
+        false,
+      )
     // Preloading something that's already preloaded does nothing.
-    | (Preload, Some(_)) => None
+    | (Preload, Some(_)) => (None, false)
     // Whenever there's no existing prepared entry, set a new entry.
-    | (_, None) =>
-      Some({
-        render: render,
-        disposables: disposables,
-        timeout: None,
-      })
+    | (_, None) => (
+        Some({
+          render: render,
+          disposables: disposables,
+          timeout: None,
+        }),
+        intent == Preload,
+      )
     }
 
     switch preparedRecord {
     | None => ()
     | Some(preparedRecord) =>
       preparedMap->Belt.HashMap.String.set(routeKey, preparedRecord)
-      // TODO: Track whether route is mounted or not, so we know to not dispose if mounted
-      setTimeout(~routeKey)
+
+      // We set a clean up timeout for the prepared assets if this is a
+      // previously unprepared route, and we're intending this as a preload
+      // rather than rendering immediately.
+      if shouldSetCleanupTimeout {
+        setTimeout(~routeKey)
+      }
     }
   }
 
@@ -308,7 +325,9 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
                 // In short, we need this expire to run after the route renderer
                 // has been unmounted, or Relay gives us a "using preloaded
                 // query that was disposed" error.
-                let _ = Js.Global.setTimeout(() => {expirePrepared(~routeKey)}, 0)
+                let _ = Js.Global.setTimeout(() => {
+                  expirePrepared(~routeKey)
+                }, 0)
               | _ => ()
               }
             }),

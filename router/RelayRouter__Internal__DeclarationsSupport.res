@@ -32,9 +32,12 @@ type suspenseEnabledHolder<'thing> = NotInitiated | Pending(Js.Promise.t<'thing>
 
 type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
 
+// If route isn't mounted - just call prepare once
+// If route is mounted, or if intention is immediate render, call prepare again, and append disposable to dispose array
+
 // This holds meta data for a route that has been prepared.
 type preparedContainer = {
-  dispose: (. unit) => unit,
+  disposables: array<(. unit) => unit>,
   render: RelayRouter.Types.renderRouteFn,
   mutable timeout: option<Js.Global.timeoutId>,
 }
@@ -135,7 +138,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
   let disposeOfPrepared = (~routeKey) => {
     switch getPrepared(~routeKey) {
     | None => ()
-    | Some({dispose}) => dispose(.)
+    | Some({disposables}) => disposables->Belt.Array.forEach(dispose => dispose(.))
     }
   }
 
@@ -163,11 +166,11 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     }
   }
 
-  let addPrepared = (~routeKey, ~dispose, ~render) => {
+  let addPrepared = (~routeKey, ~disposables, ~render) => {
     preparedMap->Belt.HashMap.String.set(
       routeKey,
       {
-        dispose: dispose,
+        disposables: disposables,
         render: render,
         timeout: None,
       },
@@ -286,15 +289,14 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
         }
       }
 
-      addPrepared(~routeKey, ~render, ~dispose=(. ()) => {
-        switch preparedRef.contents {
-        | Loaded(prepared) =>
-          RelayRouter.Internal.extractDisposables(. prepared)->Belt.Array.forEach(dispose => {
-            dispose(.)
-          })
-        | _ => ()
-        }
-      })
+      addPrepared(
+        ~routeKey,
+        ~render,
+        ~disposables=switch preparedRef.contents {
+        | Loaded(prepared) => RelayRouter.Internal.extractDisposables(. prepared)
+        | _ => []
+        },
+      )
 
       {routeKey: routeKey, render: render}
     }

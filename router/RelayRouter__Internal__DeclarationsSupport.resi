@@ -9,7 +9,7 @@ type suspenseEnabledHolder<'thing> = NotInitiated | Pending(Js.Promise.t<'thing>
 type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
 
 type preparedContainer = {
-  dispose: (. unit) => unit,
+  disposables: array<(. unit) => unit>,
   render: RelayRouter.Types.renderRouteFn,
   mutable timeout: option<Js.Global.timeoutId>,
 }

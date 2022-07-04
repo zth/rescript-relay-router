@@ -126,6 +126,7 @@ type prepareAssets = {
     ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
     ~routeName: string,
     ~loadRouteRenderer: unit => Js.Promise.t<unit>,
+    ~intent: RelayRouter__Types.prepareIntent,
   ) => RelayRouter__Types.preparedRoute,
 }
 
@@ -166,17 +167,39 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     }
   }
 
-  let addPrepared = (~routeKey, ~disposables, ~render) => {
-    preparedMap->Belt.HashMap.String.set(
-      routeKey,
-      {
-        disposables: disposables,
+  let addPrepared = (~routeKey, ~disposables, ~intent, ~render) => {
+    let preparedRecord = switch (intent, getPrepared(~routeKey)) {
+    // Set new render, and ensure the old disposables were disposed properly
+    // before setting the new ones.
+    | (RelayRouter.Types.Render, Some(preparedEntry)) =>
+      let _ = Js.Global.setTimeout(() =>
+        preparedEntry.disposables->Js.Array2.forEach(dispose => {
+          dispose(.)
+        })
+      , 0)
+      Some({
+        ...preparedEntry,
         render: render,
+        disposables: disposables,
+      })
+    // Preloading something that's already preloaded does nothing.
+    | (Preload, Some(_)) => None
+    // Whenever there's no existing prepared entry, set a new entry.
+    | (_, None) =>
+      Some({
+        render: render,
+        disposables: disposables,
         timeout: None,
-      },
-    )
+      })
+    }
 
-    setTimeout(~routeKey)
+    switch preparedRecord {
+    | None => ()
+    | Some(preparedRecord) =>
+      preparedMap->Belt.HashMap.String.set(routeKey, preparedRecord)
+      // TODO: Track whether route is mounted or not, so we know to not dispose if mounted
+      setTimeout(~routeKey)
+    }
   }
 
   // This does suspense/React gymnastics for loading all the different parts
@@ -199,13 +222,39 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
     ~routeName: string,
     ~loadRouteRenderer,
+    ~intent: RelayRouter__Types.prepareIntent,
   ): RelayRouter__Types.preparedRoute => {
     let preparedProps = makePrepareProps(. ~environment, ~pathParams, ~queryParams, ~location)
     let routeKey = makeRouteKey(~pathParams, ~queryParams)
 
-    switch getPrepared(~routeKey) {
-    | Some({render}) => {routeKey: routeKey, render: render}
-    | None =>
+    // We can prepare a route with 2 different intents - either to _render_ that
+    // route, or to preload it. What we do here depends on that choice.
+    // 1) Preloading a route is a "nice to have", and we don't want to do that
+    //    multiple times if we've already preloaded the route before. Hence, we
+    //    block preparing again if prepare is called multiple times.
+    // 2) However, when preparing for also _rendering_ the route, we'll always
+    //    want to re-call the prepare function so the prepare is as fresh as
+    //    possible.
+    //
+    // This is mainly because of the way Relay, preloading queries and
+    // invalidating data work. Invalidating data is a powerful concept in Relay,
+    // but it requires that `Query.load` is actually re-run for Relay to fetch
+    // new data when data has been marked as invalid/stale. That's why we want
+    // to re-run prepare on each route as we're getting it ready for rendering,
+    // even if it's technically already rendered. If we don't, stale data won't
+    // be automatically refetched.
+
+    switch (getPrepared(~routeKey), intent) {
+    // We don't want to preload multiple times, so just return what's already
+    // prepared when calling this with the intent to Preload, and there's
+    // already a prepare entry for this route.
+    | (Some({render}), Preload) => {routeKey: routeKey, render: render}
+    // If calling this with the intent of rendering, we want to re-make the
+    // prepare so Relay can re-evaluate and ensure that the data is fresh when
+    // rendering. Do that, and ensure that any new disposables is tracked.
+    | (Some(_), Render)
+    // Same goes if we had no previous prepare, do a fresh instantiation.
+    | (None, _) =>
       let preparedRef: ref<suspenseEnabledHolder<prepared>> = ref(NotInitiated)
 
       let doPrepare = (routeRenderer: RouteRenderer.t) => {
@@ -292,6 +341,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
       addPrepared(
         ~routeKey,
         ~render,
+        ~intent,
         ~disposables=switch preparedRef.contents {
         | Loaded(prepared) => RelayRouter.Internal.extractDisposables(. prepared)
         | _ => []

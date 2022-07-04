@@ -15,6 +15,8 @@ type preloadAsset =
 type preloadAssetFn = (preloadAsset, ~priority: preloadPriority) => unit
 type preparedRoute = {routeKey: string, render: renderRouteFn}
 
+type prepareIntent = Render | Preload
+
 @live
 type rec route = {
   path: string,
@@ -32,6 +34,7 @@ type rec route = {
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: QueryParams.t,
     ~location: RelayRouter__Bindings.History.location,
+    ~intent: prepareIntent,
   ) => preparedRoute,
   children: array<route>,
 }

@@ -491,6 +491,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.Bindings.History.location,
+      ~intent: RelayRouter.Types.prepareIntent,
     ) => prepareRoute(
       .
       ~environment,
@@ -502,6 +503,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~makePrepareProps,
       ~makeRouteKey=${getMakeRouteKeyFn(route)},
       ~routeName,
+      ~intent
     ),
     children: [${route.children
     ->Belt.Array.map(r => getRouteDefinition(r, ~indentation=indentation + 1))

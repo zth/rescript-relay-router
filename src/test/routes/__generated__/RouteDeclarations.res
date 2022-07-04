@@ -62,6 +62,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~pathParams: Js.Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
         ~location: RelayRouter.Bindings.History.location,
+        ~intent: RelayRouter.Types.prepareIntent,
       ) => prepareRoute(
         .
         ~environment,
@@ -85,6 +86,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
   
   ,
         ~routeName,
+        ~intent
       ),
       children: [    {
         let routeName = "Root__Todos"
@@ -130,6 +132,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             ~pathParams: Js.Dict.t<string>,
             ~queryParams: RelayRouter.Bindings.QueryParams.t,
             ~location: RelayRouter.Bindings.History.location,
+            ~intent: RelayRouter.Types.prepareIntent,
           ) => prepareRoute(
             .
             ~environment,
@@ -153,6 +156,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
       
       ,
             ~routeName,
+            ~intent
           ),
           children: [      {
               let routeName = "Root__Todos__Single"
@@ -202,6 +206,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   ~pathParams: Js.Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.Bindings.History.location,
+                  ~intent: RelayRouter.Types.prepareIntent,
                 ) => prepareRoute(
                   .
                   ~environment,
@@ -223,6 +228,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             
             ,
                   ~routeName,
+                  ~intent
                 ),
                 children: [],
               }

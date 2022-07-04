@@ -32,9 +32,6 @@ type suspenseEnabledHolder<'thing> = NotInitiated | Pending(Js.Promise.t<'thing>
 
 type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
 
-// If route isn't mounted - just call prepare once
-// If route is mounted, or if intention is immediate render, call prepare again, and append disposable to dispose array
-
 // This holds meta data for a route that has been prepared.
 type preparedContainer = {
   disposables: array<(. unit) => unit>,

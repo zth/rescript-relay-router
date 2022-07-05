@@ -27,6 +27,7 @@ let prepareMatches = (
       ~environment,
       ~queryParams,
       ~location,
+      ~intent=Render,
     )
     {
       routeKey: routeKey,
@@ -153,6 +154,7 @@ module Router = {
             ~pathParams=match.params,
             ~queryParams,
             ~location,
+            ~intent=Preload,
           )
         }, ~priority)
       })

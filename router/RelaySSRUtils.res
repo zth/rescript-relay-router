@@ -176,14 +176,13 @@ let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObserv
 }
 
 let makeServerFetchFunction = (
-  onResponseReceived,
-  onQueryInitiated,
+  onQuery: RelayRouter__PreloadInsertingStream.onQuery,
   fetch,
 ): RescriptRelay.Network.fetchFunctionObservable => {
   (operation, variables, cacheConfig, uploads) => {
     let queryId = makeIdentifier(operation, variables)
 
-    onQueryInitiated(~queryId)
+    onQuery(~id=queryId, ~response=None, ~final=None)
 
     let observable = RescriptRelay.Observable.make(sink => {
       fetch(sink, operation, variables, cacheConfig, uploads)
@@ -194,9 +193,9 @@ let makeServerFetchFunction = (
     let _ =
       observable->RescriptRelay.Observable.subscribe(
         RescriptRelay.Observable.makeObserver(~next=payload => {
-          onResponseReceived(
-            ~queryId,
-            ~response=payload,
+          onQuery(
+            ~id=queryId,
+            ~response=Some(payload),
             // TODO: This should also account for is_final, which is what Relay
             // is actually using for checking whether chunks are final or not.
             // The reason both exists is because isNext is what's proposed in
@@ -214,7 +213,7 @@ let makeServerFetchFunction = (
                 }
               }
             | None => true
-            },
+            }->Some,
           )
         }, ()),
       )

@@ -82,8 +82,5 @@ type streamedEntry = {
   final: bool,
 }
 
-type onResponseReceivedFn = (~queryId: string, ~response: Js.Json.t, ~final: bool) => unit
-type onQueryInitiatedFn = (~queryId: string) => unit
-
 @live
 type setQueryParamsMode = Push | Replace

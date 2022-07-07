@@ -14,8 +14,7 @@ let makeClientFetchFunction: (
 
 @live
 let makeServerFetchFunction: (
-  RelayRouter__Types.onResponseReceivedFn,
-  RelayRouter__Types.onQueryInitiatedFn,
+  RelayRouter__PreloadInsertingStream.onQuery,
   (
     RescriptRelay.Observable.sink<Js.Json.t>,
     RescriptRelay.Network.operation,

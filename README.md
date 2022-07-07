@@ -106,9 +106,6 @@ Finally, we'll need to render `<RelayRouter.RouteRenderer />`. You can render th
 ```reasonml
 // App.res or similar
 <RelayRouter.RouteRenderer
-  // Fallback renders whenever suspense bubbles all the way up here, to the router
-  renderFallback={_ => React.string("Fallback...")}
-
   // This renders all the time, and when there's a pending navigation (pending via React concurrent mode), pending will be `true`
   renderPending={pending => <div>{pending ? React.string("Loading...") : React.null}</div>}
 />

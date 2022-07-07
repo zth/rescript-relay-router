@@ -209,7 +209,7 @@ module RouteComponent = {
 
 module RouteRenderer = {
   @react.component
-  let make = (~renderPending=?, ~renderFallback=?, ()) => {
+  let make = (~renderPending=?, ()) => {
     let router = useRouterContext()
     let (isPending, startTransition) = ReactExperimental.useTransition()
     let (routeEntry, setRouteEntry) = React.useState(() => router.get())
@@ -245,13 +245,7 @@ module RouteRenderer = {
       | Some(renderPending) => renderPending(isPending)
       | None => React.null
       }}
-      <React.Suspense
-        fallback={switch renderFallback {
-        | Some(renderFallback) => renderFallback()
-        | None => React.null
-        }}>
-        {renderedContent.contents}
-      </React.Suspense>
+      {renderedContent.contents}
     </>
   }
 }

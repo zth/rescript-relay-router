@@ -27,7 +27,7 @@ let default = (~request, ~response, ~clientScripts) => {
 
   // TODO: A default version of this should be provided by us/the router/the
   // framework, or in some way be made opaque to the dev in the default case.
-  let preloadAsset: RelayRouter.Types.preloadAssetFn = (asset, ~priority as _) =>
+  let preloadAsset: RelayRouter.Types.preloadAssetFn = (~priority as _, asset) =>
     switch asset {
     // TODO: If multiple lazy components are in the same chunk then this may load the same asset multiple times.
     | Component({chunk}) =>

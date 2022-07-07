@@ -6,7 +6,7 @@ external transformAsWritable: RelayRouter.PreloadInsertingStream.Node.t => NodeJ
   "%identity"
 
 @live
-let default = (~request, ~response, ~clientScripts) => {
+let default = (~request, ~response, ~bootstrapModules) => {
   // TODO: request should be transformed from Express to native Request and the url should be retrieved from there.
   let initialUrl = request->Express.Request.originalUrl
 
@@ -58,7 +58,7 @@ let default = (~request, ~response, ~clientScripts) => {
     let stream = ref(None)
     stream :=
       ReactDOMServer.renderToPipeableStream(
-        <Main environment routerContext />,
+        <App environment routerContext />,
         ReactDOMServer.renderToPipeableStreamOptions(
           // This renders as React is ready to start hydrating, and ensures that
           // if the client side bundle has already been downloaded, it starts
@@ -66,61 +66,11 @@ let default = (~request, ~response, ~clientScripts) => {
           // React is ready to hydrate, and the client bundle starts hydration
           // as soon as it loads.
           ~bootstrapScriptContent="window.__READY_TO_BOOT ? window.__BOOT() : (window.__READY_TO_BOOT = true)",
+          ~bootstrapModules,
           ~onShellReady=() => {
             response->Express.Response.setHeader("Content-Type", "text/html")
 
             response->Express.Response.setStatus(didError.contents ? 500 : 200)
-
-            // We write the top of the HTML document to the express stream directly.
-            // Writing this to our transformOutputStream would cause any assets that
-            // were used to render the app shell to be inserted before the top of our
-            // document which would cause browsers to ignore our doctype.
-            //
-            // The previously used solution to this was to write the head of the document with
-            // response code and headers before we even began rendering. However, this prevents
-            // any change to response code and also makes it invalid to provide an alternative HTML
-            // string in onShellError (which the examples recommend).
-            //
-            // TODO: My proposal is to follow the demo linked in https://github.com/reactwg/react-18/discussions/22
-            // under Recommended API: renderToPipeableStream (demo at https://codesandbox.io/s/kind-sammet-j56ro?file=/server/render.js:1054-1614)
-            //
-            // This would move the HTML rendering itself into the React applicaton tree (with an HTML component)
-            // and remove this write line completely.
-            //
-            // This may feel slower but actually provides the application with the most control!
-            // In case you want an "sent doctype instantly" experience you would simply put the suspense boundary
-            // at the top of your application (that would be equally fast to what we did in the previous solution).
-            // However, if you want to load some initial data for your <head> you could
-            // put your suspense boundary lower in the tree and force that data to be loaded before we start sending
-            // any data. So the application has complete control on how soon it wants to send anything to the stream
-            // (instantly, or after an arbitrary amount of loaded data).
-            //
-            // The only open challenge would be either adding a "devScripts" variable to our handler server entry
-            // that will be passed to head, or transforming Vite's output to something that can be passed to React's
-            // script loaders. My current code has an optional `head` but it feels like that shouldn't be in Server.res
-            // because it's only used there in development.
-            let clientScriptsString = clientScripts->Js.Array2.joinWith("")
-            response
-            ->Express.Response.asWritable
-            ->writeToStream(
-              `<!DOCTYPE html><html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <meta name="theme-color" content="#043062" />
-    <title>Example Express App</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body class="bg-gray-50 font-sans leading-normal tracking-normal">
-    ${clientScriptsString}
-    <div id="root">`,
-            )
 
             // Pipe the result from React's rendering through our response stream (to our response).
             // This only pipes the app-shell with any data that has instantly
@@ -131,12 +81,6 @@ let default = (~request, ~response, ~clientScripts) => {
             // Clean up when the transformation stream is closed.
             ->NodeJs.Stream.fromWritable
             ->NodeJs.Stream.onClose(cleanup)
-
-            // We can now write the end of our page safely to our transform stream (since it's okay if)
-            // it writes any assets that have been added since our pipe completed.
-            // Any other script assets would be added after `</html>` which is technically
-            // illegal but also accepted by all browsers and causes a complete document to be present sooner.
-            transformOutputStream->transformAsWritable->writeToStream("</div></body></html>")
 
             resolve(. ignore())
           },

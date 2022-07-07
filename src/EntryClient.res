@@ -4,7 +4,7 @@ let boot = () => {
 
   Js.log("[debug] Doing boot")
 
-  RelaySSRUtils.bootOnClient(~rootElementId="root", ~render=() => {
+  RelaySSRUtils.bootOnClient(~render=() => {
     let (_, routerContext) = RelayRouter.Router.make(
       ~routes,
       ~environment=RelayEnv.environment,
@@ -12,7 +12,7 @@ let boot = () => {
       ~preloadAsset=RelayRouter.AssetPreloader.makeClientAssetPreloader(RelayEnv.preparedAssetsMap),
     )
 
-    <Main environment=RelayEnv.environment routerContext />
+    <App environment=RelayEnv.environment routerContext />
   })
 }
 

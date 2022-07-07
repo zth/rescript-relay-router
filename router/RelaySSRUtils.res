@@ -50,9 +50,6 @@ let handleIncomingStreamedDataEntry = (streamedEntry: streamedEntry) => {
   }
 }
 
-@val
-external getElementById: string => Dom.node = "document.getElementById"
-
 @get @return(nullable)
 external isReadyToBoot: window => option<bool> = "__READY_TO_BOOT"
 
@@ -62,10 +59,11 @@ external setBootFn: (window, unit => unit) => unit = "__BOOT"
 @set
 external setStreamCompleteFn: (window, unit => unit) => unit = "__STREAM_COMPLETE"
 
+@val external document: Dom.node = "document"
 @module("react-dom/client")
 external hydrateRoot: (Dom.node, React.element) => unit = "hydrateRoot"
 
-let bootOnClient = (~rootElementId, ~render) => {
+let bootOnClient = (~render) => {
   let boot = () => {
     window
     ->unsafe_initialRelayData
@@ -82,7 +80,7 @@ let bootOnClient = (~rootElementId, ~render) => {
     })
 
     Js.log("[debug] Booting because stream said so...")
-    rootElementId->getElementById->hydrateRoot(render())
+    document->hydrateRoot(render())
   }
 
   window->setBootFn(boot)

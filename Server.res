@@ -36,17 +36,15 @@ switch NodeJs.isProduction {
 
     // TODO: Read clientBundle deps from manifest so we can also immediatly load those direct dependencies.
 
+    let bootstrapModules = [clientBundle]
+
     // Load our compiled production server entry.
     import_("./dist/server/EntryServer.js")
     ->Promise.then(imported => imported["default"])
     ->Promise.thenResolve(handleRequest => {
       // Production server side rendering helper.
       app->useRoute("*", (request, response) => {
-        handleRequest(
-          ~request,
-          ~response,
-          ~clientScripts=[j`<script type="module" src="$clientBundle" async></script>`],
-        )
+        handleRequest(~request, ~response, ~bootstrapModules)
       })
 
       app->listen(9999)
@@ -71,40 +69,11 @@ switch NodeJs.isProduction {
       try {
         // Load the dev server entry point through Vite within the route handler so it's automatically
         // recompiled when any of the code changes (Vite caches it for us).
-        let entryPointPromise =
-          vite
-          ->loadDevSsrEntryPoint("/src/EntryServer.mjs")
-          ->Promise.then(imported => imported["default"])
-        // Create a transform on an empty piece of HTML to find the HMR scripts Vite requires.
-        let htmlTransformPromise =
-          vite->transformIndexHtml(
-            request->Express.Request.originalUrl,
-            "<html><head></head><body></body></html>",
-          )
-
-        (entryPointPromise, htmlTransformPromise)
-        ->Promise.all2
-        ->Promise.then(((handleRequest, template)) => {
-          let hmrScripts =
-            template
-            ->Js.String2.match_(%re("/<head>(.+?)<\/head>/s"))
-            ->Belt.Option.getUnsafe
-            ->Belt.Array.getUnsafe(1)
-            // Fix React Refresh for async scripts.
-            // https://github.com/vitejs/vite/issues/6759
-            ->Js.String2.replaceByRe(
-              %re(`/>(\s*?import[\s\w]+?['"]\/@react-refresh)/`),
-              ` async="">$1`,
-            )
-
-          handleRequest(
-            ~request,
-            ~response,
-            ~clientScripts=[
-              hmrScripts,
-              j`<script type="module" src="/src/EntryClient.mjs" async></script>`,
-            ],
-          )
+        vite
+        ->loadDevSsrEntryPoint("/src/EntryServer.mjs")
+        ->Promise.then(imported => imported["default"])
+        ->Promise.then(handleRequest => {
+          handleRequest(~request, ~response, ~bootstrapModules=["/src/EntryClient.mjs"])
         })
       } catch {
       | Js.Exn.Error(err) => {

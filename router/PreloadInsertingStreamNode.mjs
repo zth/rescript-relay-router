@@ -10,6 +10,8 @@ export default class PreloadInsertingStreamNode extends Writable {
     this._queryData = [];
     this._assetLoaderTags = [];
     this._writable = writable;
+    // Disable preloading until the document is written or we'll get an invalid page.
+    this._hasWrittenDocument = false;
   }
 
   /**
@@ -72,12 +74,16 @@ export default class PreloadInsertingStreamNode extends Writable {
   _write(chunk, encoding, callback) {
     // This should pick up any new tags that hasn't been previously
     // written to this stream.
-    let scriptTags = this._generateNewScriptTagsSinceLastCall();
-    if (scriptTags.length > 0) {
-      // Write it before the HTML to ensure that we can start
-      // downloading it as early as possible.
-      this._writable.write(scriptTags);
+    if (this._hasWrittenDocument) {
+      let scriptTags = this._generateNewScriptTagsSinceLastCall();
+      if (scriptTags.length > 0) {
+        // Write it before the HTML to ensure that we can start
+        // downloading it as early as possible.
+        this._writable.write(scriptTags);
+      }
     }
+    // Enable preloading only after the document is written.
+    this._hasWrittenDocument = true;
     // Finally write whatever React tried to write.
     this._writable.write(chunk, encoding, callback);
   }

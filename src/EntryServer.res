@@ -2,7 +2,7 @@
 // Otherwise move this into NodeJS bindings.
 @send external writeToStream: (NodeJs.Stream.Writable.t, string) => unit = "write"
 
-external transformAsWritable: RelayRouter.PreloadInsertingStreamNode.t => NodeJs.Stream.Writable.t =
+external transformAsWritable: RelayRouter.PreloadInsertingStream.Node.t => NodeJs.Stream.Writable.t =
   "%identity"
 
 @live
@@ -13,7 +13,7 @@ let default = (~request, ~response, ~clientScripts) => {
   // Create our transform stream that will write assets that are loaded during rendering
   // into the stream. The output of this transformed stream is actually written to our
   // response.
-  let transformOutputStream = RelayRouter.PreloadInsertingStreamNode.make(
+  let transformOutputStream = RelayRouter.PreloadInsertingStream.Node.make(
     response->Express.Response.asWritable,
   )
 
@@ -31,25 +31,14 @@ let default = (~request, ~response, ~clientScripts) => {
     switch asset {
     // TODO: If multiple lazy components are in the same chunk then this may load the same asset multiple times.
     | Component({chunk}) =>
-      transformOutputStream->RelayRouter.PreloadInsertingStreamNode.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
+      transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
     | Image({url}) =>
-      transformOutputStream->RelayRouter.PreloadInsertingStreamNode.onAssetPreload(j`<link rel="preload" as="image" href="$url">`)
+      transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<link rel="preload" as="image" href="$url">`)
     }
 
   // TODO: Fix the RelayEnv.makeServer types so the extra function here isn't needed.
   let environment = RelayEnv.makeServer(
-    ~onResponseReceived=(~queryId, ~response, ~final) =>
-      transformOutputStream->RelayRouter.PreloadInsertingStreamNode.onQuery(
-        ~id=queryId,
-        ~response=Some(response),
-        ~final=Some(final),
-      ),
-    ~onQueryInitiated=(~queryId) =>
-      transformOutputStream->RelayRouter.PreloadInsertingStreamNode.onQuery(
-        ~id=queryId,
-        ~response=None,
-        ~final=None,
-      ),
+    ~onQuery=transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onQuery,
     ~preloadAsset,
   )
   let routerEnvironment = RelayRouter.RouterEnvironment.makeServerEnvironment(~initialUrl)

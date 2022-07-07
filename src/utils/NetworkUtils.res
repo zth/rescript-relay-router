@@ -65,11 +65,10 @@ let makeFetchQuery = (~preloadAsset) =>
   })
 
 let makeServerFetchQuery = (
-  ~onResponseReceived,
-  ~onQueryInitiated,
+  ~onQuery,
   ~preloadAsset,
 ): RescriptRelay.Network.fetchFunctionObservable => {
-  RelaySSRUtils.makeServerFetchFunction(onResponseReceived, onQueryInitiated, (
+  RelaySSRUtils.makeServerFetchFunction(onQuery, (
     sink,
     operation,
     variables,

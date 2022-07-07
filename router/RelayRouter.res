@@ -4,7 +4,7 @@ module Link = RelayRouter__Link
 module Scroll = RelayRouter__Scroll
 module AssetPreloader = RelayRouter__AssetPreloader
 module NetworkUtils = RelayRouter__NetworkUtils
-module PreloadInsertingStreamNode = RelayRouter__PreloadInsertingStreamNode
+module PreloadInsertingStream = RelayRouter__PreloadInsertingStream
 
 // TODO: This is now exposing RelayRouter internals because it's needed by the generated code.
 module Internal = RelayRouter__Internal

@@ -1,19 +1,9 @@
-// TODO: Move this into the router.
-module PreloadInsertingStream = {
-  // TODO: This can also be e.g. a CloudFlare writable stream.
-  type t = NodeJs.Stream.Writable.t
-
-  @new @module("../PreloadInsertingStream.mjs") external make: t => t = "default"
-
-  @send
-  external onQuery: (t, ~id: string, ~response: option<'a>=?, ~final: option<bool>=?) => unit =
-    "onQuery"
-  @send external onAssetPreload: (t, string) => unit = "onAssetPreload"
-}
-
 // TODO: Remove this if the TODO around line 70 is accepted.
 // Otherwise move this into NodeJS bindings.
 @send external writeToStream: (NodeJs.Stream.Writable.t, string) => unit = "write"
+
+external transformAsWritable: RelayRouter.PreloadInsertingStreamNode.t => NodeJs.Stream.Writable.t =
+  "%identity"
 
 @live
 let default = (~request, ~response, ~clientScripts) => {
@@ -23,10 +13,13 @@ let default = (~request, ~response, ~clientScripts) => {
   // Create our transform stream that will write assets that are loaded during rendering
   // into the stream. The output of this transformed stream is actually written to our
   // response.
-  let transformOutputStream = PreloadInsertingStream.make(response->Express.Response.asWritable)
+  let transformOutputStream = RelayRouter.PreloadInsertingStreamNode.make(
+    response->Express.Response.asWritable,
+  )
 
   // On finish end our response stream to complete the response.
   transformOutputStream
+  ->transformAsWritable
   ->NodeJs.Stream.fromWritable
   ->NodeJs.Stream.onFinish(() =>
     response->Express.Response.asWritable->NodeJs.Stream.fromWritable->NodeJs.Stream.end
@@ -38,21 +31,21 @@ let default = (~request, ~response, ~clientScripts) => {
     switch asset {
     // TODO: If multiple lazy components are in the same chunk then this may load the same asset multiple times.
     | Component({chunk}) =>
-      transformOutputStream->PreloadInsertingStream.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
+      transformOutputStream->RelayRouter.PreloadInsertingStreamNode.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
     | Image({url}) =>
-      transformOutputStream->PreloadInsertingStream.onAssetPreload(j`<link rel="preload" as="image" href="$url">`)
+      transformOutputStream->RelayRouter.PreloadInsertingStreamNode.onAssetPreload(j`<link rel="preload" as="image" href="$url">`)
     }
 
   // TODO: Fix the RelayEnv.makeServer types so the extra function here isn't needed.
   let environment = RelayEnv.makeServer(
     ~onResponseReceived=(~queryId, ~response, ~final) =>
-      transformOutputStream->PreloadInsertingStream.onQuery(
+      transformOutputStream->RelayRouter.PreloadInsertingStreamNode.onQuery(
         ~id=queryId,
         ~response=Some(response),
         ~final=Some(final),
       ),
     ~onQueryInitiated=(~queryId) =>
-      transformOutputStream->PreloadInsertingStream.onQuery(
+      transformOutputStream->RelayRouter.PreloadInsertingStreamNode.onQuery(
         ~id=queryId,
         ~response=None,
         ~final=None,
@@ -143,7 +136,9 @@ let default = (~request, ~response, ~clientScripts) => {
             // Pipe the result from React's rendering through our response stream (to our response).
             // This only pipes the app-shell with any data that has instantly
             // loaded.
-            (stream.contents->Belt.Option.getUnsafe).ReactDOMServer.pipe(transformOutputStream)
+            (stream.contents->Belt.Option.getUnsafe).ReactDOMServer.pipe(
+              transformAsWritable(transformOutputStream),
+            )
             // Clean up when the transformation stream is closed.
             ->NodeJs.Stream.fromWritable
             ->NodeJs.Stream.onClose(cleanup)
@@ -152,7 +147,7 @@ let default = (~request, ~response, ~clientScripts) => {
             // it writes any assets that have been added since our pipe completed.
             // Any other script assets would be added after `</html>` which is technically
             // illegal but also accepted by all browsers and causes a complete document to be present sooner.
-            transformOutputStream->writeToStream("</div></body></html>")
+            transformOutputStream->transformAsWritable->writeToStream("</div></body></html>")
 
             resolve(. ignore())
           },

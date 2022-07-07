@@ -4,7 +4,7 @@ function asRelayDataAppend(relayData) {
   return `window.__RELAY_DATA.push(${JSON.stringify(relayData)})`;
 }
 
-export default class PreloadInsertingStream extends Writable {
+export default class PreloadInsertingStreamNode extends Writable {
   constructor(writable) {
     super();
     this._queryData = [];

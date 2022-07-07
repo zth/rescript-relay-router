@@ -522,14 +522,14 @@ let getIsRouteActiveFn = (route: RescriptRelayRouterCli__Types.printableRoute) =
 let routePattern = "${route.path->RoutePath.toPattern}"
 
 @live
-let isRouteActive = ({pathname}: RelayRouter.Bindings.History.location, ~exact: bool=false, ()): bool => {
+let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.Bindings.History.location): bool => {
   RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
 }
 
 @live
 let useIsRouteActive = (~exact=false, ()) => {
   let location = RelayRouter.Utils.useLocation()
-  React.useMemo2(() => isRouteActive(location, ~exact, ()), (location, exact))
+  React.useMemo2(() => location->isRouteActive(~exact), (location, exact))
 }`
 }
 

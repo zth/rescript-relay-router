@@ -1,7 +1,7 @@
 // This is a simple example of how one could leverage `preloadAsset` to preload
 // things from the GraphQL response. This should live inside of the
 // (comprehensive) example application we're going to build eventually.
-let preloadFromResponse = (part: Js.Json.t, ~preloadAsset) => {
+let preloadFromResponse = (part: Js.Json.t, ~preloadAsset: RelayRouter__Types.preloadAssetFn) => {
   switch part->Js.Json.decodeObject {
   | None => ()
   | Some(obj) =>
@@ -21,7 +21,7 @@ let preloadFromResponse = (part: Js.Json.t, ~preloadAsset) => {
         )
         ->Belt.Option.getWithDefault([])
         ->Belt.Array.forEach(imgUrl => {
-          preloadAsset(RelayRouter.Types.Image({url: imgUrl}), ~priority=RelayRouter.Types.Default)
+          preloadAsset(~priority=RelayRouter.Types.Default, RelayRouter.Types.Image({url: imgUrl}))
         })
       }
     }

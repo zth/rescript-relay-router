@@ -74,19 +74,13 @@ let make = (
 
   let doPreloadDataAndCode = React.useCallback3(
     overridePriority =>
-      router.preload(
-        to_,
-        ~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority),
-        (),
-      ),
+      to_->router.preload(~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority)),
     (to_, router.preload, preloadPriority),
   )
   let doPreloadCode = React.useCallback3(
     overridePriority =>
-      router.preloadCode(
-        to_,
+      to_->router.preloadCode(
         ~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority),
-        (),
       ),
     (to_, router.preloadCode, preloadPriority),
   )

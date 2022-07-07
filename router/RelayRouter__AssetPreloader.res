@@ -56,7 +56,8 @@ let loadScriptTag = (~isModule=false, src) => {
   appendToHead(element)
 }
 
-let clientPreloadAsset = (asset, ~priority, ~preparedAssetsMap) => {
+type preparedAssetsMap = Js.Dict.t<bool>
+let makeClientAssetPreloader = (preparedAssetsMap, ~priority, asset) => {
   let assetIdentifier = switch asset {
   | RelayRouter__Types.Component({chunk}) => "component:" ++ chunk
   | Image({url}) => "image:" ++ url

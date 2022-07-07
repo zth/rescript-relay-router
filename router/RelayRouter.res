@@ -126,7 +126,7 @@ module Router = {
     }
 
     @live
-    let preloadCode = (preloadUrl, ~priority=Default, ()) => {
+    let preloadCode = (~priority=Default, preloadUrl) => {
       preloadUrl->runOnEachRouteMatch((~match, ~queryParams, ~location as _) => {
         // We don't care about the unsub callback here
         let _ = Internal.runAtPriority(() => {
@@ -137,7 +137,7 @@ module Router = {
               ~queryParams,
               ~location,
             )->Js.Promise.then_(assetsToPreload => {
-              assetsToPreload->Belt.Array.forEach(asset => asset->preloadAsset(~priority))
+              assetsToPreload->Belt.Array.forEach(preloadAsset(~priority))
               Js.Promise.resolve()
             }, _)
         }, ~priority)
@@ -145,7 +145,7 @@ module Router = {
     }
 
     @live
-    let preload = (preloadUrl, ~priority=Default, ()) => {
+    let preload = (~priority=Default, preloadUrl) => {
       preloadUrl->runOnEachRouteMatch((~match, ~queryParams, ~location) => {
         // We don't care about the render function returned to us when
         // preparing, and we don't care about the run priority unsub
@@ -255,7 +255,7 @@ let useRegisterPreloadedAsset = asset => {
   let {preloadAsset} = useRouterContext()
   try {
     if RelaySSRUtils.ssr {
-      preloadAsset(asset, ~priority=Default)
+      asset->preloadAsset(~priority=Default)
     }
   } catch {
   | Js.Exn.Error(_) => ()

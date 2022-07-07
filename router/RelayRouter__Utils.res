@@ -6,8 +6,8 @@ let childRouteHasContent = childRoute => childRoute != React.null
 type routerHelpers = {
   push: string => unit,
   replace: string => unit,
-  preload: (string, ~priority: RelayRouter__Types.preloadPriority=?, unit) => unit,
-  preloadCode: (string, ~priority: RelayRouter__Types.preloadPriority=?, unit) => unit,
+  preload: RelayRouter__Types.preloadFn,
+  preloadCode: RelayRouter__Types.preloadCodeFn,
 }
 
 @live

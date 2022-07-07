@@ -17,12 +17,7 @@ let make = () => {
       fallback={_ => {
         <div> {React.string("Error!")} </div>
       }}>
-      <RelayRouter.RouteRenderer
-        renderFallback={() => {
-          <div> {React.string("Fallback...")} </div>
-        }}
-        renderPending={pending => <PendingIndicatorBar pending />}
-      />
+      <RelayRouter.RouteRenderer renderPending={pending => <PendingIndicatorBar pending />} />
     </RescriptReactErrorBoundary>
   </>
 }

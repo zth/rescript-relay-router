@@ -11,13 +11,19 @@ if !RelaySSRUtils.ssr {
 }
 
 @react.component
-let make = () => {
-  <>
-    <RescriptReactErrorBoundary
-      fallback={_ => {
-        <div> {React.string("Error!")} </div>
-      }}>
-      <RelayRouter.RouteRenderer renderPending={pending => <PendingIndicatorBar pending />} />
-    </RescriptReactErrorBoundary>
-  </>
+let make = (~environment, ~routerContext) => {
+  <RescriptRelay.Context.Provider environment>
+    <RelayRouter.Provider value={routerContext}>
+      <Html>
+        <React.Suspense fallback={React.string("Loading...")}>
+          <RescriptReactErrorBoundary fallback={_ => {<div> {React.string("Error!")} </div>}}>
+            <RelayRouter.RouteRenderer
+            // This renders all the time, and when there's a pending navigation (pending via React concurrent mode), pending will be `true`
+              renderPending={pending => <PendingIndicatorBar pending />}
+            />
+          </RescriptReactErrorBoundary>
+        </React.Suspense>
+      </Html>
+    </RelayRouter.Provider>
+  </RescriptRelay.Context.Provider>
 }

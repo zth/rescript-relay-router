@@ -2,10 +2,12 @@ import { defineConfig } from "vite";
 import reactRefresh from "@vitejs/plugin-react-refresh";
 import { visualizer } from "rollup-plugin-visualizer";
 import { rescriptRelayVitePlugin } from "./RescriptRelayVitePlugin.mjs";
+import { virtualHtmlVitePlugin } from "./VirtualHtmlVitePlugin.mjs";
 
 export default defineConfig({
   base: process.env.APP_PATH ?? "/",
   plugins: [
+    virtualHtmlVitePlugin({ entryClient: "/src/EntryClient.mjs" }),
     reactRefresh(),
     process.env.NODE_ENV !== "test"
       ? rescriptRelayVitePlugin({

@@ -1,5 +1,5 @@
 @live
-let bootOnClient: (~rootElementId: string, ~render: unit => React.element) => unit
+let bootOnClient: (~render: unit => React.element) => unit
 
 @live
 let makeClientFetchFunction: (

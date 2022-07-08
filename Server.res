@@ -2,6 +2,58 @@
 
 let app = Express.make()
 
+let getAssetForManifestEntry = (manifest, file) => {
+  // We must prefix with `/` (Vite's configured root) because the manifest only contains paths relative to base.
+  // TODO: This breaks if vite.base is not `/`.
+  "/" ++
+  manifest
+  ->Js.Dict.unsafeGet(file)
+  ->Js.Json.decodeObject
+  ->Belt.Option.getExn
+  ->Js.Dict.unsafeGet("file")
+  ->Js.Json.decodeString
+  ->Belt.Option.getExn
+}
+
+let rec getDirectImportsForManifestEntry = (manifest, file) => {
+  manifest
+  ->Js.Dict.unsafeGet(file)
+  ->Js.Json.decodeObject
+  ->Belt.Option.getExn
+  ->Js.Dict.get("imports")
+  ->Belt.Option.flatMap(Js.Json.decodeArray)
+  ->Belt.Option.mapWithDefault(
+    [],
+    Js.Array2.map(_, import_ => import_->Js.Json.decodeString->Belt.Option.getExn),
+  )
+  ->Belt.List.fromArray
+  ->Belt.List.map(import_ => list{
+    getAssetForManifestEntry(manifest, import_),
+    ...getDirectImportsForManifestEntry(manifest, import_),
+  })
+  ->Belt.List.flatten
+}
+
+let getProductionClientBundlesFromManifest = () => {
+  // Load our client manifest so we can find our client entry file.
+  let manifest =
+    NodeJs.Fs.readFileSync("./dist/client/manifest.json", "utf-8")
+    ->Js.Json.parseExn
+    ->Js.Json.decodeObject
+    ->Belt.Option.getExn
+
+  // This will throw an exception if our manifest doesn't include an "index.html" entry.
+  // That's what Vite uses for our main app entry point.
+  list{
+    getAssetForManifestEntry(manifest, "index.html"),
+    ...getDirectImportsForManifestEntry(manifest, "index.html"),
+  }
+  ->Belt.List.toArray
+  // Deduplicate entries
+  ->Belt.Set.String.fromArray
+  ->Belt.Set.String.toArray
+}
+
 switch NodeJs.isProduction {
 | true => {
     open Express
@@ -12,29 +64,7 @@ switch NodeJs.isProduction {
       app->useMiddlewareAt("/assets", Express.static("dist/client/assets/"))
     }
 
-    // Load our client manifest so we can find our client entry file.
-    let manifest =
-      NodeJs.Fs.readFileSync("./dist/client/manifest.json", "utf-8")
-      ->Js.Json.parseExn
-      ->Js.Json.decodeObject
-      ->Belt.Option.getExn
-
-    // This will throw an exception if our manifest doesn't include an "index.html" entry.
-    // That's what Vite uses for our main app entry point.
-    // We must prefix with `/` (Vite's configured root) because the manifest only contains paths relative to base.
-    // TODO: This breaks if vite.base is not `/`.
-    let clientBundle =
-      "/" ++
-      manifest
-      ->Js.Dict.get("index.html")
-      ->Belt.Option.getExn
-      ->Js.Json.decodeObject
-      ->Belt.Option.getExn
-      ->Js.Dict.unsafeGet("file")
-      ->Js.Json.decodeString
-      ->Belt.Option.getExn
-
-    // TODO: Read clientBundle deps from manifest so we can also immediatly load those direct dependencies.
+    let bootstrapModules = getProductionClientBundlesFromManifest()
 
     // Load our compiled production server entry.
     import_("./dist/server/EntryServer.js")
@@ -42,11 +72,7 @@ switch NodeJs.isProduction {
     ->Promise.thenResolve(handleRequest => {
       // Production server side rendering helper.
       app->useRoute("*", (request, response) => {
-        handleRequest(
-          ~request,
-          ~response,
-          ~clientScripts=[j`<script type="module" src="$clientBundle" async></script>`],
-        )
+        handleRequest(~request, ~response, ~bootstrapModules)
       })
 
       app->listen(9999)
@@ -71,40 +97,11 @@ switch NodeJs.isProduction {
       try {
         // Load the dev server entry point through Vite within the route handler so it's automatically
         // recompiled when any of the code changes (Vite caches it for us).
-        let entryPointPromise =
-          vite
-          ->loadDevSsrEntryPoint("/src/EntryServer.mjs")
-          ->Promise.then(imported => imported["default"])
-        // Create a transform on an empty piece of HTML to find the HMR scripts Vite requires.
-        let htmlTransformPromise =
-          vite->transformIndexHtml(
-            request->Express.Request.originalUrl,
-            "<html><head></head><body></body></html>",
-          )
-
-        (entryPointPromise, htmlTransformPromise)
-        ->Promise.all2
-        ->Promise.then(((handleRequest, template)) => {
-          let hmrScripts =
-            template
-            ->Js.String2.match_(%re("/<head>(.+?)<\/head>/s"))
-            ->Belt.Option.getUnsafe
-            ->Belt.Array.getUnsafe(1)
-            // Fix React Refresh for async scripts.
-            // https://github.com/vitejs/vite/issues/6759
-            ->Js.String2.replaceByRe(
-              %re(`/>(\s*?import[\s\w]+?['"]\/@react-refresh)/`),
-              ` async="">$1`,
-            )
-
-          handleRequest(
-            ~request,
-            ~response,
-            ~clientScripts=[
-              hmrScripts,
-              j`<script type="module" src="/src/EntryClient.mjs" async></script>`,
-            ],
-          )
+        vite
+        ->loadDevSsrEntryPoint("/src/EntryServer.mjs")
+        ->Promise.then(imported => imported["default"])
+        ->Promise.then(handleRequest => {
+          handleRequest(~request, ~response, ~bootstrapModules=["/src/EntryClient.mjs"])
         })
       } catch {
       | Js.Exn.Error(err) => {

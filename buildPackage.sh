@@ -14,6 +14,7 @@ cp /tmp/RescriptRelayRouterCli.mjs _release/cli/RescriptRelayRouterCli.js
 rm _release/cli/RescriptRelayRouterCli.mjs
 
 cp RescriptRelayVitePlugin.mjs _release;
+cp VirtualHtmlVitePlugin.mjs _release;
 
 cp pkgPackage.json _release/package.json;
 cp pkgBsconfig.json _release/bsconfig.json;

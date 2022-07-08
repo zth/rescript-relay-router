@@ -9,9 +9,11 @@ export default defineConfig({
   plugins: [
     virtualHtmlVitePlugin({ entryClient: "/src/EntryClient.mjs" }),
     reactRefresh(),
-    rescriptRelayVitePlugin({
-      autoScaffoldRenderers: true,
-    }),
+    process.env.NODE_ENV !== "test"
+      ? rescriptRelayVitePlugin({
+          autoScaffoldRenderers: true,
+        })
+      : null,
   ],
   server: {
     port: 9000,

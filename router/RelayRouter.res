@@ -53,7 +53,12 @@ module Router = {
   @val
   external origin: string = "window.location.origin"
 
-  let make = (~routes, ~routerEnvironment as history, ~environment, ~preloadAsset) => {
+  let make = (
+    ~routes,
+    ~routerEnvironment as history,
+    ~environment,
+    ~preloadAsset: Types.preloadAssetFn,
+  ) => {
     let routerEventListeners = ref([])
     let postRouterEvent = event => {
       routerEventListeners.contents->Belt.Array.forEach(cb => cb(event))
@@ -63,6 +68,11 @@ module Router = {
     let location = History.getLocation(history)
     let initialQueryParams = QueryParams.parse(location.search)
     let initialMatches = matchLocation(location)->Belt.Option.getWithDefault([])
+
+    // Preload initially matched route renderers asap, we know we'll need them.
+    initialMatches->Belt.Array.forEach(({route}) => {
+      Types.Component({chunk: route.chunk})->preloadAsset(~priority=High)
+    })
 
     let preparedMatches =
       initialMatches->prepareMatches(~environment, ~queryParams=initialQueryParams, ~location)

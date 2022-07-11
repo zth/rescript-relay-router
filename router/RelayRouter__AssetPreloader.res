@@ -14,7 +14,7 @@ external setRel: (Dom.element, [#modulepreload | #preload]) => unit = "rel"
 external setAs: (Dom.element, [#image]) => unit = "as"
 
 @val
-external loadScript : string => unit = "import"
+external loadScript: string => unit = "import"
 
 @live
 let preloadAssetViaLinkTag = asset => {

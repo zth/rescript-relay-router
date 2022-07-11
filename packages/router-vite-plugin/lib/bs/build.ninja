@@ -1,0 +1,92 @@
+rescript = 1
+g_finger := /rescript-relay-router/node_modules/@rescript/react/lib/ocaml/install.stamp
+g_finger := /rescript-relay-router/node_modules/rescript-relay/lib/ocaml/install.stamp
+g_finger := /rescript-relay-router/node_modules/rescript-relay-router-vitest/lib/ocaml/install.stamp
+rule astj
+  command = /rescript-relay-router/node_modules/rescript/darwin/bsc.exe  -bs-v 9.1.4 -bs-jsx 3  -absname -bs-ast -o $out $i
+o test/RouterUtils.test.ast : astj ../../test/RouterUtils.test.res
+rule deps_dev
+  command = /rescript-relay-router/node_modules/rescript/darwin/bsb_helper.exe -g -hash 5bbdf02823a60cf95b897592dbde1efd $in
+  restat = 1
+o test/RouterUtils.test.d : deps_dev test/RouterUtils.test.ast
+rule mij_dev
+  command = /rescript-relay-router/node_modules/rescript/darwin/bsc.exe -I test -I src -I /rescript-relay-router/node_modules/@rescript/react/lib/ocaml -I /rescript-relay-router/node_modules/rescript-relay/lib/ocaml -I /rescript-relay-router/node_modules/rescript-relay-router-vitest/lib/ocaml   -bs-package-name rescript-relay-router -bs-package-output es6:$in_d:.mjs -bs-v $g_finger $i
+  dyndep = 1
+  restat = 1
+o test/RouterUtils.test.cmj test/RouterUtils.test.cmi ../../test/RouterUtils.test.mjs : mij_dev test/RouterUtils.test.ast
+o src/RelayRouter.ast : astj ../../src/RelayRouter.res
+rule deps
+  command = /rescript-relay-router/node_modules/rescript/darwin/bsb_helper.exe -hash 5bbdf02823a60cf95b897592dbde1efd $in
+  restat = 1
+o src/RelayRouter.d : deps src/RelayRouter.ast src/RelayRouter.iast
+o src/RelayRouter.iast : astj ../../src/RelayRouter.resi
+rule mi
+  command = /rescript-relay-router/node_modules/rescript/darwin/bsc.exe -I src -I /rescript-relay-router/node_modules/@rescript/react/lib/ocaml -I /rescript-relay-router/node_modules/rescript-relay/lib/ocaml   -bs-v $g_finger $i
+  dyndep = 1
+  restat = 1
+o src/RelayRouter.cmi : mi src/RelayRouter.iast
+rule mj
+  command = /rescript-relay-router/node_modules/rescript/darwin/bsc.exe -bs-read-cmi -I src -I /rescript-relay-router/node_modules/@rescript/react/lib/ocaml -I /rescript-relay-router/node_modules/rescript-relay/lib/ocaml   -bs-package-name rescript-relay-router -bs-package-output es6:$in_d:.mjs -bs-v $g_finger $i
+  dyndep = 1
+  restat = 1
+o src/RelayRouter.cmj ../../src/RelayRouter.mjs : mj src/RelayRouter.ast src/RelayRouter.cmi
+o src/RelaySSRUtils.ast : astj ../../src/RelaySSRUtils.res
+o src/RelaySSRUtils.d : deps src/RelaySSRUtils.ast src/RelaySSRUtils.iast
+o src/RelaySSRUtils.iast : astj ../../src/RelaySSRUtils.resi
+o src/RelaySSRUtils.cmi : mi src/RelaySSRUtils.iast
+o src/RelaySSRUtils.cmj ../../src/RelaySSRUtils.mjs : mj src/RelaySSRUtils.ast src/RelaySSRUtils.cmi
+o src/RelayRouter__Link.ast : astj ../../src/RelayRouter__Link.res
+o src/RelayRouter__Link.d : deps src/RelayRouter__Link.ast src/RelayRouter__Link.iast
+o src/RelayRouter__Link.iast : astj ../../src/RelayRouter__Link.resi
+o src/RelayRouter__Link.cmi : mi src/RelayRouter__Link.iast
+o src/RelayRouter__Link.cmj ../../src/RelayRouter__Link.mjs : mj src/RelayRouter__Link.ast src/RelayRouter__Link.cmi
+o src/RelayRouter__Types.ast : astj ../../src/RelayRouter__Types.res
+o src/RelayRouter__Types.d : deps src/RelayRouter__Types.ast
+rule mij
+  command = /rescript-relay-router/node_modules/rescript/darwin/bsc.exe -I src -I /rescript-relay-router/node_modules/@rescript/react/lib/ocaml -I /rescript-relay-router/node_modules/rescript-relay/lib/ocaml   -bs-package-name rescript-relay-router -bs-package-output es6:$in_d:.mjs -bs-v $g_finger $i
+  dyndep = 1
+  restat = 1
+o src/RelayRouter__Types.cmj src/RelayRouter__Types.cmi ../../src/RelayRouter__Types.mjs : mij src/RelayRouter__Types.ast
+o src/RelayRouter__Utils.ast : astj ../../src/RelayRouter__Utils.res
+o src/RelayRouter__Utils.d : deps src/RelayRouter__Utils.ast src/RelayRouter__Utils.iast
+o src/RelayRouter__Utils.iast : astj ../../src/RelayRouter__Utils.resi
+o src/RelayRouter__Utils.cmi : mi src/RelayRouter__Utils.iast
+o src/RelayRouter__Utils.cmj ../../src/RelayRouter__Utils.mjs : mj src/RelayRouter__Utils.ast src/RelayRouter__Utils.cmi
+o src/RelayRouter__Scroll.ast : astj ../../src/RelayRouter__Scroll.res
+o src/RelayRouter__Scroll.d : deps src/RelayRouter__Scroll.ast src/RelayRouter__Scroll.iast
+o src/RelayRouter__Scroll.iast : astj ../../src/RelayRouter__Scroll.resi
+o src/RelayRouter__Scroll.cmi : mi src/RelayRouter__Scroll.iast
+o src/RelayRouter__Scroll.cmj ../../src/RelayRouter__Scroll.mjs : mj src/RelayRouter__Scroll.ast src/RelayRouter__Scroll.cmi
+o src/RelayRouter__Context.ast : astj ../../src/RelayRouter__Context.res
+o src/RelayRouter__Context.d : deps src/RelayRouter__Context.ast src/RelayRouter__Context.iast
+o src/RelayRouter__Context.iast : astj ../../src/RelayRouter__Context.resi
+o src/RelayRouter__Context.cmi : mi src/RelayRouter__Context.iast
+o src/RelayRouter__Context.cmj ../../src/RelayRouter__Context.mjs : mj src/RelayRouter__Context.ast src/RelayRouter__Context.cmi
+o src/RelayRouter__Bindings.ast : astj ../../src/RelayRouter__Bindings.res
+o src/RelayRouter__Bindings.d : deps src/RelayRouter__Bindings.ast src/RelayRouter__Bindings.iast
+o src/RelayRouter__Bindings.iast : astj ../../src/RelayRouter__Bindings.resi
+o src/RelayRouter__Bindings.cmi : mi src/RelayRouter__Bindings.iast
+o src/RelayRouter__Bindings.cmj ../../src/RelayRouter__Bindings.mjs : mj src/RelayRouter__Bindings.ast src/RelayRouter__Bindings.cmi
+o src/RelayRouter__Internal.ast : astj ../../src/RelayRouter__Internal.res
+o src/RelayRouter__Internal.d : deps src/RelayRouter__Internal.ast src/RelayRouter__Internal.iast
+o src/RelayRouter__Internal.iast : astj ../../src/RelayRouter__Internal.resi
+o src/RelayRouter__Internal.cmi : mi src/RelayRouter__Internal.iast
+o src/RelayRouter__Internal.cmj ../../src/RelayRouter__Internal.mjs : mj src/RelayRouter__Internal.ast src/RelayRouter__Internal.cmi
+o src/RelayRouter__NetworkUtils.ast : astj ../../src/RelayRouter__NetworkUtils.res
+o src/RelayRouter__NetworkUtils.d : deps src/RelayRouter__NetworkUtils.ast src/RelayRouter__NetworkUtils.iast
+o src/RelayRouter__NetworkUtils.iast : astj ../../src/RelayRouter__NetworkUtils.resi
+o src/RelayRouter__NetworkUtils.cmi : mi src/RelayRouter__NetworkUtils.iast
+o src/RelayRouter__NetworkUtils.cmj ../../src/RelayRouter__NetworkUtils.mjs : mj src/RelayRouter__NetworkUtils.ast src/RelayRouter__NetworkUtils.cmi
+o src/RelayRouter__AssetPreloader.ast : astj ../../src/RelayRouter__AssetPreloader.res
+o src/RelayRouter__AssetPreloader.d : deps src/RelayRouter__AssetPreloader.ast src/RelayRouter__AssetPreloader.iast
+o src/RelayRouter__AssetPreloader.iast : astj ../../src/RelayRouter__AssetPreloader.resi
+o src/RelayRouter__AssetPreloader.cmi : mi src/RelayRouter__AssetPreloader.iast
+o src/RelayRouter__AssetPreloader.cmj ../../src/RelayRouter__AssetPreloader.mjs : mj src/RelayRouter__AssetPreloader.ast src/RelayRouter__AssetPreloader.cmi
+o src/RelayRouter__PreloadInsertingStream.ast : astj ../../src/RelayRouter__PreloadInsertingStream.res
+o src/RelayRouter__PreloadInsertingStream.d : deps src/RelayRouter__PreloadInsertingStream.ast
+o src/RelayRouter__PreloadInsertingStream.cmj src/RelayRouter__PreloadInsertingStream.cmi ../../src/RelayRouter__PreloadInsertingStream.mjs : mij src/RelayRouter__PreloadInsertingStream.ast
+o src/RelayRouter__Internal__DeclarationsSupport.ast : astj ../../src/RelayRouter__Internal__DeclarationsSupport.res
+o src/RelayRouter__Internal__DeclarationsSupport.d : deps src/RelayRouter__Internal__DeclarationsSupport.ast src/RelayRouter__Internal__DeclarationsSupport.iast
+o src/RelayRouter__Internal__DeclarationsSupport.iast : astj ../../src/RelayRouter__Internal__DeclarationsSupport.resi
+o src/RelayRouter__Internal__DeclarationsSupport.cmi : mi src/RelayRouter__Internal__DeclarationsSupport.iast
+o src/RelayRouter__Internal__DeclarationsSupport.cmj ../../src/RelayRouter__Internal__DeclarationsSupport.mjs : mj src/RelayRouter__Internal__DeclarationsSupport.ast src/RelayRouter__Internal__DeclarationsSupport.cmi

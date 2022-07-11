@@ -4,10 +4,7 @@
   "engines": {
     "node": ">=16"
   },
-  "main": "./RescriptRelayVitePlugin.mjs",
   "exports": {
-    ".": "./RescriptRelayVitePlugin.mjs",
-    "./RescriptRelayVitePlugin.mjs": "./RescriptRelayVitePlugin.mjs",
     "./src/*": "./src/*"
   },
   "type": "module",
@@ -27,26 +24,24 @@
     "rescript"
   ],
   "sideEffects": false,
-  "bin": {
-    "rescript-relay-router": "cli/RescriptRelayRouterCli.js"
+  "scripts": {
+    "build": "rescript build -with-deps",
+    "dev": "yarn build:rescript -w",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
   },
   "peerDependencies": {
     "@rescript/react": "^0.10.3",
     "react": ">=18.2.0",
-    "rescript-relay": "^1.0.0-beta.11",
-    "vite": "^2.8.0-beta.3"
+    "rescript-relay": "^1.0.0-beta.11"
   },
   "dependencies": {
-    "chalk": "^5.0.1",
-    "chokidar": "^3.5.3",
-    "cosmiconfig": "^7.0.1",
-    "fast-fuzzy": "^1.11.1",
-    "fast-glob": "^3.2.11",
     "history": "^5.2.0",
-    "jsonc-parser": "^3.0.0",
-    "lines-and-columns": "^2.0.3",
-    "magic-string": "^0.26.2",
-    "react-router": "^6.2.1",
-    "vscode-jsonrpc": "^5.0.1"
+    "react-router": "^6.2.1"
+  },
+  "devDependencies": {
+    "rescript": "9.1.4",
+    "rescript-relay-router-vitest": "workspace:^",
+    "vitest": "0.6.0"
   }
 }

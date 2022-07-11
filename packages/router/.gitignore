@@ -1,0 +1,18 @@
+# Ignore common system files
+.DS_Store
+
+# Ignore node modules
+node_modules
+
+# Ignore rescript folders
+lib
+.bsb.lock
+.merlin
+
+# Ignore build output
+dist
+stats.html
+*.mjs
+
+# Commit the PreloadInsertingStreamNode as it has no ReScript source file.
+!src/PreloadInsertingStreamNode.mjs

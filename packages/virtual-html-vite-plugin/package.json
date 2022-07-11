@@ -1,0 +1,28 @@
+{
+  "name": "rescript-relay-router-virtual-html-vite-plugin",
+  "version": "0.0.15-editor-tooling.1",
+  "engines": {
+    "node": ">=16"
+  },
+  "main": "./src/VirtualHtmlVitePlugin.mjs",
+  "exports": {
+    ".": "./src/VirtualHtmlVitePlugin.mjs",
+    "./VirtualHtmlVitePlugin.mjs": "./src/VirtualHtmlVitePlugin.mjs"
+  },
+  "type": "module",
+  "license": "MIT",
+  "author": "Alexander Varwijk",
+  "repository": "https://github.com/zth/rescript-relay-router",
+  "description": "A plugin to provide a virtual HTML file for Vite removing the need for an index.html in the repository.",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "rescript-relay-router",
+    "vite"
+  ],
+  "sideEffects": false,
+  "peerDependencies": {
+    "vite": "^2.8.0-beta.3"
+  }
+}

@@ -32,13 +32,13 @@ jobs:
           yarn build:relay
       - name: Format ReScript
         run: |
-          yarn rescript format -all
+          yarn workspaces foreach run rescript format -all
       - name: Build ReScript
         run: |
-          yarn build:rescript
+          yarn workspaces foreach --topological-dev run build:rescript
       - name: Sync router code generation
         run: |
-          yarn router:generate
+          yarn workspaces foreach --topological-dev run router:generate
       - name: git status
         id: git_status
         run: |
@@ -52,7 +52,7 @@ jobs:
           yarn test
       - name: Build client example app assets
         run: |
-          yarn build:vite:client
+          yarn workspaces foreach --topological-dev run build:vite:client
       - name: Build server example app assets
         run: |
-          yarn build:vite:server
+          yarn workspaces foreach --topological-dev run build:vite:server

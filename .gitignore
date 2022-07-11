@@ -1,20 +1,20 @@
-node_modules
+# Ignore common system files
 .DS_Store
+
+# Ignore node modules
+node_modules
+
+# Ignore rescript folders
 lib
-dist
 .bsb.lock
 .merlin
-*.bs.js
-src/__generated__/**
-!src/__generated__/.gitkeep
-src/**/*.mjs
-router/**/*.mjs
-cli/**/*.mjs
-Server.mjs
-_release
-stats.html
-
+#
 # Ignore the yarn cache since the CI runs a different operating system so commiting
 # the cache would break it.
 .yarn/cache
 .yarn/install-state.gz
+
+# Packages and examples should be responsible for their own .gitignore
+# Since they may be copied or published outside of the monorepo.
+!packages/**/*
+!examples/**/*

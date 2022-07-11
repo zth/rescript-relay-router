@@ -1,0 +1,34 @@
+{
+  "name": "rescript-relay-router-vitest",
+  "private": true,
+  "version": "0.0.17",
+  "engines": {
+    "node": ">=16"
+  },
+  "exports": {
+    "./src/*": "./src/*"
+  },
+  "type": "module",
+  "license": "MIT",
+  "author": "Gabriel Nordeborn",
+  "repository": "https://github.com/zth/rescript-relay-router",
+  "description": "Vitest bindings for ReScript.",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "rescript build -with-deps",
+    "dev": "yarn build:rescript -w"
+  },
+  "peerDependencies": {
+    "@rescript/react": "^0.10.3",
+    "react": ">=18.2.0",
+    "rescript-relay": "^1.0.0-beta.11",
+    "vitest": "0.6.0"
+  },
+  "dependencies": {
+    "@ryyppy/rescript-promise": "^2.1.0",
+    "rescript": "9.1.4"
+  }
+}

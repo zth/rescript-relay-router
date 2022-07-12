@@ -22,6 +22,9 @@
     "vite"
   ],
   "sideEffects": false,
+  "scripts": {
+    "publish": "yarn npm publish"
+  },
   "peerDependencies": {
     "vite": "^2.8.0-beta.3"
   }

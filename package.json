@@ -16,6 +16,6 @@
     "dev": "yarn workspaces foreach -v -pi --include 'example-*' run dev",
     "test": "yarn workspaces foreach -v run test",
     "test:watch": "yarn workspaces foreach -v -pi run test:watch",
-    "publish": "yarn workspaces foreach -v --include 'rescript-relay-router*' run publish"
+    "publish": "yarn workspaces foreach -v run publish"
   }
 }

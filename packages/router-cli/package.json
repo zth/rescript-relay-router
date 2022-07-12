@@ -27,7 +27,8 @@
     "build:executable": "echo '#!/usr/bin/env node' | cat -  src/RescriptRelayRouterCli.mjs > src/RescriptRelayRouterCli.mjs.tmp && mv src/RescriptRelayRouterCli.mjs.tmp src/RescriptRelayRouterCli.mjs",
     "dev": "yarn build:rescript -w",
     "test": "vitest run",
-    "test:watch": "vitest watch"
+    "test:watch": "vitest watch",
+    "publish": "yarn build && yarn npm publish"
   },
   "bin": {
     "rescript-relay-router": "src/RescriptRelayRouterCli.mjs"

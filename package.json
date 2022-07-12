@@ -5,6 +5,7 @@
     "node": ">=16"
   },
   "type": "module",
+  "packageManager": "yarn@3.2.1",
   "scripts": {
     "build": "run-s build:*",
     "build:relay": "rescript-relay-compiler",
@@ -52,7 +53,6 @@
     "vite-plugin-html": "3.2.0",
     "vitest": "0.6.0"
   },
-  "resolutions": {},
   "dependencies": {
     "@ryyppy/rescript-promise": "^2.1.0",
     "history": "^5.2.0",

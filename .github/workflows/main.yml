@@ -26,7 +26,7 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install project
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
       - name: Build Relay artifacts
         run: |
           yarn build:relay

@@ -27,15 +27,14 @@ jobs:
       - name: Install project
         run: |
           yarn install --immutable
-      - name: Build Relay artifacts
-        run: |
-          yarn build:relay
       - name: Format ReScript
         run: |
           yarn workspaces foreach run rescript format -all
-      - name: Build ReScript
+      - name: Build all projects
         run: |
-          yarn workspaces foreach --topological-dev run build:rescript
+          yarn build
+      # Since we don't want to have generated code formatted in the router we regenerate
+      # the router code after formatting.
       - name: Sync router code generation
         run: |
           yarn workspaces foreach --topological-dev run router:generate
@@ -50,9 +49,3 @@ jobs:
       - name: Run tests
         run: |
           yarn test
-      - name: Build client example app assets
-        run: |
-          yarn workspaces foreach --topological-dev run build:vite:client
-      - name: Build server example app assets
-        run: |
-          yarn workspaces foreach --topological-dev run build:vite:server

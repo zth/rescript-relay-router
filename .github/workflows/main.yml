@@ -20,13 +20,13 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: actions/cache@v2
-        with:
-          path: "node_modules"
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+#      - uses: actions/cache@v2
+#        with:
+#          path: "node_modules"
+#          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install project
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
       - name: Build Relay artifacts
         run: |
           yarn build:relay

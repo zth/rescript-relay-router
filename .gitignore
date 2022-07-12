@@ -13,3 +13,8 @@ cli/**/*.mjs
 Server.mjs
 _release
 stats.html
+
+# Ignore the yarn cache since the CI runs a different operating system so commiting
+# the cache would break it.
+.yarn/cache
+.yarn/install-state.gz

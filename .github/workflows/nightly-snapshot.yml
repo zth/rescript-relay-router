@@ -1,0 +1,55 @@
+###############################################################
+# Automated snapshot publishing of commits on the main branch #
+###############################################################
+name: Nightly Snapshot
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # run at 2 AM UTC
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  snapshot:
+    name: Snapshot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Check for commits in past 24 hours
+        id: past_day_commits
+        continue-on-error: true
+        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=exists::false"
+
+      - name: Setup Node.js 16.x
+        if: ${{ steps.past_day_commits.outputs.exists != 'false' }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+
+      - name: Install Dependencies
+        if: ${{ steps.past_day_commits.outputs.exists != 'false' }}
+        run: yarn
+
+      - name: Set outputs
+        if: ${{ steps.past_day_commits.outputs.exists != 'false' }}
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      # We version the snapshot using a shortened git hash to make it easy to correlate
+      # published versions to specific commits (or find a snapshot from a commit for testing).
+      - name: Create snapshot version
+        if: ${{ steps.past_day_commits.outputs.exists != 'false' }}
+        run: yarn changeset version --snapshot experimental-${{ steps.vars.outputs.sha_short }}
+
+      # We must specify a tag here to ensure we don't override `latest` which is expected to be
+      # a stable version. Instead we use `experimental` so that `@experimental` allows easily
+      # installing the latest snapshot. Individual snapshot releases should be available through
+      # versions updated in the package.json files.
+      - name: Publish snapshot to NPM
+        if: ${{ steps.past_day_commits.outputs.exists != 'false' }}
+        run: yarn changeset publish --no-git-tag --tag experimental
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

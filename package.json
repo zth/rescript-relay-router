@@ -19,5 +19,8 @@
     "test": "yarn workspaces foreach -v run test",
     "test:watch": "yarn workspaces foreach -v -pi run test:watch",
     "publish": "yarn workspaces foreach -v run publish"
+  },
+  "dependencies": {
+    "@changesets/cli": "^2.23.1"
   }
 }

@@ -5,12 +5,12 @@ import { existsSync } from "fs"
  * project so that people don't think it does anything.
  * Any actual HTML should be put in the Html component.
  */
-export let virtualHtmlVitePlugin = ({
+export let virtualIndex = ({
   entryClient
 }) => {
   return {
     enforce: 'pre',
-    name: "virtual-html",
+    name: "virtual-index",
     resolveId(id) {
       if (id.endsWith("/index.html") && !existsSync(id)) {
         return "index.html";

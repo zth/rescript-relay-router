@@ -1,5 +1,5 @@
 {
-  "name": "rescript-relay-router-cli",
+  "name": "@rescript-relay-router/cli",
   "version": "0.0.15-editor-tooling.1",
   "engines": {
     "node": ">=16"
@@ -34,7 +34,10 @@
     "rescript-relay-router": "src/RescriptRelayRouterCli.mjs"
   },
   "peerDependencies": {
-    "rescript-relay-router": "workspace:^"
+    "@rescript-relay-router/core": "workspace:^",
+    "@rescript/react": "*",
+    "react": "*",
+    "rescript-relay": "*"
   },
   "dependencies": {
     "chalk": "^5.0.1",
@@ -48,9 +51,9 @@
     "vscode-jsonrpc": "^5.0.1"
   },
   "devDependencies": {
+    "@rescript-relay-router/core": "workspace:^",
+    "@rescript-relay-router/vitest": "workspace:^",
     "rescript": "9.1.4",
-    "rescript-relay-router": "workspace:^",
-    "rescript-relay-router-vitest": "workspace:^",
     "vitest": "0.6.0"
   }
 }

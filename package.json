@@ -1,5 +1,5 @@
 {
-  "name": "r3-monorepo",
+  "name": "rescript-relay-router-monorepo",
   "version": "0.0.0",
   "type": "module",
   "license": "MIT",
@@ -10,10 +10,12 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "yarn workspaces foreach -v --topological-dev run build",
-    "preview": "yarn workspaces foreach -v -pi --include 'example-*' run preview",
-    "start": "yarn workspaces foreach -v -pi --include 'example-*' run start",
-    "dev": "yarn workspaces foreach -v -pi --include 'example-*' run dev",
+    "build": "yarn build:libs && yarn build:examples",
+    "build:libs": "yarn workspaces foreach -v --topological --include '@rescript-relay-router/*' run build",
+    "build:examples": "yarn workspaces foreach -v --topological --include '@rescript-relay-router-example/*' run build",
+    "preview": "yarn workspaces foreach -v -pi --include '@rescript-relay-router-example/*' run preview",
+    "start": "yarn workspaces foreach -v -pi --include '@rescript-relay-router-example/*' run start",
+    "dev": "yarn workspaces foreach -v -pi --include '@rescript-relay-router-example/*' run dev",
     "test": "yarn workspaces foreach -v run test",
     "test:watch": "yarn workspaces foreach -v -pi run test:watch",
     "publish": "yarn workspaces foreach -v run publish"

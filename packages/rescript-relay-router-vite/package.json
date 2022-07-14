@@ -1,5 +1,5 @@
 {
-  "name": "rescript-relay-router-vite-plugin",
+  "name": "@rescript-relay-router/vite",
   "version": "0.0.15-editor-tooling.1",
   "engines": {
     "node": ">=16"
@@ -13,7 +13,7 @@
   "license": "MIT",
   "author": "Gabriel Nordeborn",
   "repository": "https://github.com/zth/rescript-relay-router",
-  "description": "The Vite plugin for ReScript Relay Router.",
+  "description": "Vite support for ReScript Relay Router.",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
@@ -34,11 +34,14 @@
     "publish": "yarn npm publish"
   },
   "peerDependencies": {
+    "@rescript/react": "*",
+    "react": "*",
+    "rescript-relay": "*",
     "vite": "^2.8.0-beta.3"
   },
   "dependencies": {
+    "@rescript-relay-router/cli": "workspace:^",
     "magic-string": "^0.26.2",
-    "rescript-relay-router-cli": "workspace:^",
     "vitest": "0.6.0"
   }
 }

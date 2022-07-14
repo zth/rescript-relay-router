@@ -1,0 +1,30 @@
+{
+  "name": "rescript-relay-router",
+  "version": "0.0.17",
+  "license": "MIT",
+  "author": "Gabriel Nordeborn",
+  "repository": "https://github.com/zth/rescript-relay-router",
+  "description": "A ReScript web router for RescriptRelay.",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "relay",
+    "relaymodern",
+    "react",
+    "router",
+    "react-router",
+    "rescript"
+  ],
+  "sideEffects": false,
+  "peerDependencies": {
+    "@rescript/react": "*",
+    "react": "*",
+    "rescript-relay": "*",
+    "vite": "*"
+  },
+  "dependencies": {
+    "@rescript-relay-router/core": "workspace:^",
+    "@rescript-relay-router/vite": "workspace:^"
+  }
+}

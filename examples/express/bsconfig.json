@@ -24,9 +24,9 @@
     "@rescript/react",
     "rescript-relay",
     "@ryyppy/rescript-promise",
-    "rescript-relay-router"
+    "@rescript-relay-router/core"
   ],
   "pinned-dependencies": [
-    "rescript-relay-router"
+    "@rescript-relay-router/core"
   ]
 }

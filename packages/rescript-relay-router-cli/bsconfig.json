@@ -1,5 +1,5 @@
 {
-  "name": "rescript-relay-router-cli",
+  "name": "@rescript-relay-router/cli",
   "reason": {
     "react-jsx": 3
   },
@@ -24,10 +24,10 @@
   "suffix": ".mjs",
   "bs-dependencies": [
     "@ryyppy/rescript-promise",
-    "rescript-relay-router"
+    "@rescript-relay-router/core"
   ],
   "pinned-dependencies": [
-    "rescript-relay-router"
+    "@rescript-relay-router/core"
   ],
-  "bs-dev-dependencies": ["rescript-relay-router-vitest"]
+  "bs-dev-dependencies": ["@rescript-relay-router/vitest"]
 }

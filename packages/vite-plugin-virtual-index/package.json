@@ -1,13 +1,13 @@
 {
-  "name": "rescript-relay-router-virtual-html-vite-plugin",
+  "name": "vite-plugin-virtual-index",
   "version": "0.0.15-editor-tooling.1",
   "engines": {
     "node": ">=16"
   },
-  "main": "./src/VirtualHtmlVitePlugin.mjs",
+  "main": "./src/VirtualIndex.mjs",
   "exports": {
-    ".": "./src/VirtualHtmlVitePlugin.mjs",
-    "./VirtualHtmlVitePlugin.mjs": "./src/VirtualHtmlVitePlugin.mjs"
+    ".": "./src/VirtualIndex.mjs",
+    "./VirtualHtmlVitePlugin.mjs": "./src/VirtualIndex.mjs"
   },
   "type": "module",
   "license": "MIT",

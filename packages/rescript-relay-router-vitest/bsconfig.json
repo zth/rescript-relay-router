@@ -1,5 +1,5 @@
 {
-  "name": "rescript-relay-router-vitest",
+  "name": "@rescript-relay-router/vitest",
   "reason": {
     "react-jsx": 3
   },

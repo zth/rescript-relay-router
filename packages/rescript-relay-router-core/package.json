@@ -1,5 +1,5 @@
 {
-  "name": "rescript-relay-router",
+  "name": "@rescript-relay-router/core",
   "version": "0.0.17",
   "engines": {
     "node": ">=16"
@@ -41,8 +41,8 @@
     "react-router": "^6.2.1"
   },
   "devDependencies": {
+    "@rescript-relay-router/vitest": "workspace:^",
     "rescript": "9.1.4",
-    "rescript-relay-router-vitest": "workspace:^",
     "vitest": "0.6.0"
   }
 }

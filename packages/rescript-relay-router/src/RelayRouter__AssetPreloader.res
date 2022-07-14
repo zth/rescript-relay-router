@@ -11,7 +11,7 @@ external setHref: (Dom.element, string) => unit = "href"
 external setRel: (Dom.element, [#modulepreload | #preload]) => unit = "rel"
 
 @set
-external setAs: (Dom.element, [#image]) => unit = "as"
+external setAs: (Dom.element, [#image | #style]) => unit = "as"
 
 @val
 external loadScript: string => unit = "import"
@@ -28,6 +28,10 @@ let preloadAssetViaLinkTag = asset => {
     element->setHref(url)
     element->setRel(#preload)
     element->setAs(#image)
+  | Style({url}) =>
+    element->setHref(url)
+    element->setRel(#preload)
+    element->setAs(#style)
   }
 
   appendToHead(element)
@@ -38,6 +42,7 @@ let makeClientAssetPreloader = (preparedAssetsMap, ~priority, asset) => {
   let assetIdentifier = switch asset {
   | RelayRouter__Types.Component({chunk}) => "component:" ++ chunk
   | Image({url}) => "image:" ++ url
+  | Style({url}) => "style:" ++ url
   }
 
   switch preparedAssetsMap->Js.Dict.get(assetIdentifier) {

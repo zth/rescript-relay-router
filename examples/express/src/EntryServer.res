@@ -34,6 +34,8 @@ let handleRequest = (~request, ~response, ~bootstrapModules) => {
       transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
     | Image({url}) =>
       transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<link rel="preload" as="image" href="$url">`)
+    | Style({ url }) =>
+      transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<link rel="preload" as="style" href="$url">`)
     }
 
   // TODO: Fix the RelayEnv.makeServer types so the extra function here isn't needed.

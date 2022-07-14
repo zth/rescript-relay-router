@@ -11,6 +11,7 @@ type preloadComponentAsset = {@as("__$rescriptChunkName__") chunk: string}
 type preloadAsset =
   | Component(preloadComponentAsset)
   | Image({url: string})
+  | Style({url: string})
 
 type preloadFn = (~priority: preloadPriority=?, string) => unit
 type preloadCodeFn = (~priority: preloadPriority=?, string) => unit

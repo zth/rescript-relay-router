@@ -1,4 +1,5 @@
-@val external import_: string => Promise.t<'a> = "import"
+module type EntryServer = module type of EntryServer
+@val external import_: string => Promise.t<module(EntryServer)> = "import"
 
 let app = Express.make()
 
@@ -68,11 +69,12 @@ switch NodeJs.isProduction {
 
     // Load our compiled production server entry.
     import_("./dist/server/EntryServer.js")
-    ->Promise.then(imported => imported["default"])
-    ->Promise.thenResolve(handleRequest => {
+    ->Promise.thenResolve(entryServer => {
+      module EntryServer = unpack(entryServer)
+
       // Production server side rendering helper.
       app->useRoute("*", (request, response) => {
-        handleRequest(~request, ~response, ~bootstrapModules)
+        EntryServer.handleRequest(~request, ~response, ~bootstrapModules)
       })
 
       app->listen(9999)
@@ -98,10 +100,11 @@ switch NodeJs.isProduction {
         // Load the dev server entry point through Vite within the route handler so it's automatically
         // recompiled when any of the code changes (Vite caches it for us).
         vite
-        ->loadDevSsrEntryPoint("/src/EntryServer.mjs")
-        ->Promise.then(imported => imported["default"])
-        ->Promise.then(handleRequest => {
-          handleRequest(~request, ~response, ~bootstrapModules=["/src/EntryClient.mjs"])
+        ->ssrLoadModule("/src/EntryServer.mjs")
+        ->Promise.then((entryServer: module(EntryServer)) => {
+          module EntryServer = unpack(entryServer)
+
+          EntryServer.handleRequest(~request, ~response, ~bootstrapModules=["/src/EntryClient.mjs"])
         })
       } catch {
       | Js.Exn.Error(err) => {

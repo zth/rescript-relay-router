@@ -12,17 +12,7 @@ let make = (~middlewareMode) => make({server: {middlewareMode: middlewareMode}})
 
 @get external middlewares: t => Express.middleware = "middlewares"
 
-@send external ssrLoadModule: (t, string) => 'a = "ssrLoadModule"
-
-type ssrEntryPoint = (
-  ~response: Express.Response.t,
-  ~head: string,
-  ~url: string,
-  ~bootstrapModules: array<string>,
-  ~isLoggedIn: bool,
-) => Promise.t<unit>
-let loadDevSsrEntryPoint: (t, string) => Promise.t<'a> = (vite, package) =>
-  vite->ssrLoadModule(package)
+@send external ssrLoadModule: (t, string) => Promise.t<'a> = "ssrLoadModule"
 
 @send external transformIndexHtml: (t, string, string) => Promise.t<string> = "transformIndexHtml"
 

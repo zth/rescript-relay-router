@@ -3,56 +3,86 @@ module type EntryServer = module type of EntryServer
 
 let app = Express.make()
 
-let getAssetForManifestEntry = (manifest, file) => {
-  // We must prefix with `/` (Vite's configured root) because the manifest only contains paths relative to base.
-  // TODO: This breaks if vite.base is not `/`.
-  "/" ++
-  manifest
-  ->Js.Dict.unsafeGet(file)
-  ->Js.Json.decodeObject
-  ->Belt.Option.getExn
-  ->Js.Dict.unsafeGet("file")
-  ->Js.Json.decodeString
-  ->Belt.Option.getExn
+/**
+ * The ReScript Relay Router client manifest.
+ *
+ * The manifest keeps track of client assets and their dependencies,
+ * this allows it to be used for preloading.
+ *
+ * It only contains entry points which is what would be loaded at the
+ * start of a user action (i.e. a navigation) and only provides information
+ * about the hierarchy of compiled assets.
+ */
+module Manifest = {
+  type asset = {
+    imports: array<string>,
+    css: array<string>,
+    assets: array<string>,
+  }
+  type t = Js.Dict.t<asset>
+}
+module ViteManifest = {
+  type chunk = {
+    file: string,
+    src: Js.Nullable.t<string>,
+    isEntry: Js.Nullable.t<bool>,
+    isDynamicEntry: Js.Nullable.t<bool>,
+    imports: Js.Nullable.t<array<string>>,
+    dynamicImports: Js.Nullable.t<array<string>>,
+    css: Js.Nullable.t<array<string>>,
+    assets: Js.Nullable.t<array<string>>,
+  }
+  type t = Js.Dict.t<chunk>
+  external objToManifest: Js.Json.t => t = "%identity"
 }
 
-let rec getDirectImportsForManifestEntry = (manifest, file) => {
+/**
+ * Convert the Vite client manifest.json to a specialised manifest for ReScript Relay Router.
+ *
+ * The manifest for ReScript Relay router contains less information which makes it suitable to
+ * ship to the client and is only interested in dealing with compiled assets and their hierarchies.
+ */
+let viteManifestToRelayRouterManifest: ViteManifest.t => Manifest.t = manifest => {
+  let orEmptyArray = nullableArray =>
+    nullableArray->Js.Nullable.toOption->Belt.Option.getWithDefault([])
+  let getChunk = Js.Dict.unsafeGet(manifest)
+  let getFile = import_ => "/" ++ getChunk(import_).file
+  // let getImports = import_ => getChunk(import_).imports->orEmptyArray
+  // let getCss = import_ => getChunk(import_).css->orEmptyArray
+  // let getAssets = import_ => getChunk(import_).assets->orEmptyArray
+
   manifest
-  ->Js.Dict.unsafeGet(file)
-  ->Js.Json.decodeObject
-  ->Belt.Option.getExn
-  ->Js.Dict.get("imports")
-  ->Belt.Option.flatMap(Js.Json.decodeArray)
-  ->Belt.Option.mapWithDefault(
-    [],
-    Js.Array2.map(_, import_ => import_->Js.Json.decodeString->Belt.Option.getExn),
-  )
-  ->Belt.List.fromArray
-  ->Belt.List.map(import_ => list{
-    getAssetForManifestEntry(manifest, import_),
-    ...getDirectImportsForManifestEntry(manifest, import_),
+  ->Js.Dict.entries
+  ->Belt.Array.keepMap(((source, chunk)) => {
+    open Manifest
+    // The isEntry or isDynamicEntry field is only ever present when it's `true`.
+    switch !(chunk.isEntry->Js.Nullable.isNullable) ||
+    !(chunk.isDynamicEntry->Js.Nullable.isNullable) {
+    | true =>
+      Some((
+        source->getFile,
+        {
+          imports: chunk.imports->orEmptyArray->Js.Array2.map(getFile),
+          css: chunk.css->orEmptyArray,
+          assets: chunk.assets->orEmptyArray,
+        },
+      ))
+    | false => None
+    }
   })
-  ->Belt.List.flatten
+  ->Js.Dict.fromArray
 }
 
-let getProductionClientBundlesFromManifest = () => {
+let loadRouterManifest = () => {
   // Load our client manifest so we can find our client entry file.
-  let manifest =
+  let viteManifest =
     NodeJs.Fs.readFileSync("./dist/client/manifest.json", "utf-8")
     ->Js.Json.parseExn
-    ->Js.Json.decodeObject
-    ->Belt.Option.getExn
+    ->ViteManifest.objToManifest
 
-  // This will throw an exception if our manifest doesn't include an "index.html" entry.
-  // That's what Vite uses for our main app entry point.
-  list{
-    getAssetForManifestEntry(manifest, "index.html"),
-    ...getDirectImportsForManifestEntry(manifest, "index.html"),
-  }
-  ->Belt.List.toArray
-  // Deduplicate entries
-  ->Belt.Set.String.fromArray
-  ->Belt.Set.String.toArray
+  let entryPoint = "/" ++ (viteManifest->Js.Dict.unsafeGet("index.html")).file
+
+  (entryPoint, viteManifest->viteManifestToRelayRouterManifest)
 }
 
 switch NodeJs.isProduction {
@@ -65,7 +95,11 @@ switch NodeJs.isProduction {
       app->useMiddlewareAt("/assets", Express.static("dist/client/assets/"))
     }
 
-    let bootstrapModules = getProductionClientBundlesFromManifest()
+    let (entryPoint, manifest) = loadRouterManifest()
+    // TODO: We need some way to also preload the entrypoint CSS and assets for this initial router load.
+    // Maybe using bootstrapModules with React is not the way to go but we should just preloadEmit our entryPoint.
+    let bootstrapModules =
+      [entryPoint]->Js.Array2.concat((manifest->Js.Dict.unsafeGet(entryPoint)).imports)
 
     // Load our compiled production server entry.
     import_("./dist/server/EntryServer.js")

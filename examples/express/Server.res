@@ -78,10 +78,6 @@ switch NodeJs.isProduction {
     }
 
     let (entryPoint, manifest) = loadRouterManifest()
-    // TODO: We need some way to also preload the entrypoint CSS and assets for this initial router load.
-    // Maybe using bootstrapModules with React is not the way to go but we should just preloadEmit our entryPoint.
-    let bootstrapModules =
-      [entryPoint]->Js.Array2.concat((manifest->Js.Dict.unsafeGet(entryPoint)).imports)
 
     // Load our compiled production server entry.
     import_("./dist/server/EntryServer.js")
@@ -90,7 +86,7 @@ switch NodeJs.isProduction {
 
       // Production server side rendering helper.
       app->useRoute("*", (request, response) => {
-        EntryServer.handleRequest(~request, ~response, ~bootstrapModules)
+        EntryServer.handleRequest(~request, ~response, ~entryPoint, ~manifest)
       })
 
       app->listen(9999)
@@ -118,9 +114,13 @@ switch NodeJs.isProduction {
         vite
         ->ssrLoadModule("/src/EntryServer.mjs")
         ->Promise.then((entryServer: module(EntryServer)) => {
+          open RelayRouter.Manifest
           module EntryServer = unpack(entryServer)
 
-          EntryServer.handleRequest(~request, ~response, ~bootstrapModules=["/src/EntryClient.mjs"])
+          let entryPoint = "/src/EntryClient.mjs"
+          let manifest = Js.Dict.fromArray([(entryPoint, {imports: [], css: [], assets: []})])
+
+          EntryServer.handleRequest(~request, ~response, ~entryPoint, ~manifest)
         })
       } catch {
       | Js.Exn.Error(err) => {

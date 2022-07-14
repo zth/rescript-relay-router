@@ -6,7 +6,7 @@ external transformAsWritable: RelayRouter.PreloadInsertingStream.Node.t => NodeJ
   "%identity"
 
 @live
-let handleRequest = (~request, ~response, ~bootstrapModules) => {
+let handleRequest = (~request, ~response, ~entryPoint, ~manifest: RelayRouter.Manifest.t) => {
   // TODO: request should be transformed from Express to native Request and the url should be retrieved from there.
   let initialUrl = request->Express.Request.originalUrl
 
@@ -27,14 +27,25 @@ let handleRequest = (~request, ~response, ~bootstrapModules) => {
 
   // TODO: A default version of this should be provided by us/the router/the
   // framework, or in some way be made opaque to the dev in the default case.
-  let preloadAsset: RelayRouter.Types.preloadAssetFn = (~priority as _, asset) =>
+  let rec preloadAsset: RelayRouter.Types.preloadAssetFn = (~priority as _, asset) =>
     switch asset {
     // TODO: If multiple lazy components are in the same chunk then this may load the same asset multiple times.
     | Component({chunk}) =>
       transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
+      // Also preload any direct imports for the requested chunk.
+      manifest
+      ->Js.Dict.get(chunk)
+      ->Belt.Option.forEach(chunk => {
+        chunk.imports->Js.Array2.forEach(url =>
+          Component({chunk: url})->preloadAsset(~priority=Default)
+        )
+        chunk.css->Js.Array2.forEach(url => Style({url: url})->preloadAsset(~priority=Default))
+        // TODO: the below line causes a bug because not all `assets` will need `as="image"` for their preload.
+        chunk.assets->Js.Array2.forEach(url => Image({url: url})->preloadAsset(~priority=Default))
+      })
     | Image({url}) =>
       transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<link rel="preload" as="image" href="$url">`)
-    | Style({ url }) =>
+    | Style({url}) =>
       transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<link rel="preload" as="style" href="$url">`)
     }
 
@@ -53,6 +64,14 @@ let handleRequest = (~request, ~response, ~bootstrapModules) => {
     ~routerEnvironment,
     ~preloadAsset,
   )
+
+  // Based on our entryPoint and manifest decide what our bootstrap modules are and trigger
+  // preloads for any CSS files or assets.
+  let entryChunk = manifest->Js.Dict.unsafeGet(entryPoint)
+  let bootstrapModules = [entryPoint]->Js.Array2.concat(entryChunk.imports)
+  entryChunk.css->Js.Array2.forEach(url => Style({url: url})->preloadAsset(~priority=Default))
+  // TODO: the below line causes a bug because not all `assets` will need `as="image"` for their preload.
+  entryChunk.assets->Js.Array2.forEach(url => Image({url: url})->preloadAsset(~priority=Default))
 
   Promise.make((resolve, reject) => {
     let didError = ref(false)

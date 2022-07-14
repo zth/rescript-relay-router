@@ -3,24 +3,6 @@ module type EntryServer = module type of EntryServer
 
 let app = Express.make()
 
-/**
- * The ReScript Relay Router client manifest.
- *
- * The manifest keeps track of client assets and their dependencies,
- * this allows it to be used for preloading.
- *
- * It only contains entry points which is what would be loaded at the
- * start of a user action (i.e. a navigation) and only provides information
- * about the hierarchy of compiled assets.
- */
-module Manifest = {
-  type asset = {
-    imports: array<string>,
-    css: array<string>,
-    assets: array<string>,
-  }
-  type t = Js.Dict.t<asset>
-}
 module ViteManifest = {
   type chunk = {
     file: string,
@@ -42,7 +24,7 @@ module ViteManifest = {
  * The manifest for ReScript Relay router contains less information which makes it suitable to
  * ship to the client and is only interested in dealing with compiled assets and their hierarchies.
  */
-let viteManifestToRelayRouterManifest: ViteManifest.t => Manifest.t = manifest => {
+let viteManifestToRelayRouterManifest: ViteManifest.t => RelayRouter.Manifest.t = manifest => {
   let orEmptyArray = nullableArray =>
     nullableArray->Js.Nullable.toOption->Belt.Option.getWithDefault([])
   let getChunk = Js.Dict.unsafeGet(manifest)
@@ -54,7 +36,7 @@ let viteManifestToRelayRouterManifest: ViteManifest.t => Manifest.t = manifest =
   manifest
   ->Js.Dict.entries
   ->Belt.Array.keepMap(((source, chunk)) => {
-    open Manifest
+    open RelayRouter.Manifest
     // The isEntry or isDynamicEntry field is only ever present when it's `true`.
     switch !(chunk.isEntry->Js.Nullable.isNullable) ||
     !(chunk.isDynamicEntry->Js.Nullable.isNullable) {

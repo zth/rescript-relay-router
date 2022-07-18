@@ -16,3 +16,7 @@ stats.html
 
 # Commit the PreloadInsertingStreamNode as it has no ReScript source file.
 !src/PreloadInsertingStreamNode.mjs
+
+# Commit our Vite plugins written in plain JavaScript.
+!vite-plugins/**/*.mjs
+!test/RescriptRelayVitePlugin.test.mjs

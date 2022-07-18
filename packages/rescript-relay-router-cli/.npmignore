@@ -1,8 +1,0 @@
-# For the CLI only the compiled code is published that can be used directly in Node.js.
-lib/
-test/
-*.res
-*.resi
-.merlin
-.gitgnore
-bsconfig.json

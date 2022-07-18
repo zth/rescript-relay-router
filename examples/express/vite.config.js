@@ -1,8 +1,8 @@
 import { defineConfig } from "vite";
 import reactRefresh from "@vitejs/plugin-react-refresh";
 import { visualizer } from "rollup-plugin-visualizer";
-import { rescriptRelayVitePlugin } from "@rescript-relay-router/vite";
-import { virtualIndex } from "vite-plugin-virtual-index";
+import { rescriptRelayVitePlugin } from "rescript-relay-router/RescriptRelayVitePlugin.mjs";
+import { virtualIndex } from "rescript-relay-router/VirtualIndex.mjs";
 
 export default defineConfig({
   base: process.env.APP_PATH ?? "/",

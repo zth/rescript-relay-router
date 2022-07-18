@@ -4,7 +4,7 @@ import path from "path";
 import readline from "readline";
 import MagicString from "magic-string";
 import { normalizePath } from "vite";
-import { runCli } from "@rescript-relay-router/cli";
+import { runCli } from "../cli/RescriptRelayRouterCli__Commands.mjs";
 
 /**
  * @typedef {import("vite").ResolvedConfig} ResolvedConfig

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { rescriptRelayVitePlugin } from "../src/RescriptRelayVitePlugin.mjs";
+import { rescriptRelayVitePlugin } from "../vite-plugins/RescriptRelayVitePlugin.mjs";
 import * as path from "path";
 
 describe("RescriptRelayVitePlugin", () => {

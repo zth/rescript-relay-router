@@ -1,6 +1,16 @@
 {
   "name": "rescript-relay-router",
   "version": "0.0.17",
+  "engines": {
+    "node": ">=16"
+  },
+  "exports": {
+    "./src/*": "./src/*",
+    "./cli/RescriptRelayRouterCli__Commands.mjs": "./cli/RescriptRelayRouterCli__Commands.mjs",
+    "./RescriptRelayVitePlugin.mjs": "./vite-plugins/RescriptRelayVitePlugin.mjs",
+    "./VirtualIndex.mjs": "./vite-plugins/VirtualIndex.mjs"
+  },
+  "type": "module",
   "license": "MIT",
   "author": "Gabriel Nordeborn",
   "repository": "https://github.com/zth/rescript-relay-router",
@@ -17,14 +27,36 @@
     "rescript"
   ],
   "sideEffects": false,
+  "scripts": {
+    "build": "rescript build -with-deps",
+    "dev": "yarn build:rescript -w",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "publish": "yarn npm publish"
+  },
+  "bin": "cli/RescriptRelayRouterCli.mjs",
   "peerDependencies": {
-    "@rescript/react": "*",
-    "react": "*",
-    "rescript-relay": "*",
-    "vite": "*"
+    "@rescript/react": "^0.10.3",
+    "react": ">=18.2.0",
+    "rescript-relay": "^1.0.0-beta.11",
+    "vite": "^2.8.0-beta.3"
   },
   "dependencies": {
-    "@rescript-relay-router/core": "workspace:^",
-    "@rescript-relay-router/vite": "workspace:^"
+    "chalk": "^5.0.1",
+    "chokidar": "^3.5.3",
+    "cosmiconfig": "^7.0.1",
+    "fast-fuzzy": "^1.11.1",
+    "fast-glob": "^3.2.11",
+    "history": "^5.2.0",
+    "jsonc-parser": "^3.0.0",
+    "lines-and-columns": "^2.0.3",
+    "magic-string": "^0.26.2",
+    "react-router": "^6.2.1",
+    "vscode-jsonrpc": "^5.0.1"
+  },
+  "devDependencies": {
+    "@rescript-relay-router/vitest": "workspace:^",
+    "rescript": "9.1.4",
+    "vitest": "0.6.0"
   }
 }

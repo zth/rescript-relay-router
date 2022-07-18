@@ -1,12 +1,16 @@
 {
-  "name": "@rescript-relay-router/core",
+  "name": "rescript-relay-router",
   "reason": {
     "react-jsx": 3
   },
-  "version": "0.1.0",
+  "version": "0.0.17",
   "sources": [
     {
       "dir": "src",
+      "subdirs": true
+    },
+    {
+      "dir": "cli",
       "subdirs": true
     },
     {
@@ -22,6 +26,10 @@
     }
   ],
   "suffix": ".mjs",
-  "bs-dependencies": ["@rescript/react", "rescript-relay"],
+  "bs-dependencies": [
+    "@rescript/react",
+    "@ryyppy/rescript-promise",
+    "rescript-relay"
+  ],
   "bs-dev-dependencies": ["@rescript-relay-router/vitest"]
 }

@@ -1,0 +1,17 @@
+# The router only ships ReScript files and is expected to be used in a ReScript project.
+lib/
+test/
+*.mjs
+.merlin
+.gitignore
+
+# For the CLI only the compiled code is published that can be used directly in Node.js.
+!cli/**/*.mjs
+cli/**/*.res
+cli/**/*.resi
+
+# Commit the PreloadInsertingStreamNode as it has no ReScript source file.
+!src/PreloadInsertingStreamNode.mjs
+
+# Publish the Vite plugins that projects will need as is.
+!vite-plugins/*.mjs

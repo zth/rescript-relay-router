@@ -1,9 +1,10 @@
 {
-  "name": "rescript-relay-router",
+  "name": "@rescript-relay-router/vitest",
   "reason": {
     "react-jsx": 3
   },
   "version": "0.1.0",
+  "namespace": false,
   "sources": [
     {
       "dir": "src",
@@ -17,5 +18,7 @@
     }
   ],
   "suffix": ".mjs",
-  "bs-dependencies": ["@rescript/react", "rescript-relay"]
+  "bs-dependencies": [
+    "@ryyppy/rescript-promise"
+  ]
 }

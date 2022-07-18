@@ -1,0 +1,35 @@
+{
+  "name": "rescript-relay-router",
+  "reason": {
+    "react-jsx": 3
+  },
+  "version": "0.0.17",
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    },
+    {
+      "dir": "cli",
+      "subdirs": true
+    },
+    {
+      "dir": "test",
+      "subdirs": true,
+      "type": "dev"
+    }
+  ],
+  "package-specs": [
+    {
+      "module": "es6",
+      "in-source": true
+    }
+  ],
+  "suffix": ".mjs",
+  "bs-dependencies": [
+    "@rescript/react",
+    "@ryyppy/rescript-promise",
+    "rescript-relay"
+  ],
+  "bs-dev-dependencies": ["@rescript-relay-router/vitest"]
+}

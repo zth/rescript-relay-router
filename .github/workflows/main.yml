@@ -22,23 +22,22 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - uses: actions/cache@v2
         with:
-          path: "node_modules"
+          path: ".yarn/cache"
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install project
         run: |
-          yarn install --frozen-lockfile
-      - name: Build Relay artifacts
-        run: |
-          yarn build:relay
+          yarn install --immutable
       - name: Format ReScript
         run: |
-          yarn rescript format -all
-      - name: Build ReScript
+          yarn workspaces foreach run rescript format -all
+      - name: Build all projects
         run: |
-          yarn build:rescript
+          yarn build
+      # Since we don't want to have generated code formatted in the router we regenerate
+      # the router code after formatting.
       - name: Sync router code generation
         run: |
-          yarn router:generate
+          yarn workspaces foreach --topological-dev run router:generate
       - name: git status
         id: git_status
         run: |
@@ -50,9 +49,3 @@ jobs:
       - name: Run tests
         run: |
           yarn test
-      - name: Build client example app assets
-        run: |
-          yarn build:vite:client
-      - name: Build server example app assets
-        run: |
-          yarn build:vite:server

@@ -1,0 +1,19 @@
+# Ignore common system files
+.DS_Store
+
+# Ignore node modules
+node_modules
+
+# Ignore rescript folders
+lib
+.bsb.lock
+.merlin
+
+# Ignore build output
+dist
+stats.html
+*.mjs
+
+# Ignore generated files but allow keeping the folder itself.
+src/__generated__/**
+!src/__generated__/.gitkeep

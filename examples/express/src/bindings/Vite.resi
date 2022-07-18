@@ -5,14 +5,7 @@ let make: (~middlewareMode: middlewareMode) => Promise.t<t>
 
 @get external middlewares: t => Express.middleware = "middlewares"
 
-type ssrEntryPoint = (
-  ~response: Express.Response.t,
-  ~head: string,
-  ~url: string,
-  ~bootstrapModules: array<string>,
-  ~isLoggedIn: bool,
-) => Promise.t<unit>
-let loadDevSsrEntryPoint: (t, string) => Promise.t<'a>
+@send external ssrLoadModule: (t, string) => Promise.t<'a> = "ssrLoadModule"
 
 @send external transformIndexHtml: (t, string, string) => Promise.t<string> = "transformIndexHtml"
 

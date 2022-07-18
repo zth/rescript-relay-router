@@ -6,7 +6,7 @@ external transformAsWritable: RelayRouter.PreloadInsertingStream.Node.t => NodeJ
   "%identity"
 
 @live
-let default = (~request, ~response, ~bootstrapModules) => {
+let handleRequest = (~request, ~response, ~bootstrapModules) => {
   // TODO: request should be transformed from Express to native Request and the url should be retrieved from there.
   let initialUrl = request->Express.Request.originalUrl
 

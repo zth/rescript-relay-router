@@ -24,5 +24,5 @@ let makeServerFetchFunction: (
   ) => option<RescriptRelay.Observable.subscription>,
 ) => RescriptRelay.Network.fetchFunctionObservable
 
-@live
-let ssr: bool
+@live @inline @val
+external ssr: bool = "import.meta.env.SSR"

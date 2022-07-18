@@ -57,17 +57,37 @@ external requestIdleCallback: (callback, option<{"timeout": int}>) => requestIdl
 @val
 external cancelIdleCallback: requestIdleCallbackId => unit = "window.cancelIdleCallback"
 
+let supportsRequestIdleCallback: bool = if RelaySSRUtils.ssr {
+  false
+} else {
+  %raw(`window != null && window.requestIdleCallback != null`)
+}
+
+let runCallback = (cb: callback, timeout) => {
+  if supportsRequestIdleCallback {
+    let id = requestIdleCallback(
+      cb,
+      switch timeout {
+      | None => None
+      | Some(timeout) => Some({"timeout": timeout})
+      },
+    )
+    Some(() => cancelIdleCallback(id))
+  } else {
+    let id = Js.Global.setTimeout(cb, 1)
+    Some(() => Js.Global.clearTimeout(id))
+  }
+}
+
 let runAtPriority = (cb, ~priority) => {
   if !RelaySSRUtils.ssr {
     switch priority {
     | Low =>
       // On low priority, let the browser wait as long as needed
-      let id = requestIdleCallback(cb, None)
-      Some(() => cancelIdleCallback(id))
+      runCallback(cb, None)
     | Default =>
       // On default priority, ensure loading starts within 2s
-      let id = requestIdleCallback(cb, Some({"timeout": 2000}))
-      Some(() => cancelIdleCallback(id))
+      runCallback(cb, Some(2000))
     | High =>
       // High priority means we'll run it right away
       cb()

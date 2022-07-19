@@ -35,5 +35,5 @@
     "@ryyppy/rescript-promise",
     "rescript-relay"
   ],
-  "bs-dev-dependencies": ["@rescript-relay-router/vitest"]
+  "bs-dev-dependencies": ["rescript-vitest"]
 }

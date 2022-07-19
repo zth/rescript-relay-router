@@ -7,9 +7,41 @@ let wrapInOpt = str => `option<${str}>`
 // "builtins" we use, like "environment". This helps handle that by checking for
 // collisions, letting us refer to safe names where needed.
 module SafeParam = {
-  type t = Actual(string) | CollisionPrevented({realKey: string, collisionProtectedKey: string})
+  type t =
+    | Actual(string)
+    | CollisionPrevented({realKey: string, collisionProtectedKey: string})
+    | RescriptKeyword({realKey: string, collisionProtectedKey: string})
 
   let protectedNames = ["environment", "pathParams", "queryParams", "location"]
+  // As per https://rescript-lang.org/docs/manual/latest/reserved-keywords
+  let reservedKeywords = [
+    "and",
+    "as",
+    "assert",
+    "constraint",
+    "else",
+    "exception",
+    "external",
+    "false",
+    "for",
+    "if",
+    "in",
+    "include",
+    "lazy",
+    "let",
+    "module",
+    "mutable",
+    "of",
+    "open",
+    "rec",
+    "switch",
+    "true",
+    "try",
+    "type",
+    "when",
+    "while",
+    "with",
+  ]
 
   type paramType = Param(string) | QueryParam(string)
 
@@ -18,12 +50,16 @@ module SafeParam = {
     | QueryParam(paramName) =>
       if params->Js.Array2.includes(paramName) || protectedNames->Js.Array2.includes(paramName) {
         CollisionPrevented({realKey: paramName, collisionProtectedKey: "queryParam_" ++ paramName})
+      } else if reservedKeywords->Js.Array2.includes(paramName) {
+        RescriptKeyword({realKey: paramName, collisionProtectedKey: paramName ++ "_"})
       } else {
         Actual(paramName)
       }
     | Param(paramName) =>
       if protectedNames->Js.Array2.includes(paramName) {
         CollisionPrevented({realKey: paramName, collisionProtectedKey: "param_" ++ paramName})
+      } else if reservedKeywords->Js.Array2.includes(paramName) {
+        RescriptKeyword({realKey: paramName, collisionProtectedKey: paramName ++ "_"})
       } else {
         Actual(paramName)
       }
@@ -32,12 +68,14 @@ module SafeParam = {
 
   let getSafeKey = key =>
     switch key {
-    | Actual(key) | CollisionPrevented({collisionProtectedKey: key}) => key
+    | Actual(key)
+    | CollisionPrevented({collisionProtectedKey: key})
+    | RescriptKeyword({collisionProtectedKey: key}) => key
     }
 
   let getOriginalKey = key =>
     switch key {
-    | Actual(key) | CollisionPrevented({realKey: key}) => key
+    | Actual(key) | CollisionPrevented({realKey: key}) | RescriptKeyword({realKey: key}) => key
     }
 }
 

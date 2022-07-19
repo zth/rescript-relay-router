@@ -12,7 +12,7 @@ type routerHelpers = {
 let useRouter: unit => routerHelpers
 
 @live
-let useLocation: unit => RelayRouter__Bindings.History.location
+let useLocation: unit => History.location
 
 @live
 let isRouteActive: (~pathname: string, ~routePattern: string, ~exact: bool=?, unit) => bool

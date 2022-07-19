@@ -15,7 +15,7 @@ let makeLink = (~todoId: string, ~showMore: option<bool>=?, ()) => {
 let routePattern = "/todos/:todoId"
 
 @live
-let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.Bindings.History.location): bool => {
+let isRouteActive = (~exact: bool=false, {pathname}: History.location): bool => {
   RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
 }
 
@@ -28,7 +28,7 @@ let useIsRouteActive = (~exact=false, ()) => {
 @live
 type prepareProps = {
   environment: RescriptRelay.Environment.t,
-  location: RelayRouter.Bindings.History.location,
+  location: History.location,
   todoId: string,
   showMore: option<bool>,
 }
@@ -48,7 +48,7 @@ let makePrepareProps = (.
   ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
-  ~location: RelayRouter.Bindings.History.location,
+  ~location: History.location,
 ): prepareProps => {
   {
     environment: environment,
@@ -68,7 +68,7 @@ type renderProps<'prepared> = {
   childRoutes: React.element,
   prepared: 'prepared,
   environment: RescriptRelay.Environment.t,
-  location: RelayRouter.Bindings.History.location,
+  location: History.location,
   todoId: string,
   showMore: option<bool>,
 }
@@ -120,7 +120,7 @@ let setQueryParams = (
   ~currentSearch: string, 
   ~navigationMode_=RelayRouter.Types.Push,
   ~removeNotControlledParams=true,
-  ~history: RelayRouter.Bindings.History.t,
+  ~history: History.t,
   ()
 ) => {
   open RelayRouter.Bindings

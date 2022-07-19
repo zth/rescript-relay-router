@@ -21,7 +21,7 @@ let prepareMatches = (
   matches: array<routeMatch>,
   ~environment: RescriptRelay.Environment.t,
   ~queryParams: Bindings.QueryParams.t,
-  ~location: Bindings.History.location,
+  ~location: History.location,
 ): array<preparedMatch> => {
   matches->Js.Array2.map(match => {
     let {render, routeKey} = match.route.prepare(.
@@ -122,7 +122,7 @@ module Router = {
       let queryParams = url->URL.getSearch->Belt.Option.getWithDefault("")->QueryParams.parse
 
       let location = {
-        Bindings.History.pathname: url->URL.getPathname,
+        History.pathname: url->URL.getPathname,
         search: url->URL.getSearch->Belt.Option.getWithDefault(""),
         hash: url->URL.getHash,
         state: url->URL.getState,

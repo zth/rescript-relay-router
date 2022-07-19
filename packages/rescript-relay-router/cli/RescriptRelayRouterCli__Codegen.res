@@ -168,7 +168,7 @@ let setQueryParams = (
   ~currentSearch: string, 
   ~navigationMode_=RelayRouter.Types.Push,
   ~removeNotControlledParams=true,
-  ~history: RelayRouter.Bindings.History.t,
+  ~history: History.t,
   ()
 ) => {
   open RelayRouter.Bindings
@@ -254,7 +254,7 @@ let useQueryParams = (): useQueryParamsReturn => {
 
 let standardRecordFields = [
   ("environment", "RescriptRelay.Environment.t"),
-  ("location", "RelayRouter.Bindings.History.location"),
+  ("location", "History.location"),
 ]
 
 type routeParamFields = {
@@ -311,7 +311,7 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
-  ~location: RelayRouter.Bindings.History.location,
+  ~location: History.location,
 ): prepareProps => {\n`)
 
   let propsToIgnore = [
@@ -475,7 +475,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       . ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
-      ~location: RelayRouter.Bindings.History.location,
+      ~location: History.location,
     ) => preloadCode(
       ~loadedRouteRenderers,
       ~routeName,
@@ -490,7 +490,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       . ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
-      ~location: RelayRouter.Bindings.History.location,
+      ~location: History.location,
       ~intent: RelayRouter.Types.prepareIntent,
     ) => prepareRoute(
       .
@@ -522,7 +522,7 @@ let getIsRouteActiveFn = (route: RescriptRelayRouterCli__Types.printableRoute) =
 let routePattern = "${route.path->RoutePath.toPattern}"
 
 @live
-let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.Bindings.History.location): bool => {
+let isRouteActive = (~exact: bool=false, {pathname}: History.location): bool => {
   RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
 }
 

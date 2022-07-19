@@ -30,13 +30,13 @@ type rec route = {
     . ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter__Bindings.QueryParams.t,
-    ~location: RelayRouter__Bindings.History.location,
+    ~location: History.location,
   ) => Js.Promise.t<array<preloadAsset>>,
   prepare: (
     . ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: QueryParams.t,
-    ~location: RelayRouter__Bindings.History.location,
+    ~location: History.location,
     ~intent: prepareIntent,
   ) => preparedRoute,
   children: array<route>,
@@ -60,8 +60,8 @@ type cleanupFn = unit => unit
 type callback = unit => unit
 
 type routerEvent =
-  | OnBeforeNavigation({currentLocation: RelayRouter__Bindings.History.location})
-  | RestoreScroll(RelayRouter__Bindings.History.location)
+  | OnBeforeNavigation({currentLocation: History.location})
+  | RestoreScroll(History.location)
   | OnRouteWillUnmount({routeKey: string})
 
 type onRouterEventFn = routerEvent => unit

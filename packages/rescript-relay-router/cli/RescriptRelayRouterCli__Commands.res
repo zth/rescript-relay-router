@@ -1,6 +1,5 @@
 module Codegen = RescriptRelayRouterCli__Codegen
 module Utils = RescriptRelayRouterCli__Utils
-module History = RelayRouter.Bindings.History
 module Types = RescriptRelayRouterCli__Types
 module Diagnostics = RescriptRelayRouterCli__Diagnostics
 

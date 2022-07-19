@@ -43,7 +43,7 @@ type makePrepareProps = (
   . ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
-  ~location: RelayRouter.Bindings.History.location,
+  ~location: History.location,
 ) => prepareProps
 
 let doLoadRouteRenderer = (
@@ -109,12 +109,12 @@ type prepareAssets = {
     . ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
-    ~location: RelayRouter.Bindings.History.location,
+    ~location: History.location,
     ~makePrepareProps: (
       . ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
-      ~location: RelayRouter.Bindings.History.location,
+      ~location: History.location,
     ) => prepareProps,
     ~makeRouteKey: (
       ~pathParams: Js.Dict.t<string>,
@@ -222,12 +222,12 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     . ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
-    ~location: RelayRouter.Bindings.History.location,
+    ~location: History.location,
     ~makePrepareProps: (
       . ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
-      ~location: RelayRouter.Bindings.History.location,
+      ~location: History.location,
     ) => prepareProps,
     ~makeRouteKey: (
       ~pathParams: Js.Dict.t<string>,

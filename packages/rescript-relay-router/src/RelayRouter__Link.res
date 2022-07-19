@@ -1,5 +1,4 @@
 open RelayRouter__Types
-open RelayRouter__Bindings
 open RelayRouter__Scroll
 
 let isModifiedEvent = e => {

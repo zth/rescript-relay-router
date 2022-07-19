@@ -1,5 +1,3 @@
-open RelayRouter__Bindings
-
 let childRouteHasContent = childRoute => childRoute != React.null
 
 @live

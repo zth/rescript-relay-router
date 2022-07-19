@@ -3,57 +3,8 @@ module type EntryServer = module type of EntryServer
 
 let app = Express.make()
 
-let getAssetForManifestEntry = (manifest, file) => {
-  // We must prefix with `/` (Vite's configured root) because the manifest only contains paths relative to base.
-  // TODO: This breaks if vite.base is not `/`.
-  "/" ++
-  manifest
-  ->Js.Dict.unsafeGet(file)
-  ->Js.Json.decodeObject
-  ->Belt.Option.getExn
-  ->Js.Dict.unsafeGet("file")
-  ->Js.Json.decodeString
-  ->Belt.Option.getExn
-}
-
-let rec getDirectImportsForManifestEntry = (manifest, file) => {
-  manifest
-  ->Js.Dict.unsafeGet(file)
-  ->Js.Json.decodeObject
-  ->Belt.Option.getExn
-  ->Js.Dict.get("imports")
-  ->Belt.Option.flatMap(Js.Json.decodeArray)
-  ->Belt.Option.mapWithDefault(
-    [],
-    Js.Array2.map(_, import_ => import_->Js.Json.decodeString->Belt.Option.getExn),
-  )
-  ->Belt.List.fromArray
-  ->Belt.List.map(import_ => list{
-    getAssetForManifestEntry(manifest, import_),
-    ...getDirectImportsForManifestEntry(manifest, import_),
-  })
-  ->Belt.List.flatten
-}
-
-let getProductionClientBundlesFromManifest = () => {
-  // Load our client manifest so we can find our client entry file.
-  let manifest =
-    NodeJs.Fs.readFileSync("./dist/client/manifest.json", "utf-8")
-    ->Js.Json.parseExn
-    ->Js.Json.decodeObject
-    ->Belt.Option.getExn
-
-  // This will throw an exception if our manifest doesn't include an "index.html" entry.
-  // That's what Vite uses for our main app entry point.
-  list{
-    getAssetForManifestEntry(manifest, "index.html"),
-    ...getDirectImportsForManifestEntry(manifest, "index.html"),
-  }
-  ->Belt.List.toArray
-  // Deduplicate entries
-  ->Belt.Set.String.fromArray
-  ->Belt.Set.String.toArray
-}
+let loadRouterManifest = () =>
+  NodeJs.Fs.readFileSync("dist/client/routerManifest.json", "utf-8")->RelayRouter.Manifest.parse
 
 switch NodeJs.isProduction {
 | true => {
@@ -65,7 +16,7 @@ switch NodeJs.isProduction {
       app->useMiddlewareAt("/assets", Express.static("dist/client/assets/"))
     }
 
-    let bootstrapModules = getProductionClientBundlesFromManifest()
+    let manifest = loadRouterManifest()
 
     // Load our compiled production server entry.
     import_("./dist/server/EntryServer.js")
@@ -74,7 +25,7 @@ switch NodeJs.isProduction {
 
       // Production server side rendering helper.
       app->useRoute("*", (request, response) => {
-        EntryServer.handleRequest(~request, ~response, ~bootstrapModules)
+        EntryServer.handleRequest(~request, ~response, ~manifest)
       })
 
       app->listen(9999)
@@ -102,9 +53,16 @@ switch NodeJs.isProduction {
         vite
         ->ssrLoadModule("/src/EntryServer.mjs")
         ->Promise.then((entryServer: module(EntryServer)) => {
+          open RelayRouter.Manifest
           module EntryServer = unpack(entryServer)
 
-          EntryServer.handleRequest(~request, ~response, ~bootstrapModules=["/src/EntryClient.mjs"])
+          let entryPoint = "/src/EntryClient.mjs"
+          let manifest = {
+            entryPoint: entryPoint,
+            files: Js.Dict.fromArray([(entryPoint, {imports: [], css: [], assets: []})]),
+          }
+
+          EntryServer.handleRequest(~request, ~response, ~manifest)
         })
       } catch {
       | Js.Exn.Error(err) => {

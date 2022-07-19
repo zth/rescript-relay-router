@@ -14,6 +14,10 @@
       "subdirs": true
     },
     {
+      "dir": "vite-plugins",
+      "subdirs": true
+    },
+    {
       "dir": "test",
       "subdirs": true,
       "type": "dev"

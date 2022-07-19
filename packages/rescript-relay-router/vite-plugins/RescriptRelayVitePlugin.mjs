@@ -5,6 +5,9 @@ import readline from "readline";
 import MagicString from "magic-string";
 import { normalizePath } from "vite";
 import { runCli } from "../cli/RescriptRelayRouterCli__Commands.mjs";
+import { transformManifest } from "./RescriptRelayVitePlugin__ManifestTransform.mjs"
+
+const ROUTER_MANIFEST_NAME = "routerManifest.json"
 
 /**
  * @typedef {import("vite").ResolvedConfig} ResolvedConfig
@@ -85,19 +88,26 @@ export let rescriptRelayVitePlugin = ({
 
   return {
     name: "rescript-relay",
-    /**
-     * Workaround until we can upgrade to Vite 3.
-     *
-     * Remove manualChunks if this is SSR, since it doesn't work in SSR mode.
-     * See https://github.com/vitejs/vite/issues/8836
-     */
     config(userConfig) {
+      // Workaround until we can upgrade to Vite 3.
       //
+      // Remove manualChunks if this is SSR, since it doesn't work in SSR mode.
+      // See https://github.com/vitejs/vite/issues/8836
       if (
         Boolean(userConfig.build.ssr) &&
         userConfig.build?.rollupOptions?.output?.manualChunks != null
       ) {
         delete userConfig.build.rollupOptions.output.manualChunks;
+      }
+
+      // Always enable the manifest option for a client build since
+      // it's needed to create our router manifest.
+      if (!Boolean(userConfig.build.ssr)) {
+        // If the user specified an alternate manifest name then we must
+        // preserve that.
+        if (typeof userConfig.build.manifest !== "string") {
+          userConfig.build.manifest = true;
+        }
       }
 
       return userConfig;
@@ -291,6 +301,22 @@ export let rescriptRelayVitePlugin = ({
         }
       });
     },
+    /**
+     * Close bundle is used to transform Vite's client manifest into the ReScript Relay Router specific manifest.
+     */
+    closeBundle() {
+      // We only transform the manifest at the end of the client build (since that's when it gets created)
+      // and skip this step for the SSR build.
+      if (config.build.ssr) {
+        return;
+      }
+
+      const manifestName = typeof config.build.manifest === "string" ? config.build.manifest : "manifest.json";
+      const inPath = path.join(cwd, config.build.outDir, manifestName);
+      const outPath = path.join(cwd, config.build.outDir, ROUTER_MANIFEST_NAME);
+
+      transformManifest(inPath, outPath)
+    }
   };
 };
 

@@ -6,7 +6,7 @@ external transformAsWritable: RelayRouter.PreloadInsertingStream.Node.t => NodeJ
   "%identity"
 
 @live
-let handleRequest = (~request, ~response, ~entryPoint, ~manifest: RelayRouter.Manifest.t) => {
+let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => {
   // TODO: request should be transformed from Express to native Request and the url should be retrieved from there.
   let initialUrl = request->Express.Request.originalUrl
 
@@ -33,7 +33,7 @@ let handleRequest = (~request, ~response, ~entryPoint, ~manifest: RelayRouter.Ma
     | Component({chunk}) =>
       transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
       // Also preload any direct imports for the requested chunk.
-      manifest
+      manifest.files
       ->Js.Dict.get(chunk)
       ->Belt.Option.forEach(chunk => {
         chunk.imports->Js.Array2.forEach(url =>
@@ -67,8 +67,8 @@ let handleRequest = (~request, ~response, ~entryPoint, ~manifest: RelayRouter.Ma
 
   // Based on our entryPoint and manifest decide what our bootstrap modules are and trigger
   // preloads for any CSS files or assets.
-  let entryChunk = manifest->Js.Dict.unsafeGet(entryPoint)
-  let bootstrapModules = [entryPoint]->Js.Array2.concat(entryChunk.imports)
+  let entryChunk = manifest.files->Js.Dict.unsafeGet(manifest.entryPoint)
+  let bootstrapModules = [manifest.entryPoint]->Js.Array2.concat(entryChunk.imports)
   entryChunk.css->Js.Array2.forEach(url => Style({url: url})->preloadAsset(~priority=Default))
   // TODO: the below line causes a bug because not all `assets` will need `as="image"` for their preload.
   entryChunk.assets->Js.Array2.forEach(url => Image({url: url})->preloadAsset(~priority=Default))

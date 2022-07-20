@@ -13,9 +13,6 @@ external setRel: (Dom.element, [#modulepreload | #preload]) => unit = "rel"
 @set
 external setAs: (Dom.element, [#image | #style]) => unit = "as"
 
-@val
-external loadScript: string => unit = "import"
-
 @live
 let preloadAssetViaLinkTag = asset => {
   let element = createLinkElement()
@@ -52,7 +49,8 @@ let makeClientAssetPreloader = (preparedAssetsMap, ~priority, asset) => {
     preparedAssetsMap->Js.Dict.set(assetIdentifier, true)
     switch (asset, priority) {
     | (Component(_), RelayRouter__Types.Default | Low) => preloadAssetViaLinkTag(asset)
-    | (Component({chunk}), High) => chunk->loadScript
+    | (Component({load}), High) =>
+      let _: Js.Promise.t<unit> = load()
     | _ => // Unimplemented
       ()
     }

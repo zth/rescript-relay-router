@@ -779,6 +779,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@rescript-relay-router-test/router-generation@workspace:tests/router-generation":
+  version: 0.0.0-use.local
+  resolution: "@rescript-relay-router-test/router-generation@workspace:tests/router-generation"
+  dependencies:
+    "@rescript/react": 0.10.3
+    history: ^5.2.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    react-relay: 13.2.0
+    react-router: ^6.2.1
+    relay-runtime: 13.2.0
+    rescript: 9.1.4
+    rescript-relay: 1.0.0-beta.23
+    rescript-relay-router: "workspace:^"
+    vite: 2.9.9
+  languageName: unknown
+  linkType: soft
+
 "@rescript-relay-router/vitest@workspace:^, @rescript-relay-router/vitest@workspace:packages/rescript-relay-router-vitest":
   version: 0.0.0-use.local
   resolution: "@rescript-relay-router/vitest@workspace:packages/rescript-relay-router-vitest"

@@ -1,0 +1,30 @@
+{
+  "name": "@rescript-relay-router-test/router-generation",
+  "reason": {
+    "react-jsx": 3
+  },
+  "version": "0.0.0",
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    }
+
+  ],
+  "package-specs": [
+    {
+      "module": "es6",
+      "in-source": true
+    }
+  ],
+  "suffix": ".mjs",
+  "ppx-flags": [],
+  "bs-dependencies": [
+    "@rescript/react",
+    "rescript-relay",
+    "rescript-relay-router"
+  ],
+  "pinned-dependencies": [
+    "rescript-relay-router"
+  ]
+}

@@ -72,7 +72,9 @@ module Router = {
 
     // Preload initially matched route renderers asap, we know we'll need them.
     initialMatches->Belt.Array.forEach(({route}) => {
-      Types.Component({chunk: route.chunk})->preloadAsset(~priority=High)
+      Types.Component({chunk: route.chunk, load: route.loadRouteRenderer})->preloadAsset(
+        ~priority=High,
+      )
     })
 
     let preparedMatches =

@@ -5,7 +5,10 @@ type renderRouteFn = (. ~childRoutes: React.element) => React.element
 @live
 type preloadPriority = High | Default | Low
 
-type preloadComponentAsset = {@as("__$rescriptChunkName__") chunk: string}
+type preloadComponentAsset = {
+  @as("__$rescriptChunkName__") chunk: string,
+  load: unit => Js.Promise.t<unit>,
+}
 
 @live
 type preloadAsset =

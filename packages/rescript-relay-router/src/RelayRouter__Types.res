@@ -7,7 +7,7 @@ type preloadPriority = High | Default | Low
 
 type preloadComponentAsset = {
   @as("__$rescriptChunkName__") chunk: string,
-  load: unit => Js.Promise.t<unit>,
+  load: unit => unit,
 }
 
 @live

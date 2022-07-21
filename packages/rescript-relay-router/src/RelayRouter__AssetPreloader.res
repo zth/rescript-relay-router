@@ -49,8 +49,7 @@ let makeClientAssetPreloader = (preparedAssetsMap, ~priority, asset) => {
     preparedAssetsMap->Js.Dict.set(assetIdentifier, true)
     switch (asset, priority) {
     | (Component(_), RelayRouter__Types.Default | Low) => preloadAssetViaLinkTag(asset)
-    | (Component({load}), High) =>
-      let _: Js.Promise.t<unit> = load()
+    | (Component({load}), High) => load()
     | _ => // Unimplemented
       ()
     }

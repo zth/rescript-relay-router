@@ -27,9 +27,8 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
 
   // This is a dummy function just for the server, since we never preload by
   // function there for Component, just the URL, but we still need to provide a
-  // preload function for Component. It's unclear whether this is our best
-  // option, or if we should make `load` optional to reflect that there's
-  let dummyImportComponent = () => Js.Promise.resolve()
+  // preload function for Component.
+  let dummyImportComponent = () => ()
 
   // TODO: A default version of this should be provided by us/the router/the
   // framework, or in some way be made opaque to the dev in the default case.

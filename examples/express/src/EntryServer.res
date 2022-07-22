@@ -25,6 +25,11 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
     response->Express.Response.asWritable->NodeJs.Stream.fromWritable->NodeJs.Stream.end
   )
 
+  // This is a dummy function just for the server, since we never preload by
+  // function there for Component, just the URL, but we still need to provide a
+  // preload function for Component.
+  let dummyImportComponent = () => ()
+
   // TODO: A default version of this should be provided by us/the router/the
   // framework, or in some way be made opaque to the dev in the default case.
   let rec preloadAsset: RelayRouter.Types.preloadAssetFn = (~priority as _, asset) =>
@@ -37,7 +42,7 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
       ->Js.Dict.get(chunk)
       ->Belt.Option.forEach(chunk => {
         chunk.imports->Js.Array2.forEach(url =>
-          Component({chunk: url})->preloadAsset(~priority=Default)
+          Component({chunk: url, load: dummyImportComponent})->preloadAsset(~priority=Default)
         )
         chunk.css->Js.Array2.forEach(url => Style({url: url})->preloadAsset(~priority=Default))
         // TODO: the below line causes a bug because not all `assets` will need `as="image"` for their preload.

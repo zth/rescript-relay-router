@@ -9,7 +9,7 @@ let makeLink = () => {
 let routePattern = "/"
 
 @live
-let isRouteActive = (~exact: bool=false, {pathname}: History.location): bool => {
+let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
   RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
 }
 
@@ -37,7 +37,7 @@ let useActiveSubRoute = (): option<[#Todos]> => {
 @live
 type prepareProps = {
   environment: RescriptRelay.Environment.t,
-  location: History.location,
+  location: RelayRouter.History.location,
 }
 
 let makeRouteKey = (
@@ -57,7 +57,7 @@ let makePrepareProps = (.
   ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
-  ~location: History.location,
+  ~location: RelayRouter.History.location,
 ): prepareProps => {
   ignore(pathParams)
   ignore(queryParams)
@@ -73,7 +73,7 @@ type renderProps<'prepared> = {
   childRoutes: React.element,
   prepared: 'prepared,
   environment: RescriptRelay.Environment.t,
-  location: History.location,
+  location: RelayRouter.History.location,
 }
 
 @live

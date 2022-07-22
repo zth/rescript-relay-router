@@ -19,11 +19,11 @@ let useRouter = (): routerHelpers => {
   } = RelayRouter__Context.useRouterContext()
   let push = React.useCallback2(path => {
     postRouterEvent(OnBeforeNavigation({currentLocation: get().location}))
-    history->History.push(path)
+    history->RelayRouter__History.push(path)
   }, (history, postRouterEvent))
   let replace = React.useCallback2(path => {
     postRouterEvent(OnBeforeNavigation({currentLocation: get().location}))
-    history->History.replace(path)
+    history->RelayRouter__History.replace(path)
   }, (history, postRouterEvent))
 
   {
@@ -36,10 +36,12 @@ let useRouter = (): routerHelpers => {
 
 let useLocation = () => {
   let router = RelayRouter__Context.useRouterContext()
-  let (location, setLocation) = React.useState(() => router.history->History.getLocation)
+  let (location, setLocation) = React.useState(() =>
+    router.history->RelayRouter__History.getLocation
+  )
 
   React.useEffect1(() => {
-    let unsub = router.history->History.listen(({location}) => {
+    let unsub = router.history->RelayRouter__History.listen(({location}) => {
       setLocation(_ => location)
     })
 

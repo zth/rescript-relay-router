@@ -1,7 +1,7 @@
 let setQueryParams: (
   RelayRouter__Bindings.QueryParams.t,
   RelayRouter__Types.setQueryParamsMode,
-  History.t,
+  RelayRouter__History.t,
 ) => unit
 
 type pathMatch

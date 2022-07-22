@@ -75,7 +75,7 @@ module TargetScrollElement = {
   let useTargetElement = () => React.useContext(context)
 }
 
-let getScrollPosId = (location, ~id) => id ++ ":" ++ location.History.key
+let getScrollPosId = (location, ~id) => id ++ ":" ++ location.RelayRouter__History.key
 
 module ScrollRestoration = {
   @val

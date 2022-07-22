@@ -1,3 +1,10 @@
+/**
+ * @file
+ * Bindings for the history module.
+ *
+ * This module should not depend on other parts of RelayRouter but should instead be
+ * self-contained bindings to the history module.
+ */
 type t
 
 @live

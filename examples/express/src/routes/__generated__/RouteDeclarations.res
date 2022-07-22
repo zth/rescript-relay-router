@@ -25,7 +25,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
-    ~location: History.location,
+    ~location: RelayRouter.History.location,
   ): prepareProps => {
     ignore(pathParams)
     ignore(queryParams)
@@ -46,7 +46,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         . ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
-        ~location: History.location,
+        ~location: RelayRouter.History.location,
       ) => preloadCode(
         ~loadedRouteRenderers,
         ~routeName,
@@ -61,7 +61,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         . ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
-        ~location: History.location,
+        ~location: RelayRouter.History.location,
         ~intent: RelayRouter.Types.prepareIntent,
       ) => prepareRoute(
         .
@@ -95,7 +95,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
-        ~location: History.location,
+        ~location: RelayRouter.History.location,
       ): prepareProps => {
         ignore(pathParams)
         ignore(queryParams)
@@ -116,7 +116,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             . ~environment: RescriptRelay.Environment.t,
             ~pathParams: Js.Dict.t<string>,
             ~queryParams: RelayRouter.Bindings.QueryParams.t,
-            ~location: History.location,
+            ~location: RelayRouter.History.location,
           ) => preloadCode(
             ~loadedRouteRenderers,
             ~routeName,
@@ -131,7 +131,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             . ~environment: RescriptRelay.Environment.t,
             ~pathParams: Js.Dict.t<string>,
             ~queryParams: RelayRouter.Bindings.QueryParams.t,
-            ~location: History.location,
+            ~location: RelayRouter.History.location,
             ~intent: RelayRouter.Types.prepareIntent,
           ) => prepareRoute(
             .
@@ -165,7 +165,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
               ~environment: RescriptRelay.Environment.t,
               ~pathParams: Js.Dict.t<string>,
               ~queryParams: RelayRouter.Bindings.QueryParams.t,
-              ~location: History.location,
+              ~location: RelayRouter.History.location,
             ): prepareProps => {
               let prepareProps: Route__Root__Todos__Single_route.prepareProps =   {
                 environment: environment,
@@ -190,7 +190,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
-                  ~location: History.location,
+                  ~location: RelayRouter.History.location,
                 ) => preloadCode(
                   ~loadedRouteRenderers,
                   ~routeName,
@@ -205,7 +205,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   . ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
-                  ~location: History.location,
+                  ~location: RelayRouter.History.location,
                   ~intent: RelayRouter.Types.prepareIntent,
                 ) => prepareRoute(
                   .

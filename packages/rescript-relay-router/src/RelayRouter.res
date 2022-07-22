@@ -6,6 +6,7 @@ module AssetPreloader = RelayRouter__AssetPreloader
 module NetworkUtils = RelayRouter__NetworkUtils
 module PreloadInsertingStream = RelayRouter__PreloadInsertingStream
 module Manifest = RelayRouter__Manifest
+module History = RelayRouter__History
 
 // TODO: This is now exposing RelayRouter internals because it's needed by the generated code.
 module Internal = RelayRouter__Internal
@@ -15,13 +16,14 @@ open Types
 open Bindings
 
 @module("react-router") @return(nullable)
-external matchRoutes: (array<route>, History.location) => option<array<routeMatch>> = "matchRoutes"
+external matchRoutes: (array<route>, RelayRouter__History.location) => option<array<routeMatch>> =
+  "matchRoutes"
 
 let prepareMatches = (
   matches: array<routeMatch>,
   ~environment: RescriptRelay.Environment.t,
   ~queryParams: Bindings.QueryParams.t,
-  ~location: History.location,
+  ~location: RelayRouter__History.location,
 ): array<preparedMatch> => {
   matches->Js.Array2.map(match => {
     let {render, routeKey} = match.route.prepare(.
@@ -39,10 +41,10 @@ let prepareMatches = (
 }
 
 module RouterEnvironment = {
-  type t = History.t
-  let makeBrowserEnvironment = () => History.createBrowserHistory()
+  type t = RelayRouter__History.t
+  let makeBrowserEnvironment = () => RelayRouter__History.createBrowserHistory()
   let makeServerEnvironment = (~initialUrl) =>
-    History.createMemoryHistory(~options={"initialEntries": [initialUrl]})
+    RelayRouter__History.createMemoryHistory(~options={"initialEntries": [initialUrl]})
 }
 
 module Router = {
@@ -66,7 +68,7 @@ module Router = {
     }
 
     let matchLocation = matchRoutes(routes)
-    let location = History.getLocation(history)
+    let location = RelayRouter__History.getLocation(history)
     let initialQueryParams = QueryParams.parse(location.search)
     let initialMatches = matchLocation(location)->Belt.Option.getWithDefault([])
 
@@ -86,7 +88,7 @@ module Router = {
     let nextId = ref(0)
     let subscribers = Js.Dict.empty()
 
-    let cleanup = history->History.listen(({location}) => {
+    let cleanup = history->RelayRouter__History.listen(({location}) => {
       if location.pathname != currentEntry.contents.location.pathname {
         let queryParams = QueryParams.parse(location.search)
 
@@ -122,7 +124,7 @@ module Router = {
       let queryParams = url->URL.getSearch->Belt.Option.getWithDefault("")->QueryParams.parse
 
       let location = {
-        History.pathname: url->URL.getPathname,
+        RelayRouter__History.pathname: url->URL.getPathname,
         search: url->URL.getSearch->Belt.Option.getWithDefault(""),
         hash: url->URL.getHash,
         state: url->URL.getState,

@@ -64,8 +64,8 @@ let make = (
     | (false, 0, None | Some(#self), false) =>
       e->preventDefault
       switch mode {
-      | #push => history->History.push(to_)
-      | #replace => history->History.replace(to_)
+      | #push => history->RelayRouter__History.push(to_)
+      | #replace => history->RelayRouter__History.replace(to_)
       }
     | _ => ()
     }

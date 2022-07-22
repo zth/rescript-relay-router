@@ -4,8 +4,8 @@ let setQueryParams = (queryParams, mode, history) => {
   open RelayRouter__Bindings
 
   switch mode {
-  | Push => history->History.push(queryParams->QueryParams.toString)
-  | Replace => history->History.replace(queryParams->QueryParams.toString)
+  | Push => history->RelayRouter__History.push(queryParams->QueryParams.toString)
+  | Replace => history->RelayRouter__History.replace(queryParams->QueryParams.toString)
   }
 }
 

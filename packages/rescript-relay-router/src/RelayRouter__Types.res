@@ -33,13 +33,13 @@ type rec route = {
     . ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter__Bindings.QueryParams.t,
-    ~location: RelayRouter__Bindings.History.location,
+    ~location: RelayRouter__History.location,
   ) => Js.Promise.t<array<preloadAsset>>,
   prepare: (
     . ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: QueryParams.t,
-    ~location: RelayRouter__Bindings.History.location,
+    ~location: RelayRouter__History.location,
     ~intent: prepareIntent,
   ) => preparedRoute,
   children: array<route>,
@@ -53,7 +53,7 @@ type routeMatch = {
 type preparedMatch = {routeKey: string, render: renderRouteFn}
 
 type currentRouterEntry = {
-  location: History.location,
+  location: RelayRouter__History.location,
   preparedMatches: array<preparedMatch>,
 }
 
@@ -63,8 +63,8 @@ type cleanupFn = unit => unit
 type callback = unit => unit
 
 type routerEvent =
-  | OnBeforeNavigation({currentLocation: RelayRouter__Bindings.History.location})
-  | RestoreScroll(RelayRouter__Bindings.History.location)
+  | OnBeforeNavigation({currentLocation: RelayRouter__History.location})
+  | RestoreScroll(RelayRouter__History.location)
   | OnRouteWillUnmount({routeKey: string})
 
 type onRouterEventFn = routerEvent => unit
@@ -76,7 +76,7 @@ type routerContext = {
   preloadAsset: preloadAssetFn,
   get: unit => currentRouterEntry,
   subscribe: subFn => unsubFn,
-  history: History.t,
+  history: RelayRouter__History.t,
   subscribeToEvent: onRouterEventFn => unsubFn,
   postRouterEvent: routerEvent => unit,
 }

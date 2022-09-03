@@ -4,7 +4,9 @@
   "engines": {
     "node": ">=16"
   },
+  "main": "./RescriptRelayVitePlugin.mjs",
   "exports": {
+    ".": "./vite-plugins/RescriptRelayVitePlugin.mjs",
     "./src/*": "./src/*",
     "./cli/RescriptRelayRouterCli__Commands.mjs": "./cli/RescriptRelayRouterCli__Commands.mjs",
     "./RescriptRelayVitePlugin.mjs": "./vite-plugins/RescriptRelayVitePlugin.mjs",

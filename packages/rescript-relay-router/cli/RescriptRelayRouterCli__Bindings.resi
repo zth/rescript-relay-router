@@ -12,7 +12,7 @@ module Chokidar: {
     external onUnlink: (t, @as(json`"unlink"`) _, string => unit) => t = "on"
 
     @send
-    external close: t => Promise.t<unit> = "close"
+    external close: t => Js.Promise.t<unit> = "close"
   }
   @module("chokidar") @val
   external watcher: t = "default"

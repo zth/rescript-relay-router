@@ -31,7 +31,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "rescript build -with-deps",
-    "dev": "yarn build:rescript -w",
+    "dev": "yarn build -w",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "publish": "yarn npm publish"

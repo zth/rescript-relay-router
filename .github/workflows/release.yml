@@ -34,3 +34,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Provide release error log
+        if: ${{ failure() }}
+        run: cat /home/runner/.npm/_logs/*.log || echo "No log found"

@@ -24,7 +24,7 @@ The router requires the following:
 - `"type": "module"` in your `package.json`, meaning you need to run in es modules mode.
 - Your Relay config named `relay.config.cjs`.
 - Preferably `yarn` for everything to work smoothly.
-- `rescript-relay@>1.0.0-beta.12`
+- `rescript-relay@>1.0.0-beta.26`
 
 Install the router and initialize it:
 

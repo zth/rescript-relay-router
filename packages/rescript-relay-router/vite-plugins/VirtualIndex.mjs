@@ -1,4 +1,5 @@
 import { existsSync } from "fs";
+import path from "path";
 
 /*
  * This plugin allows us to remove the "index.html" from our
@@ -10,10 +11,7 @@ export let virtualIndex = ({ entryClient }) => {
     enforce: "pre",
     name: "virtual-index",
     resolveId(id) {
-      if (
-        (id.endsWith("/index.html") || id.endsWith("\\index.html")) &&
-        !existsSync(id)
-      ) {
+      if (id.endsWith(`${path.sep}index.html`) && !existsSync(id)) {
         return "index.html";
       }
     },

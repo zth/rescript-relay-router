@@ -53,5 +53,6 @@ jobs:
           git diff && exit 1
         if: steps.git_status.outputs.status
       - name: Run tests
+        if: runner.os != 'Windows'
         run: |
           yarn test

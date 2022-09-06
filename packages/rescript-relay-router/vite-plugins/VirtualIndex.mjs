@@ -1,18 +1,19 @@
-import { existsSync } from "fs"
+import { existsSync } from "fs";
 
 /*
  * This plugin allows us to remove the "index.html" from our
  * project so that people don't think it does anything.
  * Any actual HTML should be put in the Html component.
  */
-export let virtualIndex = ({
-  entryClient
-}) => {
+export let virtualIndex = ({ entryClient }) => {
   return {
-    enforce: 'pre',
+    enforce: "pre",
     name: "virtual-index",
     resolveId(id) {
-      if (id.endsWith("/index.html") && !existsSync(id)) {
+      if (
+        (id.endsWith("/index.html") || id.endsWith("\\index.html")) &&
+        !existsSync(id)
+      ) {
         return "index.html";
       }
     },
@@ -25,8 +26,8 @@ export let virtualIndex = ({
                   <body>
                     <script type="module" src="${entryClient}" async></script>
                   </body>
-                </html>`
+                </html>`;
       }
     },
-  }
-}
+  };
+};

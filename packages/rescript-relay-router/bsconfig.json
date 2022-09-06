@@ -32,7 +32,7 @@
   ],
   "suffix": ".mjs",
   "bs-dependencies": ["@rescript/react", "rescript-relay"],
-  "bs-dev-dependencies": ["@rescript-relay-router/vitest"],
+  "bs-dev-dependencies": ["rescript-vitest"],
   "js-post-build": {
     "cmd": "./scripts/post-build.sh"
   }

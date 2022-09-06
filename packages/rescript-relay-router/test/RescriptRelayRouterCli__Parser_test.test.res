@@ -49,7 +49,7 @@ describe("Parsing", () => {
 
     let routes = parsed->P.Decode.decode(~ctx, ~parentContext)
 
-    ExpectObj.expect->ExpectObj.assertions(2)
+    suite->assertions(2)
 
     switch routes {
     | [

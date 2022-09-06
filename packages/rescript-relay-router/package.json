@@ -57,8 +57,7 @@
     "vscode-jsonrpc": "^5.0.1"
   },
   "devDependencies": {
-    "@rescript-relay-router/vitest": "workspace:^",
     "rescript": "9.1.4",
-    "vitest": "0.6.0"
+    "rescript-vitest": "0.3.0"
   }
 }

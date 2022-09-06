@@ -92,7 +92,10 @@ module Router = {
     let subscribers = Js.Dict.empty()
 
     let cleanup = history->RelayRouter__History.listen(({location}) => {
-      if location.pathname != currentEntry.contents.location.pathname {
+      if (
+        location.pathname != currentEntry.contents.location.pathname ||
+          location.search != currentEntry.contents.location.search
+      ) {
         let queryParams = QueryParams.parse(location.search)
 
         let currentMatches = currentEntry.contents.preparedMatches

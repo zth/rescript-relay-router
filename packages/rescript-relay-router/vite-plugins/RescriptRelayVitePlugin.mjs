@@ -5,9 +5,9 @@ import readline from "readline";
 import MagicString from "magic-string";
 import { normalizePath } from "vite";
 import { runCli } from "../cli/RescriptRelayRouterCli__Commands.mjs";
-import { transformManifest } from "./RescriptRelayVitePlugin__ManifestTransform.mjs"
+import { transformManifest } from "./RescriptRelayVitePlugin__ManifestTransform.mjs";
 
-const ROUTER_MANIFEST_NAME = "routerManifest.json"
+const ROUTER_MANIFEST_NAME = "routerManifest.json";
 
 /**
  * @typedef {import("vite").ResolvedConfig} ResolvedConfig
@@ -35,7 +35,7 @@ let findGeneratedModule = (moduleName) => {
         return;
       }
 
-      let lineIsForModule = line.includes(`/${moduleName}.`);
+      let lineIsForModule = line.includes(`${path.sep}${moduleName}.`);
 
       // Close as soon as we've walked past all lines concerning this module. The log
       // groups all lines concerning a specific module, so we can safely say that
@@ -55,7 +55,7 @@ let findGeneratedModule = (moduleName) => {
 
       if (lineIsForModule) {
         let [relativePathToGeneratedModule] =
-          / (\.\.\/.*js) /g.exec(line) ?? [];
+          / (\.\.(\/|\\).*js) /g.exec(line) ?? [];
 
         if (relativePathToGeneratedModule) {
           found = true;
@@ -311,12 +311,15 @@ export let rescriptRelayVitePlugin = ({
         return;
       }
 
-      const manifestName = typeof config.build.manifest === "string" ? config.build.manifest : "manifest.json";
+      const manifestName =
+        typeof config.build.manifest === "string"
+          ? config.build.manifest
+          : "manifest.json";
       const inPath = path.join(cwd, config.build.outDir, manifestName);
       const outPath = path.join(cwd, config.build.outDir, ROUTER_MANIFEST_NAME);
 
-      transformManifest(inPath, outPath)
-    }
+      transformManifest(inPath, outPath);
+    },
   };
 };
 
@@ -337,12 +340,12 @@ function replaceAsyncWithMagicString(string, searchValue, replacer) {
   }
   try {
     var values = [];
-    String.prototype.replace.call(string, searchValue, function () {
+    String.prototype.replace.call(string, searchValue, function() {
       values.push(replacer.apply(undefined, arguments));
       return "";
     });
     let mapTrackingString = new MagicString(string);
-    return Promise.all(values).then(function (resolvedValues) {
+    return Promise.all(values).then(function(resolvedValues) {
       // Call replace again, this time on the string that tracks a sourcemap.
       // We use the replacerFunction so each occurrence can be replaced by the
       // previously resolved value for that index.

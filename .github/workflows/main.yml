@@ -4,16 +4,20 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
     env:
       CI: true
 
     strategy:
       matrix:
         node-version: [16.x]
+        platform: [macos-latest, windows-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.platform }}
 
     steps:
+      - name: Set git opts
+        run: |
+          git config --global core.autocrlf input
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -40,12 +44,15 @@ jobs:
           yarn workspaces foreach --topological-dev run router:generate
       - name: git status
         id: git_status
+        shell: bash
         run: |
           echo "::set-output name=status::$( git status --porcelain )"
       - name: Exit if routes have not been properly regenerated and commited, or if formatting is incorrect
+        shell: bash
         run: |
-          exit 1
+          git diff && exit 1
         if: steps.git_status.outputs.status
       - name: Run tests
+        if: runner.os != 'Windows'
         run: |
           yarn test

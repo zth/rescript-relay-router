@@ -58,6 +58,7 @@
   },
   "devDependencies": {
     "rescript": "9.1.4",
-    "rescript-vitest": "0.3.0"
+    "rescript-vitest": "0.3.0",
+    "vitest": "^0.21.1"
   }
 }

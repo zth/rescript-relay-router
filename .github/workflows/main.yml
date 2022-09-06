@@ -45,8 +45,9 @@ jobs:
         run: |
           echo "::set-output name=status::$( git status --porcelain )"
       - name: Exit if routes have not been properly regenerated and commited, or if formatting is incorrect
+        shell: bash
         run: |
-          exit 1
+          git diff && exit 1
         if: steps.git_status.outputs.status
       - name: Run tests
         run: |

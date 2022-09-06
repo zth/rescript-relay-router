@@ -112,13 +112,19 @@ let routePattern = "${route.path->RoutePath.toPattern}"
   }
 
   str.contents =
-    str.contents ++ "  RelayRouter.Types.AppRoute({routePattern, url: `" ++ urlTemplateString
+    str.contents ++
+    "  RelayRouter.Types.AppRoute({
+    routePattern, 
+    url: `" ++
+    urlTemplateString
 
   if hasQueryParams {
     str.contents = str.contents ++ "${queryParams->QueryParams.toString}"
   }
 
-  str.contents = str.contents ++ "`})"
+  str.contents =
+    str.contents ++ "`
+  })"
 
   str.contents = str.contents ++ "\n}"
   str.contents

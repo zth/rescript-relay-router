@@ -34,7 +34,7 @@
     "dev": "yarn build -w",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "publish": "yarn npm publish"
+    "release": "yarn npm publish"
   },
   "bin": "cli/RescriptRelayRouterCli.mjs",
   "peerDependencies": {

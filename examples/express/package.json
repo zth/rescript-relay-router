@@ -14,7 +14,7 @@
     "build:vite": "run-s 'build:vite:*'",
     "build:vite:client": "vite build --outDir dist/client --ssrManifest --manifest",
     "build:vite:server": "vite build --outDir dist/server --ssr src/EntryServer.mjs",
-    "build:vite:server-fix": "perl -i -pe 's/import \\* as ReactRelay/import ReactRelay/' dist/server/EntryServer.js",
+    "build:vite:server-fix": "perl -i -pe 's/import \\* as ReactRelay/import ReactRelay/' dist/server/EntryServer.js dist/server/assets/*.js",
     "preview": "cross-env ENABLE_FILESERVER=true yarn start",
     "start": "cross-env NODE_ENV=production node Server.mjs",
     "router:generate": "rescript-relay-router generate",
@@ -51,7 +51,7 @@
     "rescript-relay": "1.0.0-rc.2",
     "rollup": "^2",
     "rollup-plugin-visualizer": "5.5.0",
-    "vite": "2.9.12",
+    "vite": "^3.1.0",
     "vite-plugin-html": "3.2.0"
   },
   "dependencies": {

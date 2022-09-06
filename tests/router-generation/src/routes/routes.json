@@ -1,0 +1,56 @@
+[
+  // Test the simple base case.
+  {
+    "path": "/",
+    "name": "RootTest",
+    "children": []
+  },
+  // Test that children work as expected.
+  {
+    "path": "/withChildrenTest",
+    "name": "WithChildrenTest",
+    "children": [
+      {
+        "path": "childRoute",
+        "name": "ChildRoute"
+      }
+    ]
+  },
+  // Test that reserved names in query parameters are escaped.
+  {
+    "path": "/queryParamTest",
+    "name": "QueryParamTest",
+    "children": [
+      {
+        "path": "childRoute?type=string&of=string&with=string",
+        "name": "TestCase"
+      }
+    ]
+  },
+  // Test that reserved names in route parameters are escaped.
+  {
+    "path": "/routeParamTest",
+    "name": "RouteParamTest",
+    "children": [
+      {
+        "path": ":type/:of/:with",
+        "name": "TestCase"
+      }
+    ]
+  },
+  // Test that conflicts between route and query parameters are resolved
+  {
+    "path": "/paramConlictTest",
+    "name": "ParamConflictTest",
+    "children": [
+      {
+        "path": ":safeParam?safeParam=int",
+        "name": "SafeParamTestCase"
+      },
+      {
+        "path": ":type?type=int",
+        "name": "ReservedParamTestCase"
+      }
+    ]
+  }
+]

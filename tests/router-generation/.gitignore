@@ -1,0 +1,20 @@
+# Ignore common system files
+.DS_Store
+
+# Ignore node modules
+node_modules
+
+# Ignore rescript folders
+lib
+.bsb.lock
+.merlin
+
+# Ignore build output
+*.mjs
+
+# Ignore generated files but allow keeping the folder itself.
+src/__generated__/**
+
+# In this project we also ignore the generated route files themselves because
+# they're not part of the test set-up.
+src/routes/__generated__

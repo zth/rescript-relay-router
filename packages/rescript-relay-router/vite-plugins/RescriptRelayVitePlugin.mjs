@@ -35,8 +35,7 @@ let findGeneratedModule = (moduleName) => {
         return;
       }
 
-      let lineIsForModule =
-        line.includes(`/${moduleName}.`) || line.includes(`\\${moduleName}.`);
+      let lineIsForModule = line.includes(`/´${path.sep}${moduleName}.`);
 
       // Close as soon as we've walked past all lines concerning this module. The log
       // groups all lines concerning a specific module, so we can safely say that

@@ -90,3 +90,8 @@ type streamedEntry = {
 
 @live
 type setQueryParamsMode = Push | Replace
+
+type routeTo =
+  | External(string)
+  | AppRoute({url: string, routePattern: string})
+  | ShallowNavigation({url: string, routePattern: string})

@@ -66,7 +66,12 @@ let getRouteMaker = (route: printableRoute) => {
   let hasQueryParams = queryParamSerializers->Js.Array2.length > 0
   let shouldAddUnit = hasQueryParams
 
-  let str = ref("@live\nlet makeLink = (")
+  let str = ref(
+    `@inline
+let routePattern = "${route.path->RoutePath.toPattern}"
+
+@live\nlet makeLink = (`,
+  )
 
   let numLabeledArguments = labeledArguments->Js.Array2.length
 
@@ -106,13 +111,14 @@ let getRouteMaker = (route: printableRoute) => {
     })
   }
 
-  str.contents = str.contents ++ "  `" ++ urlTemplateString
+  str.contents =
+    str.contents ++ "  RelayRouter.Types.AppRoute({routePattern, url: `" ++ urlTemplateString
 
   if hasQueryParams {
     str.contents = str.contents ++ "${queryParams->QueryParams.toString}"
   }
 
-  str.contents = str.contents ++ "`"
+  str.contents = str.contents ++ "`})"
 
   str.contents = str.contents ++ "\n}"
   str.contents
@@ -518,10 +524,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
 }
 
 let getIsRouteActiveFn = (route: RescriptRelayRouterCli__Types.printableRoute) => {
-  `@inline
-let routePattern = "${route.path->RoutePath.toPattern}"
-
-@live
+  `@live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
   RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
 }

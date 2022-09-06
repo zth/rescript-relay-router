@@ -56,33 +56,46 @@ let make = (
   let router = RelayRouter__Context.useRouterContext()
   let {history} = router
   let targetElementRef = TargetScrollElement.useTargetElement()
+  let toIsAppRoute = switch to_ {
+  | External(_) => false
+  | AppRoute(_) | ShallowNavigation(_) => true
+  }
+  let targetUrl = switch to_ {
+  | AppRoute({url})
+  | ShallowNavigation({url})
+  | External(url) => url
+  }
 
-  let changeRoute = React.useCallback3(e => {
-    router.postRouterEvent(OnBeforeNavigation({currentLocation: router.get().location}))
-    open ReactEvent.Mouse
-    switch (e->isDefaultPrevented, e->button, browserTarget, e->isModifiedEvent) {
-    | (false, 0, None | Some(#self), false) =>
-      e->preventDefault
-      switch mode {
-      | #push => history->RelayRouter__History.push(to_)
-      | #replace => history->RelayRouter__History.replace(to_)
+  let changeRoute = React.useCallback4(e => {
+    if toIsAppRoute {
+      router.postRouterEvent(OnBeforeNavigation({currentLocation: router.get().location}))
+      open ReactEvent.Mouse
+      switch (e->isDefaultPrevented, e->button, browserTarget, e->isModifiedEvent) {
+      | (false, 0, None | Some(#self), false) =>
+        e->preventDefault
+        switch mode {
+        | #push => history->RelayRouter__History.push(targetUrl)
+        | #replace => history->RelayRouter__History.replace(targetUrl)
+        }
+      | _ => ()
       }
-    | _ => ()
     }
-  }, (to_, history, router.postRouterEvent))
+  }, (targetUrl, history, router.postRouterEvent, toIsAppRoute))
 
-  let doPreloadDataAndCode = React.useCallback3(
-    overridePriority =>
-      to_->router.preload(~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority)),
-    (to_, router.preload, preloadPriority),
-  )
-  let doPreloadCode = React.useCallback3(
-    overridePriority =>
-      to_->router.preloadCode(
+  let doPreloadDataAndCode = React.useCallback4(overridePriority =>
+    if toIsAppRoute {
+      targetUrl->router.preload(
         ~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority),
-      ),
-    (to_, router.preloadCode, preloadPriority),
-  )
+      )
+    }
+  , (targetUrl, router.preload, preloadPriority, toIsAppRoute))
+  let doPreloadCode = React.useCallback4(overridePriority =>
+    if toIsAppRoute {
+      targetUrl->router.preloadCode(
+        ~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority),
+      )
+    }
+  , (targetUrl, router.preloadCode, preloadPriority, toIsAppRoute))
   let onIntent = React.useCallback4(overridePriority =>
     switch (preloadData, preloadCode) {
     | (OnIntent, _) => doPreloadDataAndCode(overridePriority)
@@ -152,7 +165,7 @@ let make = (
 
   <a
     ref={ReactDOM.Ref.domRef(linkElement)}
-    href=to_
+    href={targetUrl}
     target={switch browserTarget {
     | Some(#self) => "_self"
     | Some(#blank) => "_blank"

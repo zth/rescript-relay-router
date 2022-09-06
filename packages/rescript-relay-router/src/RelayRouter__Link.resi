@@ -3,7 +3,7 @@ type preloadMode = NoPreloading | OnRender | OnIntent | OnInView
 
 @react.component @live
 let make: (
-  ~to_: string,
+  ~to_: RelayRouter__Types.routeTo,
   ~title: string=?,
   ~id: string=?,
   ~className: string=?,

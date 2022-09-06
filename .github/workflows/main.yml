@@ -15,6 +15,9 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
+      - name: Set git opts
+        run: |
+          git config --global core.autocrlf input
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -43,7 +46,7 @@ jobs:
         id: git_status
         shell: bash
         run: |
-          git config --global core.autocrlf input && echo "::set-output name=status::$( git status --porcelain )"
+          echo "::set-output name=status::$( git status --porcelain )"
       - name: Exit if routes have not been properly regenerated and commited, or if formatting is incorrect
         shell: bash
         run: |

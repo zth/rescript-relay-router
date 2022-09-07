@@ -5336,6 +5336,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rescript-vitest@patch:rescript-vitest@npm:0.3.0#.yarn/patches/rescript-vitest-npm-0.3.0-c04ee2eea9.patch::locator=rescript-relay-router-monorepo%40workspace%3A.":
+  version: 0.3.0
+  resolution: "rescript-vitest@patch:rescript-vitest@npm%3A0.3.0#.yarn/patches/rescript-vitest-npm-0.3.0-c04ee2eea9.patch::version=0.3.0&hash=2418b8&locator=rescript-relay-router-monorepo%40workspace%3A."
+  dependencies:
+    "@ryyppy/rescript-promise": ^2.1.0
+    vitest: ^0.21.1
+  peerDependencies:
+    rescript: ^9.1.0
+    vite: ^2.0.0 || ^3.0.0
+  checksum: f48fbcfa5bc5055205dc6174bfa60def7e30a7542d45a0a2b8132a3530daafb56c34f18f67d9acf5c38a24069a49a25092926d17729d73536a9acc32d5143b5b
+  languageName: node
+  linkType: hard
+
 "rescript@npm:9.1.4":
   version: 9.1.4
   resolution: "rescript@npm:9.1.4"

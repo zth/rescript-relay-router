@@ -41,7 +41,7 @@
     "@rescript/react": "^0.10.3",
     "react": ">=18.2.0",
     "rescript-relay": "^1.0.0-rc.2",
-    "vite": "^2.8.0-beta.3"
+    "vite": "^3.1.0"
   },
   "dependencies": {
     "chalk": "^5.0.1",
@@ -57,8 +57,8 @@
     "vscode-jsonrpc": "^5.0.1"
   },
   "devDependencies": {
-    "@rescript-relay-router/vitest": "workspace:^",
     "rescript": "9.1.4",
-    "vitest": "0.6.0"
+    "rescript-vitest": "0.3.0",
+    "vitest": "^0.21.1"
   }
 }

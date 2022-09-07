@@ -89,10 +89,13 @@ export let rescriptRelayVitePlugin = ({
   return {
     name: "rescript-relay",
     config(userConfig) {
-      // Workaround until we can upgrade to Vite 3.
+      // This was said to be fixed in Vite 3 but doesn't appear to be so.
       //
       // Remove manualChunks if this is SSR, since it doesn't work in SSR mode.
       // See https://github.com/vitejs/vite/issues/8836
+      //
+      // Rollup will now complain that dependencies of an entry chunk are itself
+      // and entry chunk and disallow externalizing with `Entry module cannot be external`.
       if (
         Boolean(userConfig.build.ssr) &&
         userConfig.build?.rollupOptions?.output?.manualChunks != null

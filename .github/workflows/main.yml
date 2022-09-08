@@ -10,8 +10,7 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x]
-        # Windows disabled for now, work it out later
-        platform: [macos-latest, ubuntu-latest]
+        platform: [macos-latest, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.platform }}
 

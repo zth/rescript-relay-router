@@ -11,8 +11,7 @@
     },
     {
       "dir": "cli",
-      "subdirs": true,
-      "type": "dev"
+      "subdirs": true
     },
     {
       "dir": "vite-plugins",

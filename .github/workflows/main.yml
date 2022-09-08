@@ -36,7 +36,7 @@ jobs:
           yarn workspaces foreach run rescript format -all
       - name: Build all projects
         run: |
-          yarn build
+          echo %cd% && yarn build
       # Since we don't want to have generated code formatted in the router we regenerate
       # the router code after formatting.
       - name: Sync router code generation

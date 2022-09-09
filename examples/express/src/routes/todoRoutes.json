@@ -1,6 +1,6 @@
 [
   {
-    "path": "todos",
+    "path": "todos?showAll=bool",
     "name": "Todos",
     "children": [
       {

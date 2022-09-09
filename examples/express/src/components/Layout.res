@@ -11,7 +11,9 @@ let make = (~queryRef, ~children) => {
   let data = Query.usePreloaded(~queryRef, ())
 
   <div>
-    <h1> {React.string("My fine site")} </h1>
+    <RelayRouter.Link to_={Routes.Root.Route.makeLink()}>
+      <h1> {React.string("My fine site")} </h1>
+    </RelayRouter.Link>
     <div style={ReactDOM.Style.make(~display="flex", ~flexDirection="row", ())}>
       {links
       ->Belt.Array.map(((label, link)) =>

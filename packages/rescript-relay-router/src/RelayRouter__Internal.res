@@ -9,7 +9,7 @@ let setQueryParams = (queryParams, mode, history) => {
   }
 }
 
-type pathMatch
+type pathMatch = {params: Js.Dict.t<string>}
 
 @module("react-router") @return(nullable)
 external matchPath: (string, string) => option<pathMatch> = "matchPath"

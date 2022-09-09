@@ -36,6 +36,19 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
     }
     prepareProps->unsafe_toPrepareProps
   }
+    let makeRouteKey = (
+    ~pathParams: Js.Dict.t<string>,
+    ~queryParams: RelayRouter.Bindings.QueryParams.t
+  ): string => {
+    ignore(pathParams)
+    ignore(queryParams)
+  
+    "Root:"
+  
+  
+  }
+  
+  
   
     {
       path: "/",
@@ -72,19 +85,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~getPrepared,
         ~loadRouteRenderer,
         ~makePrepareProps,
-        ~makeRouteKey=(
-    ~pathParams: Js.Dict.t<string>,
-    ~queryParams: RelayRouter.Bindings.QueryParams.t
-  ): string => {
-    ignore(pathParams)
-    ignore(queryParams)
-  
-    "Root:"
-  
-  
-  }
-  
-  ,
+        ~makeRouteKey,
         ~routeName,
         ~intent
       ),
@@ -98,14 +99,30 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~location: RelayRouter.History.location,
       ): prepareProps => {
         ignore(pathParams)
-        ignore(queryParams)
         let prepareProps: Route__Root__Todos_route.prepareProps =   {
           environment: environment,
       
           location: location,
+          showAll: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showAll")->Belt.Option.flatMap(value => switch value {
+            | "true" => Some(true)
+            | "false" => Some(false)
+            | _ => None
+            }),
         }
         prepareProps->unsafe_toPrepareProps
       }
+        let makeRouteKey = (
+        ~pathParams: Js.Dict.t<string>,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t
+      ): string => {
+        ignore(pathParams)
+      
+        "Root__Todos:"
+      
+          ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showAll")->Belt.Option.getWithDefault("")
+      }
+      
+      
       
         {
           path: "todos",
@@ -142,19 +159,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             ~getPrepared,
             ~loadRouteRenderer,
             ~makePrepareProps,
-            ~makeRouteKey=(
-        ~pathParams: Js.Dict.t<string>,
-        ~queryParams: RelayRouter.Bindings.QueryParams.t
-      ): string => {
-        ignore(pathParams)
-        ignore(queryParams)
-      
-        "Root__Todos:"
-      
-      
-      }
-      
-      ,
+            ~makeRouteKey,
             ~routeName,
             ~intent
           ),
@@ -172,6 +177,11 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             
                 location: location,
                 todoId: pathParams->Js.Dict.unsafeGet("todoId"),
+                showAll: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showAll")->Belt.Option.flatMap(value => switch value {
+                  | "true" => Some(true)
+                  | "false" => Some(false)
+                  | _ => None
+                  }),
                 showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.flatMap(value => switch value {
                   | "true" => Some(true)
                   | "false" => Some(false)
@@ -180,6 +190,18 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
               }
               prepareProps->unsafe_toPrepareProps
             }
+              let makeRouteKey = (
+              ~pathParams: Js.Dict.t<string>,
+              ~queryParams: RelayRouter.Bindings.QueryParams.t
+            ): string => {
+            
+              "Root__Todos__Single:"
+                ++ pathParams->Js.Dict.get("todoId")->Belt.Option.getWithDefault("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showAll")->Belt.Option.getWithDefault("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.getWithDefault("")
+            }
+            
+            
             
               {
                 path: ":todoId",
@@ -216,25 +238,18 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   ~getPrepared,
                   ~loadRouteRenderer,
                   ~makePrepareProps,
-                  ~makeRouteKey=(
-              ~pathParams: Js.Dict.t<string>,
-              ~queryParams: RelayRouter.Bindings.QueryParams.t
-            ): string => {
-            
-              "Root__Todos__Single:"
-                ++ pathParams->Js.Dict.get("todoId")->Belt.Option.getWithDefault("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.getWithDefault("")
-            }
-            
-            ,
+                  ~makeRouteKey,
                   ~routeName,
                   ~intent
                 ),
                 children: [],
+                makeRouteKey,
               }
             }],
+          makeRouteKey,
         }
       }],
+      makeRouteKey,
     }
   }
   ]

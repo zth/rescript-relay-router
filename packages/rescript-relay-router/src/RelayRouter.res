@@ -36,6 +36,7 @@ let prepareMatches = (
     {
       routeKey: routeKey,
       render: render,
+      routeName: match.route.name,
     }
   })
 }
@@ -60,7 +61,7 @@ module Router = {
     ~routes,
     ~routerEnvironment as history,
     ~environment,
-    ~preloadAsset: Types.preloadAssetFn,
+    ~preloadAsset: preloadAssetFn,
   ) => {
     let routerEventListeners = ref([])
     let postRouterEvent = event => {
@@ -74,7 +75,7 @@ module Router = {
 
     // Preload initially matched route renderers asap, we know we'll need them.
     initialMatches->Belt.Array.forEach(({route}) => {
-      Types.Component({
+      Component({
         chunk: route.chunk,
         load: () => route.loadRouteRenderer()->ignore,
       })->preloadAsset(~priority=High)
@@ -91,6 +92,8 @@ module Router = {
     let nextId = ref(0)
     let subscribers = Js.Dict.empty()
 
+    let registeredHandlers: Js.Dict.t<routeHandler> = Js.Dict.empty()
+
     let cleanup = history->RelayRouter__History.listen(({location}) => {
       if (
         location.pathname != currentEntry.contents.location.pathname ||
@@ -99,9 +102,60 @@ module Router = {
         let queryParams = QueryParams.parse(location.search)
 
         let currentMatches = currentEntry.contents.preparedMatches
-
         let matches = matchLocation(location)->Belt.Option.getWithDefault([])
-        let preparedMatches = matches->prepareMatches(~environment, ~queryParams, ~location)
+        let overridenRouteHandlers = []
+
+        // Figure out which route matches should trigger a full reload and which shouldn't
+        let preparedMatches = switch location.state->History.decodeRouteState {
+        | Some({shallow: Some(true), handlerId}) =>
+          // This was a shallow navigation. Let's figure out if the handler it was pushed with is still around and can handle the navigation.
+          switch registeredHandlers
+          ->Js.Dict.values
+          ->Js.Array2.find(handler => handler.handlerId == handlerId) {
+          | None => None
+          | Some(handler) =>
+            // Yup, there's a handler. Then this route key shouldn't be refreshed even if wanted.
+            matches
+            ->Belt.Array.map(match => {
+              let prepareThisMatch = () => {
+                let {render, routeKey} = match.route.prepare(.
+                  ~pathParams=match.params,
+                  ~environment,
+                  ~queryParams,
+                  ~location,
+                  ~intent=Render,
+                )
+                {
+                  routeKey: routeKey,
+                  render: render,
+                  routeName: match.route.name,
+                }
+              }
+
+              switch currentMatches->Js.Array2.find(m => m.routeName == handler.routeName) {
+              | None => prepareThisMatch()
+              | Some(currentMatch) =>
+                let _ = overridenRouteHandlers->Js.Array2.push(handler)
+
+                Js.log(
+                  "route with name " ++
+                  handler.routeName ++
+                  " had handler with id " ++
+                  handlerId ++ ", therefore skipping",
+                )
+                currentMatch
+              }
+            })
+            ->Some
+          }
+        | _ => None
+        }
+
+        let preparedMatches = switch preparedMatches {
+        | None => matches->prepareMatches(~environment, ~queryParams, ~location)
+        | Some(preparedMatches) => preparedMatches
+        }
+
         currentEntry.contents = {
           location: location,
           preparedMatches: preparedMatches,
@@ -117,6 +171,9 @@ module Router = {
             postRouterEvent(OnRouteWillUnmount({routeKey: routeKey}))
           }
         })
+
+        // Trigger any handlers. TODO: Ensure only triggers once
+        overridenRouteHandlers->Js.Array2.forEach(handler => handler.handler(location))
 
         subscribers
         ->Js.Dict.values
@@ -192,6 +249,21 @@ module Router = {
       }
     }
 
+    let registerRouteHandler = (~routeName, ~handler, ~handlerId) => {
+      registeredHandlers->Js.Dict.set(
+        handlerId,
+        {
+          routeName: routeName,
+          handler: handler,
+          handlerId: handlerId,
+        },
+      )
+    }
+
+    let unregisterRouteHandler = id => {
+      Js.Dict.unsafeDeleteKey(. Obj.magic(registeredHandlers), id)
+    }
+
     (
       cleanup,
       {
@@ -201,6 +273,8 @@ module Router = {
         get: get,
         subscribe: subscribe,
         history: history,
+        unregisterRouteHandler: unregisterRouteHandler,
+        registerRouteHandler: registerRouteHandler,
         subscribeToEvent: callback => {
           let _ = routerEventListeners.contents->Js.Array2.push(callback)
 

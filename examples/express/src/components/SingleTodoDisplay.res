@@ -57,7 +57,7 @@ let make = (~todo) => {
         onClick={_ => {
           setParams(
             ~navigationMode_=Replace,
-            ~setter=_ => {showMore: Some(true)},
+            ~setter=c => {...c, showMore: Some(true)},
             ~onAfterParamsSet=_ => {
               startTransition(() => {
                 let _: RescriptRelay.Disposable.t = refetch(

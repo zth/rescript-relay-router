@@ -43,6 +43,7 @@ type rec route = {
     ~intent: prepareIntent,
   ) => preparedRoute,
   children: array<route>,
+  makeRouteKey: (~pathParams: Js.Dict.t<string>, ~queryParams: QueryParams.t) => string,
 }
 
 type routeMatch = {
@@ -50,7 +51,7 @@ type routeMatch = {
   route: route,
 }
 
-type preparedMatch = {routeKey: string, render: renderRouteFn}
+type preparedMatch = {routeKey: string, routeName: string, render: renderRouteFn}
 
 type currentRouterEntry = {
   location: RelayRouter__History.location,
@@ -69,6 +70,12 @@ type routerEvent =
 
 type onRouterEventFn = routerEvent => unit
 
+type routeHandler = {
+  routeName: string,
+  handler: RelayRouter__History.location => unit,
+  handlerId: string,
+}
+
 @live
 type routerContext = {
   preload: preloadFn,
@@ -79,6 +86,12 @@ type routerContext = {
   history: RelayRouter__History.t,
   subscribeToEvent: onRouterEventFn => unsubFn,
   postRouterEvent: routerEvent => unit,
+  registerRouteHandler: (
+    ~routeName: string,
+    ~handler: RelayRouter__History.location => unit,
+    ~handlerId: string,
+  ) => unit,
+  unregisterRouteHandler: string => unit,
 }
 
 @live

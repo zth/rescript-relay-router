@@ -4,7 +4,7 @@ let setQueryParams: (
   RelayRouter__History.t,
 ) => unit
 
-type pathMatch
+type pathMatch = {params: Js.Dict.t<string>}
 
 @module("react-router") @return(nullable)
 external matchPath: (string, string) => option<pathMatch> = "matchPath"

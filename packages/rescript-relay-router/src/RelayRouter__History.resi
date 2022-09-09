@@ -1,5 +1,9 @@
 type t
 
+type routeState = {shallow: option<bool>, handlerId: string}
+
+let decodeRouteState: Js.Json.t => option<routeState>
+
 @live
 type location = {
   pathname: string,
@@ -29,6 +33,9 @@ external listen: (t, listenerData => unit) => unsubscribe = "listen"
 
 @send
 external push: (t, string) => unit = "push"
+
+@send
+external pushWithState: (t, string, routeState) => unit = "push"
 
 @send
 external replace: (t, string) => unit = "replace"

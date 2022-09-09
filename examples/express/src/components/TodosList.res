@@ -1,6 +1,6 @@
 module Query = %relay(`
-  query TodosListQuery {
-    ...TodosListDisplay_todos
+  query TodosListQuery($first: Int) {
+    ...TodosListDisplay_todos @arguments(first: $first)
   }
 `)
 

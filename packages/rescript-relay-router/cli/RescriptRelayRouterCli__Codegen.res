@@ -67,7 +67,11 @@ let getRouteMaker = (route: printableRoute) => {
   let shouldAddUnit = hasQueryParams
 
   let str = ref(
-    `@inline
+    `
+@inline
+let routeName = "${route.name->RouteName.getFullRouteName}"
+
+@inline
 let routePattern = "${route.path->RoutePath.toPattern}"
 
 @live\nlet makeLink = (`,
@@ -477,6 +481,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
   let routeName = "${routeName}"
   let loadRouteRenderer = () => import__${routeName}->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
   let makePrepareProps = ${route->getMakePrepareProps(~returnMode=ForInlinedRouteFn)}
+  let makeRouteKey = ${getMakeRouteKeyFn(route)}
 
   {
     path: "${route.path->RoutePath.getPathSegment}",
@@ -513,13 +518,14 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~getPrepared,
       ~loadRouteRenderer,
       ~makePrepareProps,
-      ~makeRouteKey=${getMakeRouteKeyFn(route)},
+      ~makeRouteKey,
       ~routeName,
       ~intent
     ),
     children: [${route.children
     ->Belt.Array.map(r => getRouteDefinition(r, ~indentation=indentation + 1))
     ->Js.Array2.joinWith(",\n")}],
+    makeRouteKey,
   }
 }`
 
@@ -529,7 +535,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
   ->Js.Array2.joinWith("\n")
 }
 
-let getIsRouteActiveFn = (route: RescriptRelayRouterCli__Types.printableRoute) => {
+let getIsRouteActiveFn = () => {
   `@live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
   RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
@@ -599,7 +605,7 @@ let getActiveRouteAssets = (route: RescriptRelayRouterCli__Types.printableRoute)
   let str = ref("")
 
   // First, add a function + hook that returns whether this path is active or not.
-  str->Utils.add(getIsRouteActiveFn(route))
+  str->Utils.add(getIsRouteActiveFn())
 
   // Then, add helpers for picking out the active subpath, if there is any.
   str->Utils.add(getActiveSubRouteFn(route))

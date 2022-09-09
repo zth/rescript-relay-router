@@ -7,6 +7,23 @@
  */
 type t
 
+type routeState = {shallow: option<bool>, handlerId: string}
+
+let decodeRouteState = json => {
+  open Js
+  switch (json->Json.decodeNull, json->Json.decodeObject) {
+  | (None, Some(obj)) =>
+    switch (
+      obj->Dict.get("shallow")->Belt.Option.map(json => json->Json.decodeBoolean),
+      obj->Dict.get("handlerId")->Belt.Option.flatMap(json => json->Json.decodeString),
+    ) {
+    | (Some(shallow), Some(handlerId)) => Some({shallow: shallow, handlerId: handlerId})
+    | _ => None
+    }
+  | _ => None
+  }
+}
+
 @live
 type location = {
   pathname: string,
@@ -36,6 +53,9 @@ external listen: (t, listenerData => unit) => unsubscribe = "listen"
 
 @send
 external push: (t, string) => unit = "push"
+
+@send
+external pushWithState: (t, string, routeState) => unit = "push"
 
 @send
 external replace: (t, string) => unit = "replace"

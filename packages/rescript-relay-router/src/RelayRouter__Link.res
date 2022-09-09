@@ -53,34 +53,28 @@ let make = (
 ) => {
   let linkElement = React.useRef(Js.Nullable.null)
   let hasPreloaded = React.useRef(false)
+  let (_, startTransition) = ReactExperimental.useTransition()
   let router = RelayRouter__Context.useRouterContext()
   let {history} = router
   let targetElementRef = TargetScrollElement.useTargetElement()
-  let toIsAppRoute = switch to_ {
-  | External(_) => false
-  | AppRoute(_) | ShallowNavigation(_) => true
-  }
-  let targetUrl = switch to_ {
-  | AppRoute({url})
-  | ShallowNavigation({url})
-  | External(url) => url
-  }
 
-  let changeRoute = React.useCallback4(e => {
+  let changeRoute = React.useCallback5(e => {
     if toIsAppRoute {
-      router.postRouterEvent(OnBeforeNavigation({currentLocation: router.get().location}))
-      open ReactEvent.Mouse
-      switch (e->isDefaultPrevented, e->button, browserTarget, e->isModifiedEvent) {
-      | (false, 0, None | Some(#self), false) =>
-        e->preventDefault
-        switch mode {
-        | #push => history->RelayRouter__History.push(targetUrl)
-        | #replace => history->RelayRouter__History.replace(targetUrl)
+      startTransition(() => {
+        router.postRouterEvent(OnBeforeNavigation({currentLocation: router.get().location}))
+        open ReactEvent.Mouse
+        switch (e->isDefaultPrevented, e->button, browserTarget, e->isModifiedEvent) {
+        | (false, 0, None | Some(#self), false) =>
+          e->preventDefault
+          switch mode {
+          | #push => history->RelayRouter__History.push(targetUrl)
+          | #replace => history->RelayRouter__History.replace(targetUrl)
+          }
+        | _ => ()
         }
-      | _ => ()
-      }
+      })
     }
-  }, (targetUrl, history, router.postRouterEvent, toIsAppRoute))
+  }, (targetUrl, history, router.postRouterEvent, toIsAppRoute, startTransition))
 
   let doPreloadDataAndCode = React.useCallback4(overridePriority =>
     if toIsAppRoute {

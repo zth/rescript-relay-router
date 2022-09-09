@@ -18,6 +18,13 @@ export default defineConfig({
   server: {
     port: 9000,
   },
+  ssr: {
+    noExternal: [
+      // Work around the fact that rescript-relay is not yet an ESM module
+      // which messes up imports on NodeJs.
+      "rescript-relay",
+    ]
+  },
   build: {
     sourcemap: true,
     polyfillDynamicImport: false,

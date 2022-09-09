@@ -69,16 +69,14 @@ let make = (~todos) => {
     </RelayRouter.Link>
     <button
       onClick={_ => {
+        let showAll = switch queryParams.showAll->Belt.Option.getWithDefault(false) {
+        | false => true
+        | true => false
+        }
         startTransition(() => {
-          switch Routes.Root.Todos.Route.makeLink(
-            ~showAll=switch queryParams.showAll->Belt.Option.getWithDefault(false) {
-            | false => true
-            | true => false
-            },
-            (),
-          ) {
+          switch Routes.Root.Todos.Route.makeLink(~showAll, ()) {
           | AppRoute({url}) =>
-            makeRefetch(queryParams)
+            makeRefetch({showAll: Some(showAll)})
             routerContext.history->RelayRouter__History.pushWithState(
               url,
               {shallow: Some(true), handlerId: "TodoListDisplay"},

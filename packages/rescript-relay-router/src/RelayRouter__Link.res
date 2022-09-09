@@ -57,6 +57,15 @@ let make = (
   let router = RelayRouter__Context.useRouterContext()
   let {history} = router
   let targetElementRef = TargetScrollElement.useTargetElement()
+  let toIsAppRoute = switch to_ {
+  | AppRoute(_) => true
+  | _ => false
+  }
+  let targetUrl = switch to_ {
+  | AppRoute({url})
+  | ShallowNavigation({url})
+  | External(url) => url
+  }
 
   let changeRoute = React.useCallback5(e => {
     if toIsAppRoute {

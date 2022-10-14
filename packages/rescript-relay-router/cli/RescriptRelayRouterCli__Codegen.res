@@ -564,11 +564,9 @@ let getActiveSubRouteFn = (route: RescriptRelayRouterCli__Types.printableRoute) 
 type subRoute = ${subRouteType}
 
 @live
-let useActiveSubRoute = (): option<${subRouteType}> => {
-  let location = RelayRouter.Utils.useLocation()
-  React.useMemo1(() => {
-    let {pathname} = location
-    ${elgibleChildren
+let getActiveSubRoute = (location: RelayRouter.History.location): option<${subRouteType}> => {
+  let {pathname} = location
+  ${elgibleChildren
       ->Belt.Array.mapWithIndex((index, child) => {
         let checkStr = `RelayRouter.Internal.matchPath("${child.path->RoutePath.toPattern}", pathname)->Belt.Option.isSome`
         let str = ref("")
@@ -586,8 +584,15 @@ let useActiveSubRoute = (): option<${subRouteType}> => {
         str.contents
       })
       ->Js.Array2.joinWith("")}else {
-      None
-    }
+    None
+  }
+}
+
+@live
+let useActiveSubRoute = (): option<${subRouteType}> => {
+  let location = RelayRouter.Utils.useLocation()
+  React.useMemo1(() => {
+    getActiveSubRoute(location)
   }, [location])
 }`
   }

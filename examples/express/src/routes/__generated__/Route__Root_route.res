@@ -22,15 +22,20 @@ let useIsRouteActive = (~exact=false, ()) => {
 type subRoute = [#Todos]
 
 @live
+let getActiveSubRoute = (location: RelayRouter.History.location): option<[#Todos]> => {
+  let {pathname} = location
+  if RelayRouter.Internal.matchPath("/todos", pathname)->Belt.Option.isSome {
+      Some(#Todos)
+    } else {
+    None
+  }
+}
+
+@live
 let useActiveSubRoute = (): option<[#Todos]> => {
   let location = RelayRouter.Utils.useLocation()
   React.useMemo1(() => {
-    let {pathname} = location
-    if RelayRouter.Internal.matchPath("/todos", pathname)->Belt.Option.isSome {
-      Some(#Todos)
-    } else {
-      None
-    }
+    getActiveSubRoute(location)
   }, [location])
 }
 

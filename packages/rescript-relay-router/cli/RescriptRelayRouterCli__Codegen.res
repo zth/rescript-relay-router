@@ -14,6 +14,7 @@ module SafeParam = {
   type paramType = Param(string) | QueryParam(string)
 
   let makeSafeParamName = (paramName, ~params) => {
+    let params = params->Belt.Array.map(Utils.printablePathParamToParamName)
     switch paramName {
     | QueryParam(paramName) =>
       if params->Js.Array2.includes(paramName) || protectedNames->Js.Array2.includes(paramName) {
@@ -41,8 +42,12 @@ module SafeParam = {
     }
 }
 
-let getRouteMaker = (route: printableRoute) => {
-  let labeledArguments = route.params->Belt.Array.map(paramName => (paramName, "string"))
+let getRouteMakerAndAssets = (route: printableRoute) => {
+  let labeledArguments =
+    route.params->Belt.Array.map(param => (
+      Utils.printablePathParamToParamName(param),
+      Utils.printablePathParamToTypeStr(param),
+    ))
   let queryParamSerializers = []
 
   route.queryParams
@@ -66,7 +71,12 @@ let getRouteMaker = (route: printableRoute) => {
   let hasQueryParams = queryParamSerializers->Js.Array2.length > 0
   let shouldAddUnit = hasQueryParams
 
-  let str = ref("@live\nlet makeLink = (")
+  let str = ref(
+    `@inline
+let routePattern = "${route.path->RoutePath.toPattern}"
+
+@live\nlet makeLink = (`,
+  )
 
   let numLabeledArguments = labeledArguments->Js.Array2.length
 
@@ -83,13 +93,12 @@ let getRouteMaker = (route: printableRoute) => {
 
   str.contents = str.contents ++ ") => {\n"
 
-  let urlTemplateString = try route.path->RoutePath.toTemplateString(
-    ~pathParams=route.params,
-  ) catch {
-  | Unmapped_url_part =>
-    Js.log(`Route ${route.name->RouteName.getFullRouteName} has invalid path and/or params config.`)
-    raise(Unmapped_url_part)
-  }
+  let pathParamNames = route.params->Belt.Array.map(Utils.printablePathParamToParamName)
+  let pathParamsAsJsDict = `Js.Dict.fromArray([${pathParamNames
+    ->Belt.Array.map(paramName =>
+      `("${paramName}", (${paramName} :> string)->Js.Global.encodeURIComponent)`
+    )
+    ->Js.Array2.joinWith(",")}])`
 
   if hasQueryParams {
     str.contents =
@@ -106,23 +115,27 @@ let getRouteMaker = (route: printableRoute) => {
     })
   }
 
-  str.contents = str.contents ++ "  `" ++ urlTemplateString
+  str.contents =
+    str.contents ++ `  RelayRouter.Bindings.generatePath(routePattern, ${pathParamsAsJsDict})`
 
   if hasQueryParams {
-    str.contents = str.contents ++ "${queryParams->QueryParams.toString}"
+    str.contents = str.contents ++ " ++ queryParams->QueryParams.toString"
   }
-
-  str.contents = str.contents ++ "`"
 
   str.contents = str.contents ++ "\n}"
-  str.contents
-}
 
-let getRouteMakerIfElgible = (route: printableRoute) => {
-  switch route.path->RoutePath.elgibleForRouteMaker {
-  | true => getRouteMaker(route)
-  | false => "\n// Route maker omitted because URL path includes segments that cannot be constructed (usually '*', or a regexp).\n"
-  }
+  route.params->Belt.Array.forEach(p => {
+    switch p {
+    | PrintableRegularPathParam(_) => ()
+    | PrintablePathParamWithMatchBranches(_) as p =>
+      str.contents =
+        str.contents ++
+        `\n
+@live
+type pathParam_${Utils.printablePathParamToParamName(p)} = ${Utils.printablePathParamToTypeStr(p)}`
+    }
+  })
+  str.contents
 }
 
 let getQueryParamAssets = (route: printableRoute) => {
@@ -277,8 +290,10 @@ let getRouteParamRecordFields = (route: printableRoute) => {
   route.params->Belt.Array.forEach(param => {
     let _ =
       pathParamsRecordFields->Js.Array2.push((
-        Param(param)->SafeParam.makeSafeParamName(~params=route.params)->SafeParam.getSafeKey,
-        "string",
+        Param(Utils.printablePathParamToParamName(param))
+        ->SafeParam.makeSafeParamName(~params=route.params)
+        ->SafeParam.getSafeKey,
+        Utils.printablePathParamToTypeStr(param),
       ))
   })
 
@@ -348,9 +363,14 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   params->Belt.Array.forEach(param => {
     str.contents =
       str.contents ++
-      `    ${Param(param)
+      `    ${Param(Utils.printablePathParamToParamName(param))
         ->SafeParam.makeSafeParamName(~params)
-        ->SafeParam.getSafeKey}: pathParams->Js.Dict.unsafeGet("${param}"),\n`
+        ->SafeParam.getSafeKey}: pathParams->Js.Dict.unsafeGet("${Utils.printablePathParamToParamName(
+          param,
+        )}")${switch param {
+        | PrintablePathParamWithMatchBranches(_) => "->Obj.magic"
+        | _ => ""
+        }},\n`
   })
 
   if hasQueryParams {
@@ -524,11 +544,8 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
   ->Js.Array2.joinWith("\n")
 }
 
-let getIsRouteActiveFn = (route: RescriptRelayRouterCli__Types.printableRoute) => {
-  `@inline
-let routePattern = "${route.path->RoutePath.toPattern}"
-
-@live
+let getIsRouteActiveFn = () => {
+  `@live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
   RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
 }
@@ -602,7 +619,7 @@ let getActiveRouteAssets = (route: RescriptRelayRouterCli__Types.printableRoute)
   let str = ref("")
 
   // First, add a function + hook that returns whether this path is active or not.
-  str->Utils.add(getIsRouteActiveFn(route))
+  str->Utils.add(getIsRouteActiveFn())
 
   // Then, add helpers for picking out the active subpath, if there is any.
   str->Utils.add(getActiveSubRouteFn(route))

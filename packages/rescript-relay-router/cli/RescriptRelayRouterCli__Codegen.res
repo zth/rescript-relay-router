@@ -181,9 +181,16 @@ let setQueryParams = (
 
   ${queryParamEntries
         ->Belt.Array.map(((key, queryParam)) => {
-          `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Belt.Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
-              ~variableName=key,
-            )}))`
+          switch queryParam {
+          | Array(queryParam) =>
+            `\n  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Belt.Option.map(${key} => ${key}->Belt.Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+                ~variableName=key,
+              )})))`
+          | queryParam =>
+            `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Belt.Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+                ~variableName=key,
+              )}))`
+          }
         })
         ->Js.Array2.joinWith("")}
   

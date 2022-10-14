@@ -1,6 +1,6 @@
 [
   {
-    "path": "todos",
+    "path": "todos?statuses=array<TodoStatus.t>",
     "name": "Todos",
     "children": [
       {

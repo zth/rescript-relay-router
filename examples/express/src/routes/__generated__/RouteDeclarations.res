@@ -98,11 +98,11 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~location: RelayRouter.History.location,
       ): prepareProps => {
         ignore(pathParams)
-        ignore(queryParams)
         let prepareProps: Route__Root__Todos_route.prepareProps =   {
           environment: environment,
       
           location: location,
+          statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
         }
         prepareProps->unsafe_toPrepareProps
       }
@@ -147,11 +147,10 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~queryParams: RelayRouter.Bindings.QueryParams.t
       ): string => {
         ignore(pathParams)
-        ignore(queryParams)
       
         "Root__Todos:"
       
-      
+          ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Belt.Option.getWithDefault("")
       }
       
       ,
@@ -172,6 +171,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             
                 location: location,
                 todoId: pathParams->Js.Dict.unsafeGet("todoId"),
+                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
                 showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.flatMap(value => switch value {
                   | "true" => Some(true)
                   | "false" => Some(false)
@@ -223,6 +223,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             
               "Root__Todos__Single:"
                 ++ pathParams->Js.Dict.get("todoId")->Belt.Option.getWithDefault("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Belt.Option.getWithDefault("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.getWithDefault("")
             }
             

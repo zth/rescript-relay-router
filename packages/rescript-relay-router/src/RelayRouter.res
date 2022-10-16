@@ -198,6 +198,12 @@ module Router = {
       }
     }
 
+    // This is intentionally very basic starting out, as in using this will
+    // block _all_ route loading for the next navigation. In the future one
+    // might imagine this taking a routeName so that we can block route loaders
+    // only for the route segment this was triggered from. That would be useful
+    // in cases where multiple route segments need to react to the same query
+    // param.
     let markNextNavigationAsShallow = () => {
       nextNavigationIsShallow.contents = true
     }

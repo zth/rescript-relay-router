@@ -225,10 +225,6 @@ Now, let's look at what props each part of the route renderer receives:
 - `childRoutes: React.element` - if there are rendered child routes, its rendered content will be here.
 - `prepared` - whatever it is that `prepare` returns above.
 
-### When will a route renderer re-render?
-
-A route renderer will re-render only when the URL _path_ changes, not when query params change. This is by design, so that you can leverage query params to refetch only the relevant parts of your UI as you update them.
-
 ### Child routes and `RelayRouterUtils.childRouteHasContent`
 
 As you can see, any child route content is passed along as a prop `childRoutes`. Sometimes it's useful to know whether that child route content is actually rendered or not. For example, maybe you want to control whether a slideover or modal shows based on whether there's actual content to show in it. For that purpose, there's a helper called `RelayRouterUtils.childRouteHasContent`. Here's an example of using it:
@@ -421,6 +417,8 @@ Let's have a look at what config `setParams` take, and how it works:
 - `onAfterParamsSet: newParams => unit` - This runs as soon as the new params has been returned, and receives whatever new params the `setter` returns. Here's where you'll trigger any refetching or similar using the new parameters.
 - `navigationMode_: Push | Replace` - Push or replace the current route? Defaults to replace.
 - `removeNotControlledParams: bool` - Setting this to `false` will preserve any query parameters in the URL not controlled by this route. Defaults to `true`.
+
+> Please note that `setParams` will do a _shallow_ navigation by default. A shallow navigation means that no route data loaders will trigger. This lets you run your own specialized query, like a refetch or pagination query, driven by `setParams`, without trigger additional potentially redundant data fetching. If you for some reason _don't_ want that behavior, there's a "hidden" `shallow: bool` prop you can pass to `setParams`.
 
 ## Path params
 

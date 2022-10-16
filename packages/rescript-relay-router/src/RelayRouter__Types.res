@@ -79,6 +79,7 @@ type routerContext = {
   history: RelayRouter__History.t,
   subscribeToEvent: onRouterEventFn => unsubFn,
   postRouterEvent: routerEvent => unit,
+  markNextNavigationAsShallow: unit => unit,
 }
 
 @live

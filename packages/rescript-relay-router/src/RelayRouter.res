@@ -90,9 +90,18 @@ module Router = {
 
     let nextId = ref(0)
     let subscribers = Js.Dict.empty()
+    let nextNavigationIsShallow = ref(false)
 
     let cleanup = history->RelayRouter__History.listen(({location}) => {
-      if location.pathname != currentEntry.contents.location.pathname {
+      let thisNavigationShouldBeShallow = nextNavigationIsShallow.contents
+      if nextNavigationIsShallow.contents === true {
+        nextNavigationIsShallow.contents = false
+      }
+      if (
+        !thisNavigationShouldBeShallow &&
+        (location.pathname != currentEntry.contents.location.pathname ||
+          location.pathname !== currentEntry.contents.location.pathname)
+      ) {
         let queryParams = QueryParams.parse(location.search)
 
         let currentMatches = currentEntry.contents.preparedMatches
@@ -189,6 +198,10 @@ module Router = {
       }
     }
 
+    let markNextNavigationAsShallow = () => {
+      nextNavigationIsShallow.contents = true
+    }
+
     (
       cleanup,
       {
@@ -207,6 +220,7 @@ module Router = {
           }
         },
         postRouterEvent: postRouterEvent,
+        markNextNavigationAsShallow: markNextNavigationAsShallow,
       },
     )
   }

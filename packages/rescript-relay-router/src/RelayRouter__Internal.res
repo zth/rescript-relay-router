@@ -9,6 +9,46 @@ let setQueryParams = (queryParams, mode, history) => {
   }
 }
 
+type setQueryParamsFnConfig = {
+  applyQueryParams: RelayRouter__Bindings.QueryParams.t => unit,
+  currentSearch: string,
+  navigationMode_: RelayRouter__Types.setQueryParamsMode,
+  removeNotControlledParams: bool,
+  shallow: bool,
+}
+
+type setQueryParamsFn = setQueryParamsFnConfig => unit
+
+let useSetQueryParams = () => {
+  let router = RelayRouter__Context.useRouterContext()
+
+  let setQueryParamsFn: setQueryParamsFn = React.useCallback1(
+    ({applyQueryParams, currentSearch, navigationMode_, removeNotControlledParams, shallow}) => {
+      open RelayRouter__Bindings
+
+      let queryParams = if removeNotControlledParams {
+        QueryParams.make()
+      } else {
+        QueryParams.parse(currentSearch)
+      }
+
+      applyQueryParams(queryParams)
+
+      if shallow {
+        router.markNextNavigationAsShallow()
+      }
+
+      switch navigationMode_ {
+      | Push => router.history->RelayRouter__History.push(queryParams->QueryParams.toString)
+      | Replace => router.history->RelayRouter__History.replace(queryParams->QueryParams.toString)
+      }
+    },
+    [router],
+  )
+
+  setQueryParamsFn
+}
+
 type pathMatch
 
 @module("react-router") @return(nullable)

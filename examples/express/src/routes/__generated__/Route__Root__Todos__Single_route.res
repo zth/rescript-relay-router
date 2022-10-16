@@ -129,27 +129,15 @@ let makeQueryParams = (
 }
 
 @live
-let setQueryParams = (
-  newParams: queryParams,
-  ~currentSearch: string, 
-  ~navigationMode_=RelayRouter.Types.Push,
-  ~removeNotControlledParams=true,
-  ~history: RelayRouter.History.t,
-  ()
+let internal_applyQueryParams = (
+  queryParams: RelayRouter__Bindings.QueryParams.t,
+  ~newParams: queryParams,
 ) => {
-  open RelayRouter.Bindings
-
-  let queryParams = if removeNotControlledParams {
-    QueryParams.make()
-  } else {
-    QueryParams.parse(currentSearch)
-  }
+  open RelayRouter__Bindings
 
   
   queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Belt.Option.map(statuses => statuses->Belt.Array.map(statuses => statuses->TodoStatus.serialize->Js.Global.encodeURIComponent)))
   queryParams->QueryParams.setParamOpt(~key="showMore", ~value=newParams.showMore->Belt.Option.map(showMore => string_of_bool(showMore)))
-  
-  queryParams->RelayRouter.Internal.setQueryParams(navigationMode_, history)
 }
 
 @live
@@ -160,51 +148,48 @@ type useQueryParamsReturn = {
     ~onAfterParamsSet: queryParams => unit=?,
     ~navigationMode_: RelayRouter.Types.setQueryParamsMode=?,
     ~removeNotControlledParams: bool=?,
+    ~shallow: bool=?,
     unit
   ) => unit
 }
 
 @live
 let useQueryParams = (): useQueryParamsReturn => {
-  let {history} = RelayRouter.useRouterContext()
+  let internalSetQueryParams = RelayRouter__Internal.useSetQueryParams()
   let {search} = RelayRouter.Utils.useLocation()
   let currentQueryParams = React.useMemo1(() => {
     search->parseQueryParams
   }, [search])
 
-  let searchRef = React.useRef(search)
-  let currentQueryParamsRef = React.useRef(currentQueryParams)
+  let setParams = (
+    ~setter,
+    ~onAfterParamsSet=?,
+    ~navigationMode_=RelayRouter.Types.Push,
+    ~removeNotControlledParams=true,
+    ~shallow=true,
+    (),
+  ) => {
+    let newParams = setter(currentQueryParams)
 
-  searchRef.current = search
-  currentQueryParamsRef.current = currentQueryParams
+    switch onAfterParamsSet {
+    | None => ()
+    | Some(onAfterParamsSet) => onAfterParamsSet(newParams)
+    }
+
+    internalSetQueryParams({
+      applyQueryParams: internal_applyQueryParams(~newParams),
+      currentSearch: search,
+      navigationMode_: navigationMode_,
+      removeNotControlledParams: removeNotControlledParams,
+      shallow: shallow,
+    })
+  }
 
   {
-    queryParams: currentQueryParams, 
-    setParams: 
-      React.useMemo0(
-        () => (
-          ~setter,
-          ~onAfterParamsSet=?,
-          ~navigationMode_=RelayRouter.Types.Push,
-          ~removeNotControlledParams=true,
-          ()
-        ) => {
-          let newParams = setter(currentQueryParamsRef.current)
-
-          switch onAfterParamsSet {
-            | None => ()
-            | Some(onAfterParamsSet) => onAfterParamsSet(newParams)
-          }
-
-          newParams
-            ->setQueryParams(
-              ~currentSearch=searchRef.current, 
-              ~navigationMode_, 
-              ~removeNotControlledParams, 
-              ~history, 
-              ()
-            )
-          },
-      )
+    queryParams: currentQueryParams,
+    setParams: React.useMemo2(
+      () => setParams,
+      (search, currentQueryParams),
+    ),
   }
 }

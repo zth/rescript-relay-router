@@ -75,7 +75,6 @@ module RoutePath: {
   let getFullRoutePath: t => string
   let toPattern: t => string
   let empty: unit => t
-  let elgibleForRouteMaker: t => bool
 } = {
   type t = {
     pathSegment: string,
@@ -114,10 +113,6 @@ module RoutePath: {
     pathSegment: "",
     currentRoutePath: list{},
   }
-  let elgibleForRouteMaker = t =>
-    t.currentRoutePath->Belt.List.every(urlSegment => {
-      %re(`/^[A-Za-z0-9:\/\-\._]*$/g`)->Js.Re.test_(urlSegment)
-    })
 }
 
 type rec includeEntry = {

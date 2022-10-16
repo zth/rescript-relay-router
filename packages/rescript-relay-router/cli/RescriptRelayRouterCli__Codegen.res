@@ -14,10 +14,12 @@ module SafeParam = {
   type paramType = Param(string) | QueryParam(string)
 
   let makeSafeParamName = (paramName, ~params) => {
-    let params = params->Belt.Array.map(Utils.printablePathParamToParamName)
+    let paramNames = params->Belt.Array.map(Utils.printablePathParamToParamName)
     switch paramName {
     | QueryParam(paramName) =>
-      if params->Js.Array2.includes(paramName) || protectedNames->Js.Array2.includes(paramName) {
+      if (
+        paramNames->Js.Array2.includes(paramName) || protectedNames->Js.Array2.includes(paramName)
+      ) {
         CollisionPrevented({realKey: paramName, collisionProtectedKey: "queryParam_" ++ paramName})
       } else {
         Actual(paramName)

@@ -34,6 +34,11 @@ type queryParamNode = {
   queryParam: (range, queryParam),
 }
 
+type pathParam = PathParam(textNode) | PathParamWithMatchBranches(textNode, array<string>)
+
+type printablePathParam =
+  PrintableRegularPathParam(string) | PrintablePathParamWithMatchBranches(string, array<string>)
+
 module RouteName: {
   type t
   let make: (~routeNamePath: list<string>, ~loc: range) => t
@@ -61,23 +66,6 @@ module RouteName: {
   let getLoc = t => t.loc
 }
 
-exception Unmapped_url_part
-
-let transformUrlPart = (urlPart, ~pathParams: array<string>) => {
-  if urlPart->Js.String2.startsWith(":") {
-    let paramName = urlPart->Js.String2.sliceToEnd(~from=1)
-    if pathParams->Js.Array2.includes(paramName) {
-      Some("${" ++ paramName ++ "->Js.Global.encodeURIComponent}")
-    } else {
-      raise(Unmapped_url_part)
-    }
-  } else if urlPart == "/" {
-    None
-  } else {
-    Some(urlPart)
-  }
-}
-
 // Move path params in here too?
 module RoutePath: {
   type t
@@ -85,10 +73,8 @@ module RoutePath: {
   let make: (string, ~currentRoutePath: t) => t
   let getPathSegment: t => string
   let getFullRoutePath: t => string
-  let toTemplateString: (t, ~pathParams: array<string>) => string
   let toPattern: t => string
   let empty: unit => t
-  let elgibleForRouteMaker: t => bool
 } = {
   type t = {
     pathSegment: string,
@@ -111,14 +97,6 @@ module RoutePath: {
   let getPathSegment = t => t.pathSegment
   let getFullRoutePath = t => "/" ++ t.currentRoutePath->Belt.List.toArray->Js.Array2.joinWith("/")
 
-  let toTemplateString = (t, ~pathParams) =>
-    "/" ++
-    t.currentRoutePath
-    ->Belt.List.reverse
-    ->Belt.List.keepMap(urlPart => urlPart->transformUrlPart(~pathParams))
-    ->Belt.List.toArray
-    ->Js.Array2.joinWith("/")
-
   let toPattern = t =>
     "/" ++
     t.currentRoutePath
@@ -135,10 +113,6 @@ module RoutePath: {
     pathSegment: "",
     currentRoutePath: list{},
   }
-  let elgibleForRouteMaker = t =>
-    t.currentRoutePath->Belt.List.every(urlSegment => {
-      %re(`/^[A-Za-z0-9:\/\-\._]*$/g`)->Js.Re.test_(urlSegment)
-    })
 }
 
 type rec includeEntry = {
@@ -154,7 +128,7 @@ and routeEntry = {
   name: RouteName.t,
   path: textNode,
   routePath: RoutePath.t,
-  pathParams: array<textNode>,
+  pathParams: array<pathParam>,
   queryParams: array<queryParamNode>,
   children: option<array<routeChild>>,
   sourceFile: string,
@@ -189,7 +163,7 @@ type parseError = {
 
 type seenPathParam = {
   seenInSourceFile: string,
-  seenAtPosition: textNode,
+  seenAtPosition: pathParam,
 }
 
 // This keeps track of whatever we need to know from the parent context. This is
@@ -216,7 +190,7 @@ type routeStructure = {
 // For printing. A simpler AST without unecessary location info etc.
 type rec printableRoute = {
   path: RoutePath.t,
-  params: array<string>,
+  params: array<printablePathParam>,
   name: RouteName.t,
   children: array<printableRoute>,
   queryParams: Js.Dict.t<queryParam>,

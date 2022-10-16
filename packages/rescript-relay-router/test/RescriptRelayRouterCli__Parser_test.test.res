@@ -58,11 +58,23 @@ describe("Parsing", () => {
           children: Some([RouteEntry({pathParams: pathParamsChild})]),
         }),
       ] =>
-      expect(pathParamsParent->Belt.Array.map(({text}) => text))->Expect.toEqual(["slug"])
-      expect(pathParamsChild->Belt.Array.map(({text}) => text))->Expect.toEqual([
-        "memberId",
-        "slug",
-      ])
+      expect(
+        pathParamsParent->Belt.Array.map(p =>
+          switch p {
+          | PathParam({text}) => text
+          | PathParamWithMatchBranches({text}, _) => text
+          }
+        ),
+      )->Expect.toEqual(["slug"])
+
+      expect(
+        pathParamsChild->Belt.Array.map(p =>
+          switch p {
+          | PathParam({text}) => text
+          | PathParamWithMatchBranches({text}, _) => text
+          }
+        ),
+      )->Expect.toEqual(["memberId", "slug"])
     | _ => ()
     }
   })

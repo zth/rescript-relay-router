@@ -422,6 +422,24 @@ Let's have a look at what config `setParams` take, and how it works:
 - `navigationMode_: Push | Replace` - Push or replace the current route? Defaults to replace.
 - `removeNotControlledParams: bool` - Setting this to `false` will preserve any query parameters in the URL not controlled by this route. Defaults to `true`.
 
+## Path params
+
+Path params are typically modelled as strings. But, if you only want a route to match if a path param is in a known set of values, you can encode that into the path param definition. It looks like this:
+
+```json
+[
+  {
+    "name": "Organization",
+    "path": "/organization/:slug/members/:memberStatus(active|inactive|deleted)"
+  }
+]
+```
+
+This would do 2 things:
+
+- This route will only match if `memberStatus` is one of the values in the provided list (`active`, `inactive` or `deleted`).
+- The type of `memberStatus` will be a polyvariant `[#active | #inactive | #deleted]`.
+
 ## Advanced
 
 Here's a few more advanced things you can utilize the router for.

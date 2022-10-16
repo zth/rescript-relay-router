@@ -182,3 +182,6 @@ module RelayReplaySubject = {
     }
   }
 }
+
+@module("react-router")
+external generatePath: (string, Js.Dict.t<string>) => string = "generatePath"

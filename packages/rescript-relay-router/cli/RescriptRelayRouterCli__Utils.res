@@ -140,9 +140,22 @@ let fromRendererFileName = rendererName =>
 
 let toRendererFileName = rendererName => rendererName ++ "_route_renderer.res"
 
+let printablePathParamToTypeStr = p =>
+  switch p {
+  | PrintableRegularPathParam(_) => "string"
+  | PrintablePathParamWithMatchBranches(_, matchBranches) =>
+    `[${matchBranches->Belt.Array.map(b => `#${b}`)->Js.Array2.joinWith(" | ")}]`
+  }
+
+let printablePathParamToParamName = p =>
+  switch p {
+  | PrintableRegularPathParam(name) => name
+  | PrintablePathParamWithMatchBranches(name, _) => name
+  }
+
 let rec rawRouteToMatchable = (route: printableRoute): routeForCliMatching => {
   path: route.path->RoutePath.getPathSegment,
-  params: route.params,
+  params: route.params->Belt.Array.map(printablePathParamToParamName),
   name: route.name->RouteName.getRouteName,
   queryParams: route.queryParams,
   children: route.children->Belt.Array.map(rawRouteToMatchable),
@@ -175,7 +188,13 @@ and mapRouteChild = (child, ~routes) => {
 and parsedToPrintable = (routeEntry: routeEntry): printableRoute => {
   name: routeEntry.name,
   path: routeEntry.routePath,
-  params: routeEntry.pathParams->Belt.Array.map(p => p.text),
+  params: routeEntry.pathParams->Belt.Array.map(p =>
+    switch p {
+    | PathParam({text}) => PrintableRegularPathParam(text)
+    | PathParamWithMatchBranches({text}, matchBranches) =>
+      PrintablePathParamWithMatchBranches(text, matchBranches)
+    }
+  ),
   children: routeEntry.children->Belt.Option.getWithDefault([])->routeChildrenToPrintable,
   queryParams: routeEntry.queryParams
   ->Belt.Array.map(({name, queryParam: (_loc, queryParam)}) => (name.text, queryParam))

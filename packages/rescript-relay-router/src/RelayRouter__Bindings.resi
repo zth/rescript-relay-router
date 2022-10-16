@@ -100,3 +100,6 @@ module RelayReplaySubject: {
 
   let applyPayload: (t, streamedEntry) => unit
 }
+
+@module("react-router")
+external generatePath: (string, Js.Dict.t<string>) => string = "generatePath"

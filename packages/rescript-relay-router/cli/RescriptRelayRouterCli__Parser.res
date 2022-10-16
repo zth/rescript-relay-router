@@ -146,7 +146,7 @@ type validatedPath = {
   loc: range,
   pathRaw: string,
   queryParams: array<queryParamNode>,
-  pathParams: array<textNode>,
+  pathParams: array<pathParam>,
 }
 
 let dummyPos: range = {
@@ -164,15 +164,20 @@ module Path = {
   let withoutQueryParams = path =>
     path->Js.String2.split("?")->Belt.Array.get(0)->Belt.Option.getWithDefault("")
 
+  type inContext = ParamName | MatchBranches
+
   @live
   type findingPathParamsContext = {
     startChar: int,
     endChar: option<int>,
     paramName: string,
+    inContext: inContext,
+    currentMatchParam: string,
+    matchBranches: array<string>,
   }
 
   let decodePathParams = (path: string, ~loc, ~lineNum, ~ctx, ~parentContext: parentContext): array<
-    textNode,
+    pathParam,
   > => {
     let pathWithoutQueryParams = path->withoutQueryParams
     let foundPathParams = []
@@ -181,11 +186,15 @@ module Path = {
     let startCharIdx = loc.start.column + 1
 
     let addParamIfNotAlreadyPresent = (~currentCtx, ~paramLoc) => {
-      switch parentContext.seenPathParams->Belt.List.getBy(param =>
-        param.seenAtPosition.text == currentCtx.paramName
-      ) {
+      switch parentContext.seenPathParams->Belt.List.getBy(param => {
+        let textNode = switch param.seenAtPosition {
+        | PathParam(textNode) => textNode
+        | PathParamWithMatchBranches(textNode, _) => textNode
+        }
+        textNode.text == currentCtx.paramName
+      }) {
       | None =>
-        let _ = foundPathParams->Js.Array2.push({
+        let textNode = {
           loc: {
             start: {
               line: lineNum,
@@ -197,7 +206,14 @@ module Path = {
             },
           },
           text: currentCtx.paramName,
-        })
+        }
+        let _ = foundPathParams->Js.Array2.push(
+          if currentCtx.matchBranches->Js.Array2.length > 0 {
+            PathParamWithMatchBranches(textNode, currentCtx.matchBranches)
+          } else {
+            PathParam(textNode)
+          },
+        )
       | Some(alreadySeenPathParam) =>
         // Same file
         if alreadySeenPathParam.seenInSourceFile == ctx.routeFileName {
@@ -234,6 +250,9 @@ module Path = {
             startChar: startCharIdx + charIdx,
             paramName: "",
             endChar: None,
+            inContext: ParamName,
+            currentMatchParam: "",
+            matchBranches: [],
           })
       | (Some(currentCtx), "/") =>
         if currentCtx.paramName->Js.String2.length == 0 {
@@ -266,7 +285,23 @@ module Path = {
         addParamIfNotAlreadyPresent(~currentCtx, ~paramLoc)
 
         currentContext := None
-      | (Some(currentCtx), char) =>
+
+      | (Some({inContext: MatchBranches} as currentCtx), ")" | "|") =>
+        currentContext :=
+          Some({
+            ...currentCtx,
+            currentMatchParam: "",
+            matchBranches: currentCtx.matchBranches->Js.Array2.concat([
+              currentCtx.currentMatchParam,
+            ]),
+          })
+      | (Some({inContext: ParamName} as currentCtx), "(") =>
+        currentContext :=
+          Some({
+            ...currentCtx,
+            inContext: MatchBranches,
+          })
+      | (Some({inContext: ParamName} as currentCtx), char) =>
         currentContext :=
           Some({
             ...currentCtx,
@@ -293,7 +328,33 @@ module Path = {
             )
           }
         }
+      | (Some({inContext: MatchBranches} as currentCtx), char) =>
+        currentContext :=
+          Some({
+            ...currentCtx,
+            currentMatchParam: currentCtx.currentMatchParam ++ char,
+          })
 
+        switch currentCtx.currentMatchParam->Js.String2.length {
+        | 0 =>
+          switch %re(`/[a-zA-Z]/`)->Js.Re.test_(char) {
+          | true => ()
+          | false =>
+            ctx.addDecodeError(
+              ~loc=charLoc,
+              ~message=`Path param match branches must start with a letter.`,
+            )
+          }
+        | _ =>
+          switch %re(`/[A-Za-z0-9_]/`)->Js.Re.test_(char) {
+          | true => ()
+          | false =>
+            ctx.addDecodeError(
+              ~loc=charLoc,
+              ~message=`"${char}" is not a valid character in a path match branch. Path match branches can contain letters, digits, and underscores.`,
+            )
+          }
+        }
       | _ => ()
       }
     }

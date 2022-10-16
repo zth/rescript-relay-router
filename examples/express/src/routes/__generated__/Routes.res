@@ -7,6 +7,10 @@ module Root = {
   module Todos = {
     module Route = Route__Root__Todos_route
 
+    module ByStatus = {
+      module Route = Route__Root__Todos__ByStatus_route
+
+    }
     module Single = {
       module Route = Route__Root__Todos__Single_route
 

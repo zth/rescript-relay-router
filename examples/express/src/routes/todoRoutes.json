@@ -4,6 +4,11 @@
     "name": "Todos",
     "children": [
       {
+        "path": ":byStatus(completed|notCompleted)",
+        "name": "ByStatus",
+        "children": []
+      },
+      {
         "path": ":todoId?showMore=bool",
         "name": "Single",
         "children": []

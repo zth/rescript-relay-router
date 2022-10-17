@@ -80,18 +80,6 @@ let useActiveSubRoute = (): option<[#Todos]> => {
   }, [location])
 }
 
-let makeRouteKey = (
-  ~pathParams: Js.Dict.t<string>,
-  ~queryParams: RelayRouter.Bindings.QueryParams.t
-): string => {
-  ignore(pathParams)
-  ignore(queryParams)
-
-  "Root:"
-
-
-}
-
 @obj
 external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,

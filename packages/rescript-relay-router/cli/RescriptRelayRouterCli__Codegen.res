@@ -494,10 +494,8 @@ let getPrepareTypeDefinitions = (route: printableRoute) => {
   str.contents
 }
 
-let getPrepareAssets = (route: printableRoute) => {
+let getPrepareAssets = () => {
   let str = ref("")
-
-  str.contents = str.contents ++ `let makeRouteKey = ${getMakeRouteKeyFn(route)}`
 
   str.contents =
     str.contents ++ `@obj

@@ -180,17 +180,6 @@ let useActiveSubRoute = (): option<[#ByStatus | #Single]> => {
   }, [location])
 }
 
-let makeRouteKey = (
-  ~pathParams: Js.Dict.t<string>,
-  ~queryParams: RelayRouter.Bindings.QueryParams.t
-): string => {
-  ignore(pathParams)
-
-  "Root__Todos:"
-
-    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Belt.Option.getWithDefault("")
-}
-
 @obj
 external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,

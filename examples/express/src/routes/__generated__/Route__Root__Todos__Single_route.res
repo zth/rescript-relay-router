@@ -182,17 +182,6 @@ let useIsRouteActive = (~exact=false, ()) => {
   React.useMemo2(() => location->isRouteActive(~exact), (location, exact))
 }
 
-let makeRouteKey = (
-  ~pathParams: Js.Dict.t<string>,
-  ~queryParams: RelayRouter.Bindings.QueryParams.t
-): string => {
-
-  "Root__Todos__Single:"
-    ++ pathParams->Js.Dict.get("todoId")->Belt.Option.getWithDefault("")
-    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Belt.Option.getWithDefault("")
-    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.getWithDefault("")
-}
-
 @obj
 external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,

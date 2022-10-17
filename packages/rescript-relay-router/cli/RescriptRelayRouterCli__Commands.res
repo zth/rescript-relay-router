@@ -118,7 +118,7 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
       "\n\n" ++
       Codegen.getActiveRouteAssets(route) ++
       "\n\n" ++
-      Codegen.getPrepareAssets(route)
+      Codegen.getPrepareAssets()
 
     Fs.writeFileIfChanged(
       Utils.pathInGeneratedFolder(

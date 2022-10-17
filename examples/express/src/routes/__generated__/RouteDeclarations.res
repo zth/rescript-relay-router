@@ -31,7 +31,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
   ): prepareProps => {
     ignore(pathParams)
     ignore(queryParams)
-    let prepareProps: Route__Root_route.prepareProps =   {
+    let prepareProps: Route__Root_route.Internal.prepareProps =   {
       environment: environment,
   
       location: location,
@@ -100,7 +100,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~location: RelayRouter.History.location,
       ): prepareProps => {
         ignore(pathParams)
-        let prepareProps: Route__Root__Todos_route.prepareProps =   {
+        let prepareProps: Route__Root__Todos_route.Internal.prepareProps =   {
           environment: environment,
       
           location: location,
@@ -168,7 +168,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
               ~queryParams: RelayRouter.Bindings.QueryParams.t,
               ~location: RelayRouter.History.location,
             ): prepareProps => {
-              let prepareProps: Route__Root__Todos__ByStatus_route.prepareProps =   {
+              let prepareProps: Route__Root__Todos__ByStatus_route.Internal.prepareProps =   {
                 environment: environment,
             
                 location: location,
@@ -239,7 +239,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
               ~queryParams: RelayRouter.Bindings.QueryParams.t,
               ~location: RelayRouter.History.location,
             ): prepareProps => {
-              let prepareProps: Route__Root__Todos__Single_route.prepareProps =   {
+              let prepareProps: Route__Root__Todos__Single_route.Internal.prepareProps =   {
                 environment: environment,
             
                 location: location,

@@ -442,6 +442,21 @@ This would do 2 things:
 
 Here's a few more advanced things you can utilize the router for.
 
+### Linking when you just want to change one or a few query params, preserving the rest
+
+In addition to `makeLink`, there's also a `makeLinkFromQueryParams` function generated to simplify the use case of changing just one or a few of a large set of query params. `makeLinkFromQueryParams` lets you create a link by supplying your new query params as a record rather than each individual query param as a distinct labelled argument. It enables a few neat things:
+
+```reasonml
+// Imagine this is quite a large object of various query params related to the current view.
+let {queryParams} = Routes.Organization.Members.Route.useQueryParams()
+
+// Scenario 1: Linking to the same view, with the same filters, but for another organization
+let otherOrgSameViewLink = Routes.Organization.Members.Route.makeLinkFromQueryParams(~orgSlug=someOtherOrgSlug, queryParams)
+
+// Scenario 2: Changing a single query parameter without caring about the rest
+let changingASingleQueryParam = Routes.Organization.Members.Route.makeLinkFromQueryParams(~orgSlug=currentOrgSlug, {...queryParams, showDetails: Some(true)})
+```
+
 ### Checking if a route or a sub route is active
 
 The router emits helpers to both check whether a route is active or not, as well as check whether what, if any, of a route's immediate children is active. The latter is particularly useful for tabs where each tab is a separate path in the URL. Examples:

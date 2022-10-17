@@ -126,6 +126,36 @@ let routePattern = "${route.path->RoutePath.toPattern}"
 
   str.contents = str.contents ++ "\n}"
 
+  if hasQueryParams {
+    str.contents =
+      str.contents ++ `
+@live
+let makeLinkFromQueryParams = (`
+    route.params->Belt.Array.forEach(p => {
+      str.contents =
+        str.contents ++
+        `~${Utils.printablePathParamToParamName(p)}: ${Utils.printablePathParamToTypeStr(p)}, `
+    })
+
+    str.contents =
+      str.contents ++ `queryParams: queryParams) => {
+  makeLink(`
+    route.params->Belt.Array.forEach(p => {
+      str.contents = str.contents ++ `~${Utils.printablePathParamToParamName(p)}, `
+    })
+
+    route.queryParams
+    ->Js.Dict.keys
+    ->Belt.Array.forEach(queryParamName => {
+      str.contents = str.contents ++ `~${queryParamName}=?queryParams.${queryParamName}, `
+    })
+
+    str.contents =
+      str.contents ++ `())
+}
+`
+  }
+
   route.params->Belt.Array.forEach(p => {
     switch p {
     | PrintableRegularPathParam(_) => ()

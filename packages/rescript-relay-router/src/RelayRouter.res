@@ -90,9 +90,18 @@ module Router = {
 
     let nextId = ref(0)
     let subscribers = Js.Dict.empty()
+    let nextNavigationIsShallow = ref(false)
 
     let cleanup = history->RelayRouter__History.listen(({location}) => {
-      if location.pathname != currentEntry.contents.location.pathname {
+      let thisNavigationShouldBeShallow = nextNavigationIsShallow.contents
+      if nextNavigationIsShallow.contents === true {
+        nextNavigationIsShallow.contents = false
+      }
+      if (
+        !thisNavigationShouldBeShallow &&
+        (location.pathname !== currentEntry.contents.location.pathname ||
+          location.search !== currentEntry.contents.location.search)
+      ) {
         let queryParams = QueryParams.parse(location.search)
 
         let currentMatches = currentEntry.contents.preparedMatches
@@ -189,6 +198,16 @@ module Router = {
       }
     }
 
+    // This is intentionally very basic starting out, as in using this will
+    // block _all_ route loading for the next navigation. In the future one
+    // might imagine this taking a routeName so that we can block route loaders
+    // only for the route segment this was triggered from. That would be useful
+    // in cases where multiple route segments need to react to the same query
+    // param.
+    let markNextNavigationAsShallow = () => {
+      nextNavigationIsShallow.contents = true
+    }
+
     (
       cleanup,
       {
@@ -207,6 +226,7 @@ module Router = {
           }
         },
         postRouterEvent: postRouterEvent,
+        markNextNavigationAsShallow: markNextNavigationAsShallow,
       },
     )
   }

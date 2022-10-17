@@ -4,6 +4,18 @@ let setQueryParams: (
   RelayRouter__History.t,
 ) => unit
 
+type setQueryParamsFnConfig = {
+  applyQueryParams: RelayRouter__Bindings.QueryParams.t => unit,
+  currentSearch: string,
+  navigationMode_: RelayRouter__Types.setQueryParamsMode,
+  removeNotControlledParams: bool,
+  shallow: bool,
+}
+
+type setQueryParamsFn = setQueryParamsFnConfig => unit
+
+let useSetQueryParams: unit => setQueryParamsFn
+
 type pathMatch
 
 @module("react-router") @return(nullable)

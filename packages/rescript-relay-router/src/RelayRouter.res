@@ -99,8 +99,8 @@ module Router = {
       }
       if (
         !thisNavigationShouldBeShallow &&
-        (location.pathname != currentEntry.contents.location.pathname ||
-          location.pathname !== currentEntry.contents.location.pathname)
+        (location.pathname !== currentEntry.contents.location.pathname ||
+          location.search !== currentEntry.contents.location.search)
       ) {
         let queryParams = QueryParams.parse(location.search)
 

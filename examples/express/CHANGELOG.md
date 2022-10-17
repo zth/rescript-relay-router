@@ -1,5 +1,18 @@
 # @rescript-relay-router-example/express
 
+## 0.0.2
+
+### Patch Changes
+
+- 65523d8: Update to Vite 3
+- Updated dependencies [a12579e]
+- Updated dependencies [a12579e]
+- Updated dependencies [f396f8e]
+- Updated dependencies [a12579e]
+- Updated dependencies [65523d8]
+- Updated dependencies [a12579e]
+  - rescript-relay-router@0.0.21
+
 ## 0.0.1
 
 ### Patch Changes

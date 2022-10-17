@@ -208,7 +208,7 @@ let makeQueryParams = (${queryParamEntries
 }
 
 @live
-let internal_applyQueryParams = (
+let applyQueryParams = (
   queryParams: RelayRouter__Bindings.QueryParams.t,
   ~newParams: queryParams,
 ) => {
@@ -267,7 +267,7 @@ let useQueryParams = (): useQueryParamsReturn => {
     }
 
     internalSetQueryParams({
-      applyQueryParams: internal_applyQueryParams(~newParams),
+      applyQueryParams: applyQueryParams(~newParams),
       currentSearch: search,
       navigationMode_: navigationMode_,
       removeNotControlledParams: removeNotControlledParams,
@@ -369,7 +369,7 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
     // before we cast it to an abstract type (which we do to save bundle size).
     str.contents =
       str.contents ++
-      `  let prepareProps: Route__${route.name->RouteName.getFullRouteName}_route.prepareProps = `
+      `  let prepareProps: Route__${route.name->RouteName.getFullRouteName}_route.Internal.prepareProps = `
   }
 
   str.contents =
@@ -451,49 +451,60 @@ ${queryParamsRecordFields
 `
 }
 
-let getPrepareAssets = (route: printableRoute) => {
-  let str = ref(`@live\ntype prepareProps = {\n`)
+let getPrepareTypeDefinitions = (route: printableRoute) => {
+  let str = ref(`  @live\n  type prepareProps = {\n`)
 
   let {allRecordFields: recordFields} = getRouteParamRecordFields(route)
 
   recordFields->Belt.Array.forEach(((key, typ)) => {
-    str.contents = str.contents ++ `  ${key}: ${typ},\n`
+    str.contents = str.contents ++ `    ${key}: ${typ},\n`
   })
 
-  str.contents = str.contents ++ "}\n\n"
+  str.contents = str.contents ++ "  }\n\n"
 
-  str.contents = str.contents ++ `let makeRouteKey = ${getMakeRouteKeyFn(route)}`
+  str.contents =
+    str.contents ++ `  @live\n  type renderProps<'prepared> = {
+    childRoutes: React.element,
+    prepared: 'prepared,\n`
+
+  recordFields->Belt.Array.forEach(((key, typ)) => {
+    str.contents = str.contents ++ `    ${key}: ${typ},\n`
+  })
+
+  str.contents = str.contents ++ "  }\n\n"
+
+  str.contents =
+    str.contents ++ `  @live\n  type renderers<'prepared> = {
+    prepare: prepareProps => 'prepared,
+    prepareCode: option<(. prepareProps) => array<RelayRouter.Types.preloadAsset>>,
+    render: renderProps<'prepared> => React.element,
+  }
+`
 
   str.contents =
     str.contents ++
-    "@live\nlet makePrepareProps = " ++
-    route->getMakePrepareProps(~returnMode=ForDedicatedRouteFile) ++ "\n\n"
+    "  @live\n  let makePrepareProps = " ++
+    route
+    ->getMakePrepareProps(~returnMode=ForDedicatedRouteFile)
+    // Proper indentation
+    ->Js.String2.split("\n")
+    ->Js.Array2.mapi((l, index) => index === 0 ? l : "  " ++ l)
+    ->Js.Array2.joinWith("\n") ++ "\n\n"
 
-  str.contents =
-    str.contents ++ `@live\ntype renderProps<'prepared> = {
-  childRoutes: React.element,
-  prepared: 'prepared,\n`
-
-  recordFields->Belt.Array.forEach(((key, typ)) => {
-    str.contents = str.contents ++ `  ${key}: ${typ},\n`
-  })
-
-  str.contents = str.contents ++ "}\n\n"
-
-  str.contents =
-    str.contents ++ `@live\ntype renderers<'prepared> = {
-  prepare: prepareProps => 'prepared,
-  prepareCode: option<(. prepareProps) => array<RelayRouter.Types.preloadAsset>>,
-  render: renderProps<'prepared> => React.element,
+  str.contents
 }
 
-@obj
+let getPrepareAssets = () => {
+  let str = ref("")
+
+  str.contents =
+    str.contents ++ `@obj
 external makeRenderer: (
-  ~prepare: prepareProps => 'prepared,
-  ~prepareCode: prepareProps => array<RelayRouter.Types.preloadAsset>=?,
-  ~render: renderProps<'prepared> => React.element,
+  ~prepare: Internal.prepareProps => 'prepared,
+  ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
+  ~render: Internal.renderProps<'prepared> => React.element,
   unit
-) => renderers<'prepared> = ""`
+) => Internal.renderers<'prepared> = ""`
 
   str.contents
 }

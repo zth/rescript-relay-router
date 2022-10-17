@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 0.0.22
+
+### Patch Changes
+
+- 9529b95: Restructure internal types in route codegen so that inference for query params etc works reliably again.
+
 ## 0.0.21
 
 ### Patch Changes

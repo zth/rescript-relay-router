@@ -85,13 +85,12 @@ module QueryParams = {
     | Array(inner) =>
       switch inner {
       | Array(_) => variableName
-      | String =>
-        `${variableName}->Belt.Array.map(Js.Global.encodeURIComponent)->Js.Array2.joinWith(",")`
-      | Boolean => `${variableName}->Belt.Array.map(string_of_bool)->Js.Array2.joinWith(",")`
-      | Int => `${variableName}->Belt.Array.map(Belt.Int.toString)->Js.Array2.joinWith(",")`
-      | Float => `${variableName}->Belt.Array.map(Js.Float.toString)->Js.Array2.joinWith(",")`
+      | String => `${variableName}->Belt.Array.map(Js.Global.encodeURIComponent)`
+      | Boolean => `${variableName}->Belt.Array.map(string_of_bool)`
+      | Int => `${variableName}->Belt.Array.map(Belt.Int.toString)`
+      | Float => `${variableName}->Belt.Array.map(Js.Float.toString)`
       | CustomModule({moduleName}) =>
-        `${variableName}->Belt.Array.map(value => value->${moduleName}.serialize->Js.Global.encodeURIComponent)->Js.Array2.joinWith(",")`
+        `${variableName}->Belt.Array.map(value => value->${moduleName}.serialize->Js.Global.encodeURIComponent)`
       }
     }
   }

@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 0.0.23
+
+### Patch Changes
+
+- 19855f2: Fix link generation for array params.
+
 ## 0.0.22
 
 ### Patch Changes

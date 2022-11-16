@@ -137,7 +137,7 @@ let makeLink = (~statuses: option<array<TodoStatus.t>>=?, ()) => {
   let queryParams = QueryParams.make()
   switch statuses {
     | None => ()
-    | Some(statuses) => queryParams->QueryParams.setParam(~key="statuses", ~value=statuses->Belt.Array.map(value => value->TodoStatus.serialize->Js.Global.encodeURIComponent)->Js.Array2.joinWith(","))
+    | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Belt.Array.map(value => value->TodoStatus.serialize->Js.Global.encodeURIComponent))
   }
   RelayRouter.Bindings.generatePath(routePattern, Js.Dict.fromArray([])) ++ queryParams->QueryParams.toString
 }

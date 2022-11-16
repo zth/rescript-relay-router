@@ -67,6 +67,7 @@ let getRouteMakerAndAssets = (route: printableRoute) => {
       queryParamSerializers->Js.Array2.push((
         key,
         paramType->Utils.QueryParams.toSerializer(~variableName=key->SafeParam.getSafeKey),
+        paramType,
       ))
   })
 
@@ -106,13 +107,16 @@ let routePattern = "${route.path->RoutePath.toPattern}"
     str.contents =
       str.contents ++ `  open RelayRouter.Bindings\n  let queryParams = QueryParams.make()`
 
-    queryParamSerializers->Belt.Array.forEach(((key, serializer)) => {
+    queryParamSerializers->Belt.Array.forEach(((key, serializer, paramType)) => {
       str.contents =
         str.contents ++
         `
   switch ${key->SafeParam.getSafeKey} {
     | None => ()
-    | Some(${key->SafeParam.getSafeKey}) => queryParams->QueryParams.setParam(~key="${key->SafeParam.getOriginalKey}", ~value=${serializer})
+    | Some(${key->SafeParam.getSafeKey}) => queryParams->QueryParams.${switch paramType {
+          | Array(_) => "setParamArray"
+          | _ => "setParam"
+          }}(~key="${key->SafeParam.getOriginalKey}", ~value=${serializer})
   }\n`
     })
   }

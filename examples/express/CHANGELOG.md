@@ -1,5 +1,13 @@
 # @rescript-relay-router-example/express
 
+## 0.0.4
+
+### Patch Changes
+
+- 19855f2: Fix link generation for array params.
+- Updated dependencies [19855f2]
+  - rescript-relay-router@0.0.23
+
 ## 0.0.3
 
 ### Patch Changes

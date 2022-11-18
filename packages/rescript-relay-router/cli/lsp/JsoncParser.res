@@ -60,7 +60,7 @@ let nodeToString = node =>
         "false"
       }}})`
   | String({value}) => `string("${value}")`
-  | Number({value}) => `number(${Belt.Float.toString(value)})`
+  | Number({value}) => `number(${Float.toString(value)})`
   | Null(_) => `null`
   }
 

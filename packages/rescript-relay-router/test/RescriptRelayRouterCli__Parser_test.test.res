@@ -6,21 +6,21 @@ module Bindings = RescriptRelayRouterCli__Bindings
 let makeMockParserCtx = (
   ~content,
   ~routeFileName="routes.json",
-  ~routeFiles=Js.Dict.empty(),
+  ~routeFiles=Dict.empty(),
   (),
 ): P.currentFileContext => {
   let lineLookup = Bindings.LinesAndColumns.make(content)
 
   {
-    routeFileName: routeFileName,
-    lineLookup: lineLookup,
+    routeFileName,
+    lineLookup,
     addDecodeError: (~loc as _, ~message as _) => {
       ()
     },
     getRouteFile: (~fileName, ~parentContext as _) =>
       switch routeFiles->Js.Dict.get(fileName) {
       | None => Error("Route file not mocked.")
-      | Some(rawText) => Ok({content: [], fileName: fileName, rawText: rawText})
+      | Some(rawText) => Ok({content: [], fileName, rawText})
       },
   }
 }
@@ -45,7 +45,7 @@ describe("Parsing", () => {
     let parsed =
       mockContent
       ->JsoncParser.parse([], ())
-      ->Belt.Option.flatMap(node => node->P.ReScriptTransformer.transformNode(~ctx))
+      ->Option.flatMap(node => node->P.ReScriptTransformer.transformNode(~ctx))
 
     let routes = parsed->P.Decode.decode(~ctx, ~parentContext)
 
@@ -59,20 +59,22 @@ describe("Parsing", () => {
         }),
       ] =>
       expect(
-        pathParamsParent->Belt.Array.map(p =>
-          switch p {
-          | PathParam({text}) => text
-          | PathParamWithMatchBranches({text}, _) => text
-          }
+        pathParamsParent->Array.map(
+          p =>
+            switch p {
+            | PathParam({text}) => text
+            | PathParamWithMatchBranches({text}, _) => text
+            },
         ),
       )->Expect.toEqual(["slug"])
 
       expect(
-        pathParamsChild->Belt.Array.map(p =>
-          switch p {
-          | PathParam({text}) => text
-          | PathParamWithMatchBranches({text}, _) => text
-          }
+        pathParamsChild->Array.map(
+          p =>
+            switch p {
+            | PathParam({text}) => text
+            | PathParamWithMatchBranches({text}, _) => text
+            },
         ),
       )->Expect.toEqual(["memberId", "slug"])
     | _ => ()

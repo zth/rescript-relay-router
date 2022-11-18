@@ -41,21 +41,21 @@ describe("Query params", () => {
 
     /* Arrays */
     expect(Array(String)->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(Js.Global.encodeURIComponent)->Js.Array2.joinWith(\",\")",
+      "propName->Belt.Array.map(Js.Global.encodeURIComponent)",
     )
     expect(Array(Boolean)->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(string_of_bool)->Js.Array2.joinWith(\",\")",
+      "propName->Belt.Array.map(string_of_bool)",
     )
     expect(Array(Int)->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(Belt.Int.toString)->Js.Array2.joinWith(\",\")",
+      "propName->Belt.Array.map(Belt.Int.toString)",
     )
     expect(Array(Float)->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(Js.Float.toString)->Js.Array2.joinWith(\",\")",
+      "propName->Belt.Array.map(Js.Float.toString)",
     )
     expect(
       Array(CustomModule({moduleName: "SomeModule"}))->toSerializer(~variableName="propName"),
     )->Expect.toBe(
-      "propName->Belt.Array.map(value => value->SomeModule.serialize->Js.Global.encodeURIComponent)->Js.Array2.joinWith(\",\")",
+      "propName->Belt.Array.map(value => value->SomeModule.serialize->Js.Global.encodeURIComponent)",
     )
   })
 })

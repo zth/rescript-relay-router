@@ -31,8 +31,13 @@
     }
   ],
   "suffix": ".mjs",
-  "bs-dependencies": ["@rescript/react", "rescript-relay"],
+  "bs-dependencies": [
+    "@rescript/react",
+    "rescript-relay",
+    "@gabnor/rescript-stdlib"
+  ],
   "bs-dev-dependencies": ["rescript-vitest"],
+  "bsc-flags": ["-open RescriptStdlib"],
   "js-post-build": {
     "cmd": "./scripts/post-build.sh"
   }

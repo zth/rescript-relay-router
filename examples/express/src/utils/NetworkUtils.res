@@ -5,22 +5,22 @@ let preloadFromResponse = (part: Js.Json.t, ~preloadAsset: RelayRouter__Types.pr
   switch part->Js.Json.decodeObject {
   | None => ()
   | Some(obj) =>
-    switch obj->Js.Dict.get("extensions") {
+    switch obj->Dict.get("extensions") {
     | None => ()
     | Some(extensions) =>
       switch extensions->Js.Json.decodeObject {
       | None => ()
       | Some(extensions) =>
         extensions
-        ->Js.Dict.get("preloadableImages")
-        ->Belt.Option.map(images =>
+        ->Dict.get("preloadableImages")
+        ->Option.map(images =>
           images
           ->Js.Json.decodeArray
-          ->Belt.Option.getWithDefault([])
-          ->Belt.Array.keepMap(item => item->Js.Json.decodeString)
+          ->Option.getWithDefault([])
+          ->Array.filterMap(item => item->Js.Json.decodeString)
         )
-        ->Belt.Option.getWithDefault([])
-        ->Belt.Array.forEach(imgUrl => {
+        ->Option.getWithDefault([])
+        ->Array.forEach(imgUrl => {
           preloadAsset(~priority=RelayRouter.Types.Default, RelayRouter.Types.Image({url: imgUrl}))
         })
       }
@@ -42,7 +42,7 @@ let makeFetchQuery = (~preloadAsset) =>
         "headers": Js.Dict.fromArray([("content-type", "application/json")]),
         "body": {"query": operation.text, "variables": variables}
         ->Js.Json.stringifyAny
-        ->Belt.Option.getWithDefault(""),
+        ->Option.getWithDefault(""),
       },
     )
     ->Promise.thenResolve(r => {
@@ -84,7 +84,7 @@ let makeServerFetchQuery = (
         "headers": Js.Dict.fromArray([("content-type", "application/json")]),
         "body": {"query": operation.text, "variables": variables}
         ->Js.Json.stringifyAny
-        ->Belt.Option.getWithDefault(""),
+        ->Option.getWithDefault(""),
       },
     )
     ->Promise.thenResolve(r => {

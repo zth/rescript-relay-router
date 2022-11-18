@@ -1,5 +1,5 @@
 module type EntryServer = module type of EntryServer
-@val external import_: string => Promise.t<module(EntryServer)> = "import"
+@val external import_: string => promise<module(EntryServer)> = "import"
 
 let app = Express.make()
 
@@ -52,36 +52,38 @@ switch NodeJs.isProduction {
         // recompiled when any of the code changes (Vite caches it for us).
         vite
         ->ssrLoadModule("/src/EntryServer.mjs")
-        ->Promise.then((entryServer: module(EntryServer)) => {
-          open RelayRouter.Manifest
-          module EntryServer = unpack(entryServer)
+        ->Promise.then(
+          (entryServer: module(EntryServer)) => {
+            open RelayRouter.Manifest
+            module EntryServer = unpack(entryServer)
 
-          let entryPoint = "/src/EntryClient.mjs"
-          let manifest = {
-            entryPoint: entryPoint,
-            files: Js.Dict.fromArray([(entryPoint, {imports: [], css: [], assets: []})]),
-          }
+            let entryPoint = "/src/EntryClient.mjs"
+            let manifest = {
+              entryPoint,
+              files: Dict.fromArray([(entryPoint, {imports: [], css: [], assets: []})]),
+            }
 
-          EntryServer.handleRequest(~request, ~response, ~manifest)
-        })
+            EntryServer.handleRequest(~request, ~response, ~manifest)
+          },
+        )
       } catch {
       | Js.Exn.Error(err) => {
           vite->ssrFixStacktrace(err)
-          Js.Console.log("[debug] got error")
-          Js.Console.log(err)
+          Console.log("[debug] got error")
+          Console.log(err)
           // Can't set a proper status here as we've already sent the status code
           // when we started streaming. TODO: Replace with a proper error screen or
           // similar?
           // TODO: No stream to write to here?
           // res.end(e.message);
-          Js.Promise.resolve()
+          Promise.resolve()
         }
       }
     })
 
     app->listen(9999)
 
-    Js.Console.log(`Listening on http://localhost:9999 🚀`)
+    Console.log(`Listening on http://localhost:9999 🚀`)
   })
   ->ignore
 }

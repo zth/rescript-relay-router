@@ -52,14 +52,12 @@ module RouteName: {
 } = {
   type t = {routeNamePath: list<string>, loc: range}
   let make = (~routeNamePath, ~loc) => {
-    routeNamePath: routeNamePath,
-    loc: loc,
+    routeNamePath,
+    loc,
   }
-  let getRouteName = t =>
-    t.routeNamePath->Belt.List.toArray->Js.Array2.pop->Belt.Option.getWithDefault("")
-  let getFullRouteName = t => t.routeNamePath->Belt.List.toArray->Js.Array2.joinWith("__")
-  let getFullRouteAccessPath = t =>
-    t.routeNamePath->Belt.List.toArray->Js.Array2.joinWith(".") ++ ".Route"
+  let getRouteName = t => t.routeNamePath->List.toArray->Array.pop->Option.getWithDefault("")
+  let getFullRouteName = t => t.routeNamePath->List.toArray->Array.joinWith("__")
+  let getFullRouteAccessPath = t => t.routeNamePath->List.toArray->Array.joinWith(".") ++ ".Route"
   let getRouteRendererName = t => t->getFullRouteName ++ "_route_renderer"
   let getRouteRendererFileName = t => t->getRouteRendererName ++ ".res"
   let toGeneratedRouteModuleName = t => "Route__" ++ t->getFullRouteName ++ "_route"
@@ -82,33 +80,33 @@ module RoutePath: {
   }
 
   let make = (path, ~currentRoutePath) => {
-    let cleanPath = path->Js.String2.split("?")->Belt.Array.get(0)->Belt.Option.getWithDefault("")
+    let cleanPath = path->String.split("?")->Array.get(0)->Option.getWithDefault("")
     {
       pathSegment: cleanPath,
       currentRoutePath: cleanPath
-      ->Js.String2.split("/")
-      ->Belt.List.fromArray
-      ->Belt.List.reverse
-      ->Belt.List.concat(currentRoutePath.currentRoutePath)
-      ->Belt.List.keep(urlPart => urlPart != ""),
+      ->String.split("/")
+      ->List.fromArray
+      ->List.reverse
+      ->List.concat(currentRoutePath.currentRoutePath)
+      ->List.filter(urlPart => urlPart != ""),
     }
   }
 
   let getPathSegment = t => t.pathSegment
-  let getFullRoutePath = t => "/" ++ t.currentRoutePath->Belt.List.toArray->Js.Array2.joinWith("/")
+  let getFullRoutePath = t => "/" ++ t.currentRoutePath->List.toArray->Array.joinWith("/")
 
   let toPattern = t =>
     "/" ++
     t.currentRoutePath
-    ->Belt.List.reverse
-    ->Belt.List.keepMap(part =>
+    ->List.reverse
+    ->List.filterMap(part =>
       switch part {
       | "/" => None
       | part => Some(part)
       }
     )
-    ->Belt.List.toArray
-    ->Js.Array2.joinWith("/")
+    ->List.toArray
+    ->Array.joinWith("/")
   let empty = () => {
     pathSegment: "",
     currentRoutePath: list{},
@@ -184,7 +182,7 @@ type loadedRouteFile = {fileName: string, rawText: string, content: array<routeC
 type routeStructure = {
   errors: array<decodeError>,
   result: array<routeChild>,
-  routeFiles: Js.Dict.t<loadedRouteFile>,
+  routeFiles: Dict.t<loadedRouteFile>,
 }
 
 // For printing. A simpler AST without unecessary location info etc.
@@ -193,7 +191,7 @@ type rec printableRoute = {
   params: array<printablePathParam>,
   name: RouteName.t,
   children: array<printableRoute>,
-  queryParams: Js.Dict.t<queryParam>,
+  queryParams: Dict.t<queryParam>,
   sourceFile: string,
 }
 
@@ -203,7 +201,7 @@ type rec routeForCliMatching = {
   name: string,
   sourceFile: string,
   @live children: array<routeForCliMatching>,
-  @live queryParams: Js.Dict.t<queryParam>,
+  @live queryParams: Dict.t<queryParam>,
 }
 
 type config = {

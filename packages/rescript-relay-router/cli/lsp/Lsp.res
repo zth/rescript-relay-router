@@ -15,8 +15,6 @@ module Resolvers = RescriptRelayRouterLsp__Resolvers
 
 open RescriptRelayRouterCli__Types
 
-let deleteFromDict = (dict, key) => Js.Dict.unsafeDeleteKey(. Obj.magic(dict), key)
-
 module Message = {
   type msg
 
@@ -140,7 +138,7 @@ module Message = {
         {
           jsonrpc: jsonrpcVersion,
           method: #"textDocument/publishDiagnostics",
-          params: params,
+          params,
         }->notificationMessageAsMsg
       }
   }
@@ -165,7 +163,7 @@ module Message = {
 
     let make = (~code, ~message) => {
       code: code->codeToInt,
-      message: message,
+      message,
     }
   }
 
@@ -216,11 +214,11 @@ module Message = {
     ) => {
       capabilities: {
         textDocumentSync: textDocumentSync->textDocumentSyncToInt,
-        hoverProvider: hoverProvider,
-        completionProvider: completionProvider,
-        codeLensProvider: codeLensProvider,
-        documentLinkProvider: documentLinkProvider,
-        codeActionProvider: codeActionProvider,
+        hoverProvider,
+        completionProvider,
+        codeLensProvider,
+        documentLinkProvider,
+        codeActionProvider,
       },
     }
   }
@@ -243,7 +241,7 @@ module Message = {
     external fromDocumentLinks: array<LspProtocol.documentLink> => t = "%identity"
     external fromCompletionItems: array<LspProtocol.completionItem> => t = "%identity"
     external fromCodeActions: array<LspProtocol.codeAction> => t = "%identity"
-    let null = () => Js.Nullable.null->fromAny
+    let null = () => Nullable.null->fromAny
   }
 
   module Response: {
@@ -262,9 +260,9 @@ module Message = {
 
     let make = (~id, ~error=?, ~result=?, ()) => {
       jsonrpc: jsonrpcVersion,
-      id: id,
-      error: error,
-      result: result,
+      id,
+      error,
+      result,
     }
   }
 }
@@ -324,20 +322,20 @@ module CurrentContext: {
   type t
   let make: (
     ~config: config,
-    ~getRouteFileContents: string => Belt.Result.t<string, Js.Exn.t>,
-    ~routeRenderersCache: Js.Dict.t<string>,
+    ~getRouteFileContents: string => Result.t<string, Exn.t>,
+    ~routeRenderersCache: Dict.t<string>,
   ) => t
   let isValidRouteFile: (t, string) => bool
   let getCurrentRouteStructure: t => routeStructure
   let getConfig: t => config
   let getRouteFileNames: t => array<string>
-  let getRouteRenderersCache: t => Js.Dict.t<string>
+  let getRouteRenderersCache: t => Dict.t<string>
 } = {
   type t = {
     routeStructure: routeStructure,
     config: config,
     routeFileNames: array<string>,
-    routeRenderersCache: Js.Dict.t<string>,
+    routeRenderersCache: Dict.t<string>,
   }
 
   let make = (~config, ~getRouteFileContents, ~routeRenderersCache) => {
@@ -345,12 +343,12 @@ module CurrentContext: {
       ~config,
       ~getRouteFileContents,
     ),
-    config: config,
+    config,
     routeFileNames: Bindings.Glob.glob.sync(
       ["*.json"],
       Bindings.Glob.opts(~cwd=Utils.pathInRoutesFolder(~config, ()), ()),
     ),
-    routeRenderersCache: routeRenderersCache,
+    routeRenderersCache,
   }
 
   @module("url")
@@ -369,17 +367,17 @@ module CurrentContext: {
 }
 
 let start = (~mode, ~config: config) => {
-  let routeFilesCaches: Js.Dict.t<string> = Js.Dict.empty()
-  let routeRenderersCache: Js.Dict.t<string> = Js.Dict.empty()
+  let routeFilesCaches: Dict.t<string> = Dict.empty()
+  let routeRenderersCache: Dict.t<string> = Dict.empty()
 
   let getRouteFileContents = fileName => {
-    switch routeFilesCaches->Js.Dict.get(fileName) {
+    switch routeFilesCaches->Dict.get(fileName) {
     | Some(contents) => Ok(contents)
     | None =>
       try {
         Ok(Bindings.Fs.readFileSync(Utils.pathInRoutesFolder(~config, ~fileName, ())))
       } catch {
-      | Js.Exn.Error(exn) => Error(exn)
+      | Exn.Error(exn) => Error(exn)
       }
     }
   }
@@ -387,13 +385,13 @@ let start = (~mode, ~config: config) => {
   let filesWithDiagnostics = ref([])
 
   let publishDiagnostics = lspResolveContext => {
-    let filesWithDiagnosticsAtLastPublish = filesWithDiagnostics.contents->Js.Array2.copy
+    let filesWithDiagnosticsAtLastPublish = filesWithDiagnostics.contents->Array.copy
     let currentFilesWithDiagnostics = []
 
     CurrentContext.getCurrentRouteStructure(lspResolveContext).errors
     ->Resolvers.diagnostics
-    ->Belt.Array.forEach(((fileName, diagnostics)) => {
-      let _ = currentFilesWithDiagnostics->Js.Array2.push(fileName)
+    ->Array.forEach(((fileName, diagnostics)) => {
+      let _ = currentFilesWithDiagnostics->Array.push(fileName)
 
       PublishDiagnostics({
         uri: Utils.pathInRoutesFolder(
@@ -401,7 +399,7 @@ let start = (~mode, ~config: config) => {
           ~fileName,
           (),
         ),
-        diagnostics: diagnostics,
+        diagnostics,
       })
       ->Message.Notification.asMessage
       ->send
@@ -410,8 +408,8 @@ let start = (~mode, ~config: config) => {
     filesWithDiagnostics := currentFilesWithDiagnostics
 
     // Delete diagnostics from files that no longer have them
-    filesWithDiagnosticsAtLastPublish->Belt.Array.forEach(fileName => {
-      if !(currentFilesWithDiagnostics->Js.Array2.includes(fileName)) {
+    filesWithDiagnosticsAtLastPublish->Array.forEach(fileName => {
+      if !(currentFilesWithDiagnostics->Array.includes(fileName)) {
         PublishDiagnostics({
           uri: Utils.pathInRoutesFolder(
             ~config=lspResolveContext->CurrentContext.getConfig,
@@ -441,9 +439,9 @@ let start = (~mode, ~config: config) => {
     let key = uri->Bindings.Path.basename
 
     switch uri->Bindings.Path.extname {
-    | ".res" => routeRenderersCache->Js.Dict.set(key, text)
+    | ".res" => routeRenderersCache->Dict.set(key, text)
     | ".json" =>
-      routeFilesCaches->Js.Dict.set(key, text)
+      routeFilesCaches->Dict.set(key, text)
       rebuildLspResolveContext()
     | _ => ()
     }
@@ -458,9 +456,9 @@ let start = (~mode, ~config: config) => {
       routeFilesCaches
     }
 
-    switch targetCache->Js.Dict.get(key)->Belt.Option.isSome {
+    switch targetCache->Dict.get(key)->Option.isSome {
     | true =>
-      targetCache->Js.Dict.set(key, text)
+      targetCache->Dict.set(key, text)
       rebuildLspResolveContext()
     | false => ()
     }
@@ -469,8 +467,8 @@ let start = (~mode, ~config: config) => {
   let closeFile = uri => {
     let key = uri->Bindings.Path.basename
 
-    routeFilesCaches->deleteFromDict(key)
-    routeRenderersCache->deleteFromDict(key)
+    routeFilesCaches->Dict.delete(key)
+    routeRenderersCache->Dict.delete(key)
 
     rebuildLspResolveContext()
   }
@@ -508,7 +506,7 @@ let start = (~mode, ~config: config) => {
           | DidChangeTextDocumentNotification(params) =>
             switch (
               ctx->CurrentContext.isValidRouteFile(params.textDocument.uri),
-              params.contentChanges->Js.Array2.copy->Js.Array2.pop,
+              params.contentChanges->Array.copy->Array.pop,
             ) {
             | (true, Some({text})) => updateOpenedFile(params.textDocument.uri, text)
             | _ => ()
@@ -603,11 +601,11 @@ let start = (~mode, ~config: config) => {
             | ".res" =>
               let fileName = params.textDocument.uri->Bindings.Path.basename
 
-              if fileName->Js.String2.endsWith("route_renderer.res") {
+              if fileName->String.endsWith("route_renderer.res") {
                 // CodeLens won't happen unless this doc is open, at which point
                 // we'll have the text of it in our cache already.
                 let routeRendererContent =
-                  ctx->CurrentContext.getRouteRenderersCache->Js.Dict.get(fileName)
+                  ctx->CurrentContext.getRouteRenderersCache->Dict.get(fileName)
 
                 let result = switch routeRendererContent {
                 | None => Message.Result.null()

@@ -1,4 +1,4 @@
-let preparedAssetsMap = Js.Dict.empty()
+let preparedAssetsMap = Dict.empty()
 
 let network = RescriptRelay.Network.makeObservableBased(
   ~observableFunction=NetworkUtils.makeFetchQuery(

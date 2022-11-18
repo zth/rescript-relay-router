@@ -73,7 +73,7 @@ module AstIterator = {
     astLocation,
   > => {
     let {pos} = ctx
-    let children = children->Js.Array2.copy
+    let children = children->Array.copy
     let break = ref(false)
     let foundContext = ref(None)
 
@@ -84,7 +84,7 @@ module AstIterator = {
     }
 
     while break.contents == false {
-      switch children->Js.Array2.shift {
+      switch children->Array.shift {
       | None => breakNow()
       | Some(Include({loc, fileName, keyLoc, content} as includeEntry))
         if loc->mapRange->hasPos(~pos) =>
@@ -92,7 +92,7 @@ module AstIterator = {
         | (true, _) =>
           setFoundContext(
             IncludeEntry({
-              includeEntry: includeEntry,
+              includeEntry,
               innerLocation: Some(FileName(fileName)),
             }),
           )
@@ -100,7 +100,7 @@ module AstIterator = {
         | (_, true) =>
           setFoundContext(
             IncludeEntry({
-              includeEntry: includeEntry,
+              includeEntry,
               innerLocation: Some(Key(keyLoc)),
             }),
           )
@@ -109,7 +109,7 @@ module AstIterator = {
           | None =>
             setFoundContext(
               IncludeEntry({
-                includeEntry: includeEntry,
+                includeEntry,
                 innerLocation: None,
               }),
             )
@@ -122,7 +122,7 @@ module AstIterator = {
         | (true, _) =>
           setFoundContext(
             RouteEntry({
-              routeEntry: routeEntry,
+              routeEntry,
               innerLocation: Some(
                 Name(
                   NameText({
@@ -136,16 +136,16 @@ module AstIterator = {
         | (_, true) =>
           setFoundContext(
             RouteEntry({
-              routeEntry: routeEntry,
+              routeEntry,
               innerLocation: Some(Path(FullPath({path: path}))),
             }),
           )
         | (false, false) =>
-          switch routeEntry.children->Belt.Option.getWithDefault([])->findPosInRouteChildren(~ctx) {
+          switch routeEntry.children->Option.getWithDefault([])->findPosInRouteChildren(~ctx) {
           | None =>
             setFoundContext(
               RouteEntry({
-                routeEntry: routeEntry,
+                routeEntry,
                 innerLocation: None,
               }),
             )
@@ -171,7 +171,7 @@ let findRequestContext = (routeStructure: routeStructure, ~ctx: lspResolveContex
 > => {
   let routeFileName = ctx.fileUri->toRouteFileName
 
-  switch routeStructure.routeFiles->Js.Dict.get(routeFileName) {
+  switch routeStructure.routeFiles->Dict.get(routeFileName) {
   | None =>
     ()
     None
@@ -226,21 +226,19 @@ let resolveRouteFileCompletions = (
   let currentFileName = ctx.fileUri->Bindings.Path.basename
 
   let potentialMatches =
-    ctx.routeFileNames->Belt.Array.keep(routeFileName =>
+    ctx.routeFileNames->Array.filter(routeFileName =>
       routeFileName != currentFileName &&
-        !(includeEntry.parentRouteFiles->Js.Array2.includes(routeFileName))
+        !(includeEntry.parentRouteFiles->Array.includes(routeFileName))
     )
 
   if matchText == "" {
-    potentialMatches->Belt.Array.map(matchedLabel =>
+    potentialMatches->Array.map(matchedLabel =>
       LspProtocol.makeCompletionItem(~label=matchedLabel, ~kind=Class)
     )
   } else {
     matchText
     ->Bindings.FuzzySearch.search(potentialMatches)
-    ->Belt.Array.map(matchedLabel =>
-      LspProtocol.makeCompletionItem(~label=matchedLabel, ~kind=Class)
-    )
+    ->Array.map(matchedLabel => LspProtocol.makeCompletionItem(~label=matchedLabel, ~kind=Class))
   }
 }
 
@@ -322,7 +320,7 @@ let codeLens = (routeStructure: routeStructure, ~ctx: lspResolveContext): option
 > => {
   let lenses: array<LspProtocol.codeLens> = []
   let addLens = (~range, ~command, ()) => {
-    let _ = lenses->Js.Array2.push(LspProtocol.makeCodeLensItem(~command, ~range))
+    let _ = lenses->Array.push(LspProtocol.makeCodeLensItem(~command, ~range))
   }
 
   let rec traverse = (routeChild, ~ctx) => {
@@ -344,22 +342,22 @@ let codeLens = (routeStructure: routeStructure, ~ctx: lspResolveContext): option
         (),
       )
 
-      routeEntry.children->Belt.Option.getWithDefault([])->traverseRouteChildren(~ctx)
+      routeEntry.children->Option.getWithDefault([])->traverseRouteChildren(~ctx)
     | _ => ()
     }
   }
   and traverseRouteChildren = (routeChildren, ~ctx) => {
-    routeChildren->Belt.Array.forEach(child => child->traverse(~ctx))
+    routeChildren->Array.forEach(child => child->traverse(~ctx))
   }
 
   let routeFileName = ctx.fileUri->toRouteFileName
 
-  switch routeStructure.routeFiles->Js.Dict.get(routeFileName) {
+  switch routeStructure.routeFiles->Dict.get(routeFileName) {
   | None => ()
   | Some({content}) => content->traverseRouteChildren(~ctx)
   }
 
-  switch lenses->Js.Array2.length {
+  switch lenses->Array.length {
   | 0 => None
   | _ => Some(lenses)
   }
@@ -371,17 +369,17 @@ let routeRendererCodeLens = (
   ~routeRendererFileContent,
   ~ctx: lspResolveContext,
 ): option<array<LspProtocol.codeLens>> => {
-  let lines = routeRendererFileContent->Js.String2.split("\n")
+  let lines = routeRendererFileContent->String.split("\n")
   let foundRenderer = ref(None)
 
-  for lineIdx in 0 to lines->Js.Array2.length - 1 {
+  for lineIdx in 0 to lines->Array.length - 1 {
     switch foundRenderer.contents {
     | Some(_) => ()
     | None =>
-      let line = lines->Js.Array2.unsafe_get(lineIdx)
-      if line->Js.String2.includes("makeRenderer(") {
-        let characterStart = line->Js.String2.indexOf("makeRenderer(")
-        let characterEnd = line->Js.String2.length
+      let line = lines->Array.getUnsafe(lineIdx)
+      if line->String.includes("makeRenderer(") {
+        let characterStart = line->String.indexOf("makeRenderer(")
+        let characterEnd = line->String.length
 
         let range: LspProtocol.range = {
           start: {
@@ -398,14 +396,14 @@ let routeRendererCodeLens = (
         // lens.
         let routeName =
           routeRendererFileName
-          ->Js.String2.split("_route_renderer.res")
-          ->Belt.Array.get(0)
-          ->Belt.Option.getWithDefault("")
+          ->String.split("_route_renderer.res")
+          ->Array.get(0)
+          ->Option.getWithDefault("")
 
         let matchingRouteEntry = ref(None)
 
         let rec findRouteWithName = (name, ~routeChildren) => {
-          routeChildren->Belt.Array.forEach(routeEntry => {
+          routeChildren->Array.forEach(routeEntry => {
             switch routeEntry {
             | RouteEntry(routeEntry) if routeEntry.name->RouteName.getFullRouteName == routeName =>
               matchingRouteEntry := Some(routeEntry)
@@ -455,8 +453,7 @@ let documentLinks = (routeStructure: routeStructure, ~ctx: lspResolveContext): o
 
   @live
   let addDocumentLink = (~range, ~fileUri, ~tooltip=?, ()) => {
-    let _ =
-      documentLinks->Js.Array2.push(LspProtocol.makeDocumentLink(~range, ~fileUri, ~tooltip?, ()))
+    let _ = documentLinks->Array.push(LspProtocol.makeDocumentLink(~range, ~fileUri, ~tooltip?, ()))
   }
 
   let rec traverse = (routeChild, ~ctx: lspResolveContext) => {
@@ -473,10 +470,10 @@ let documentLinks = (routeStructure: routeStructure, ~ctx: lspResolveContext): o
         (),
       )
 
-      routeEntry.children->Belt.Option.getWithDefault([])->traverseRouteChildren(~ctx)
+      routeEntry.children->Option.getWithDefault([])->traverseRouteChildren(~ctx)
 
     | Include(includeEntry) =>
-      if ctx.routeFileNames->Js.Array2.includes(includeEntry.fileName.text) {
+      if ctx.routeFileNames->Array.includes(includeEntry.fileName.text) {
         addDocumentLink(
           ~range=includeEntry.fileName.loc->mapRange,
           ~fileUri=Utils.pathInRoutesFolder(
@@ -491,39 +488,39 @@ let documentLinks = (routeStructure: routeStructure, ~ctx: lspResolveContext): o
     }
   }
   and traverseRouteChildren = (routeChildren, ~ctx) => {
-    routeChildren->Belt.Array.forEach(child => child->traverse(~ctx))
+    routeChildren->Array.forEach(child => child->traverse(~ctx))
   }
 
   let routeFileName = ctx.fileUri->toRouteFileName
 
-  switch routeStructure.routeFiles->Js.Dict.get(routeFileName) {
+  switch routeStructure.routeFiles->Dict.get(routeFileName) {
   | None => ()
   | Some({content}) => content->traverseRouteChildren(~ctx)
   }
 
-  switch documentLinks->Js.Array2.length {
+  switch documentLinks->Array.length {
   | 0 => None
   | _ => Some(documentLinks)
   }
 }
 
 let diagnostics = (errors: array<decodeError>): array<(string, array<LspProtocol.diagnostic>)> => {
-  let diagnosticsPerFile = Js.Dict.empty()
+  let diagnosticsPerFile = Dict.empty()
 
-  errors->Belt.Array.forEach(error => {
-    let targetDiagnosticsArray = switch diagnosticsPerFile->Js.Dict.get(error.routeFileName) {
+  errors->Array.forEach(error => {
+    let targetDiagnosticsArray = switch diagnosticsPerFile->Dict.get(error.routeFileName) {
     | Some(diagnosticsArray) => diagnosticsArray
     | None =>
       let diagnosticsArray = []
-      diagnosticsPerFile->Js.Dict.set(error.routeFileName, diagnosticsArray)
+      diagnosticsPerFile->Dict.set(error.routeFileName, diagnosticsArray)
       diagnosticsArray
     }
 
     let _ =
-      targetDiagnosticsArray->Js.Array2.push(
+      targetDiagnosticsArray->Array.push(
         LspProtocol.makeDiagnostic(~message=error.message, ~range=error.loc->mapRange),
       )
   })
 
-  diagnosticsPerFile->Js.Dict.entries
+  diagnosticsPerFile->Dict.toArray
 }

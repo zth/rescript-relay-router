@@ -4,7 +4,8 @@
 let make = () => {
   switch isDev {
   | false => React.null
-  | true => <>
+  | true =>
+    <>
       <script type_="module" src="/@vite/client" />
       <script
         type_="module"

@@ -55,13 +55,15 @@ describe("RelayRouter__Utils", () => {
       },
     ]
 
-    testCases->Belt.Array.forEach(({exact, pathname, routePattern, expected}) => {
-      test(
-        `pattern: "${routePattern}", path: "${pathname}", exact: ${exact ? "true" : "false"}`,
-        _t => {
-          expect(isRouteActive(~exact, ~pathname, ~routePattern, ()))->Expect.toBe(expected)
-        },
-      )
-    })
+    testCases->Array.forEach(
+      ({exact, pathname, routePattern, expected}) => {
+        test(
+          `pattern: "${routePattern}", path: "${pathname}", exact: ${exact ? "true" : "false"}`,
+          _t => {
+            expect(isRouteActive(~exact, ~pathname, ~routePattern, ()))->Expect.toBe(expected)
+          },
+        )
+      },
+    )
   })
 })

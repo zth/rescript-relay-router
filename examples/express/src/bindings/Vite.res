@@ -7,13 +7,13 @@ type serverConfig = {middlewareMode: middlewareMode}
 type config = {server: serverConfig}
 
 @val @module("vite")
-external make: config => Promise.t<t> = "createServer"
+external make: config => promise<t> = "createServer"
 let make = (~middlewareMode) => make({server: {middlewareMode: middlewareMode}})
 
 @get external middlewares: t => Express.middleware = "middlewares"
 
-@send external ssrLoadModule: (t, string) => Promise.t<'a> = "ssrLoadModule"
+@send external ssrLoadModule: (t, string) => promise<'a> = "ssrLoadModule"
 
-@send external transformIndexHtml: (t, string, string) => Promise.t<string> = "transformIndexHtml"
+@send external transformIndexHtml: (t, string, string) => promise<string> = "transformIndexHtml"
 
-@send external ssrFixStacktrace: (t, Js.Exn.t) => unit = "ssrFixStackTrace"
+@send external ssrFixStacktrace: (t, Exn.t) => unit = "ssrFixStackTrace"

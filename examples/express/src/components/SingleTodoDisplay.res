@@ -26,9 +26,9 @@ let make = (~todo) => {
   let (todo, refetch) = TodoFragment.useRefetchable(todo)
   let (mutate, isMutating) = UpdateTodoItemMutation.use()
   let (isRefetching, startTransition) = ReactExperimental.useTransition()
-  let completed = todo.completed->Belt.Option.getWithDefault(false)
+  let completed = todo.completed->Option.getWithDefault(false)
   let {setParams} = Routes.Root.Todos.Single.Route.useQueryParams()
-  let isShowingMore = todo.isShowingMore->Belt.Option.isSome
+  let isShowingMore = todo.isShowingMore->Option.isSome
 
   <div>
     <h2> {React.string(todo.text)} </h2>

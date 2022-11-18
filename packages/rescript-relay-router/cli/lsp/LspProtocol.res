@@ -23,8 +23,8 @@ type diagnostic = {
 }
 
 let makeDiagnostic = (~range, ~message) => {
-  range: range,
-  message: message,
+  range,
+  message,
   source: "RescriptRelayRouter",
 }
 
@@ -110,8 +110,8 @@ let completionItemToInt = item =>
 type completionItem = {label: string, kind: completionItemKind}
 
 let makeCompletionItem = (~label, ~kind) => {
-  label: label,
-  kind: kind,
+  label,
+  kind,
 }
 
 @live
@@ -203,27 +203,27 @@ type codeAction = {
 module Command = {
   @live
   let makeOpenFileCommand = (~title, ~fileUri) => {
-    title: title,
+    title,
     command: `vscode.open`,
     arguments: Some([fileUri]),
   }
 
   let makeOpenFileAtPosCommand = (~title, ~fileUri, ~pos) => {
-    title: title,
+    title,
     command: `vscode-rescript-relay.open-pos-in-doc`,
-    arguments: Some([fileUri, pos.line->Belt.Int.toString, pos.character->Belt.Int.toString]),
+    arguments: Some([fileUri, pos.line->Int.toString, pos.character->Int.toString]),
   }
 
   let makeTextOnlyCommand = title => {
-    title: title,
+    title,
     command: "",
     arguments: None,
   }
 }
 
 let makeCodeLensItem = (~range, ~command) => {
-  range: range,
-  command: command,
+  range,
+  command,
 }
 
 @live
@@ -234,7 +234,7 @@ type documentLink = {
 }
 
 let makeDocumentLink = (~range, ~fileUri, ~tooltip=?, ()) => {
-  range: range,
+  range,
   target: fileUri,
-  tooltip: tooltip,
+  tooltip,
 }

@@ -6,8 +6,8 @@ open RescriptRelayRouterCli__Types
 
 type parserContext = {
   routeFileNames: array<string>,
-  routeFiles: Js.Dict.t<loadedRouteFile>,
-  getRouteFileContents: string => Belt.Result.t<string, Js.Exn.t>,
+  routeFiles: Dict.t<loadedRouteFile>,
+  getRouteFileContents: string => Result.t<string, Exn.t>,
 }
 
 type currentFileContext = {
@@ -27,10 +27,10 @@ module QueryParams = {
   // Decodes a raw query param type value from string to an actual type.
   // Example: "array<bool>" => Array(Boolean)
   let rec stringToQueryParam = str => {
-    if str->Js.String2.startsWith("array<") {
+    if str->String.startsWith("array<") {
       // Pull out the value of the array
-      let arrayValue = str->Js.String2.replace("array<", "")
-      let arrayValue = arrayValue->Js.String2.slice(~from=0, ~to_=Js.String2.length(arrayValue) - 1)
+      let arrayValue = str->String.replaceString("array<", "")
+      let arrayValue = arrayValue->String.slice(~start=0, ~end=String.length(arrayValue) - 1)
 
       switch stringToQueryParam(arrayValue) {
       | Ok(value) => Ok(Array(value))
@@ -43,20 +43,20 @@ module QueryParams = {
       | "float" => Ok(Float)
       | "bool" => Ok(Boolean)
       | maybeCustomModule =>
-        let firstChar = maybeCustomModule->Js.String2.charAt(0)
-        let correctEnding = maybeCustomModule->Js.String2.endsWith(".t")
+        let firstChar = maybeCustomModule->String.charAt(0)
+        let correctEnding = maybeCustomModule->String.endsWith(".t")
 
         switch correctEnding {
         | false => Error()
         | true =>
-          switch (firstChar, firstChar->Js.String2.toUpperCase) {
+          switch (firstChar, firstChar->String.toUpperCase) {
           | ("", _) => Error()
           | (raw, uppercased) if raw == uppercased =>
             Ok(
               CustomModule({
-                moduleName: maybeCustomModule->Js.String2.slice(
-                  ~from=0,
-                  ~to_=Js.String2.length(maybeCustomModule) - 2,
+                moduleName: maybeCustomModule->String.slice(
+                  ~start=0,
+                  ~end=String.length(maybeCustomModule) - 2,
                 ),
               }),
             )
@@ -83,44 +83,44 @@ module ReScriptTransformer = {
     | (#boolean, Some(value), _) =>
       switch value->Js.Json.decodeBoolean {
       | None => None
-      | Some(value) => Some(Boolean({loc: loc, error: None, value: value}))
+      | Some(value) => Some(Boolean({loc, error: None, value}))
       }
     | (#string, Some(value), _) =>
       switch value->Js.Json.decodeString {
       | None => None
-      | Some(value) => Some(String({loc: loc, error: None, value: value}))
+      | Some(value) => Some(String({loc, error: None, value}))
       }
     | (#number, Some(value), _) =>
       switch value->Js.Json.decodeNumber {
       | None => None
-      | Some(value) => Some(Number({loc: loc, error: None, value: value}))
+      | Some(value) => Some(Number({loc, error: None, value}))
       }
-    | (#null, _, _) => Some(Null({loc: loc, error: None}))
+    | (#null, _, _) => Some(Null({loc, error: None}))
     | (#array, _, Some(children)) =>
       Some(
         Array({
-          loc: loc,
+          loc,
           error: None,
-          children: children->Belt.Array.keepMap(child => child->transformNode(~ctx)),
+          children: children->Array.filterMap(child => child->transformNode(~ctx)),
         }),
       )
     | (#object, _, Some(children)) =>
       Some(
         Object({
-          loc: loc,
+          loc,
           error: None,
           properties: {
             let properties: array<property> = []
 
-            children->Belt.Array.forEach(child => {
+            children->Array.forEach(child => {
               switch (child.typ, child.children) {
               | (#property, Some([{typ: #string, value: Some(name)}, rawValue])) =>
                 switch (name->Js.Json.decodeString, rawValue->transformNode(~ctx)) {
                 | (Some(name), Some(value)) =>
-                  let _ = properties->Js.Array2.push({
+                  let _ = properties->Array.push({
                     loc: child->rangeFromNode(~lineLookup=ctx.lineLookup),
-                    name: name,
-                    value: value,
+                    name,
+                    value,
                   })
                 | _ => ()
                 }
@@ -161,8 +161,7 @@ let dummyPos: range = {
 }
 
 module Path = {
-  let withoutQueryParams = path =>
-    path->Js.String2.split("?")->Belt.Array.get(0)->Belt.Option.getWithDefault("")
+  let withoutQueryParams = path => path->String.split("?")->Array.get(0)->Option.getWithDefault("")
 
   type inContext = ParamName | MatchBranches
 
@@ -186,7 +185,7 @@ module Path = {
     let startCharIdx = loc.start.column + 1
 
     let addParamIfNotAlreadyPresent = (~currentCtx, ~paramLoc) => {
-      switch parentContext.seenPathParams->Belt.List.getBy(param => {
+      switch parentContext.seenPathParams->List.getBy(param => {
         let textNode = switch param.seenAtPosition {
         | PathParam(textNode) => textNode
         | PathParamWithMatchBranches(textNode, _) => textNode
@@ -202,13 +201,13 @@ module Path = {
             },
             end_: {
               line: lineNum,
-              column: path->Js.String2.length - 1,
+              column: path->String.length - 1,
             },
           },
           text: currentCtx.paramName,
         }
-        let _ = foundPathParams->Js.Array2.push(
-          if currentCtx.matchBranches->Js.Array2.length > 0 {
+        let _ = foundPathParams->Array.push(
+          if currentCtx.matchBranches->Array.length > 0 {
             PathParamWithMatchBranches(textNode, currentCtx.matchBranches)
           } else {
             PathParam(textNode)
@@ -231,7 +230,7 @@ module Path = {
       }
     }
 
-    for charIdx in 0 to pathWithoutQueryParams->Js.String2.length - 1 {
+    for charIdx in 0 to pathWithoutQueryParams->String.length - 1 {
       let charLoc = {
         start: {
           line: lineNum,
@@ -243,7 +242,10 @@ module Path = {
         },
       }
 
-      switch (currentContext.contents, pathWithoutQueryParams->Js.String2.get(charIdx)) {
+      switch (
+        currentContext.contents,
+        pathWithoutQueryParams->String.get(charIdx)->Option.getWithDefault(""),
+      ) {
       | (None, ":") =>
         currentContext :=
           Some({
@@ -255,7 +257,7 @@ module Path = {
             matchBranches: [],
           })
       | (Some(currentCtx), "/") =>
-        if currentCtx.paramName->Js.String2.length == 0 {
+        if currentCtx.paramName->String.length == 0 {
           ctx.addDecodeError(
             ~loc={
               start: {
@@ -291,9 +293,7 @@ module Path = {
           Some({
             ...currentCtx,
             currentMatchParam: "",
-            matchBranches: currentCtx.matchBranches->Js.Array2.concat([
-              currentCtx.currentMatchParam,
-            ]),
+            matchBranches: currentCtx.matchBranches->Array.concat([currentCtx.currentMatchParam]),
           })
       | (Some({inContext: ParamName} as currentCtx), "(") =>
         currentContext :=
@@ -308,9 +308,9 @@ module Path = {
             paramName: currentCtx.paramName ++ char,
           })
 
-        switch currentCtx.paramName->Js.String2.length {
+        switch currentCtx.paramName->String.length {
         | 0 =>
-          switch %re(`/[a-z]/`)->Js.Re.test_(char) {
+          switch %re(`/[a-z]/`)->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -319,7 +319,7 @@ module Path = {
             )
           }
         | _ =>
-          switch %re(`/[A-Za-z0-9_]/`)->Js.Re.test_(char) {
+          switch %re(`/[A-Za-z0-9_]/`)->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -335,9 +335,9 @@ module Path = {
             currentMatchParam: currentCtx.currentMatchParam ++ char,
           })
 
-        switch currentCtx.currentMatchParam->Js.String2.length {
+        switch currentCtx.currentMatchParam->String.length {
         | 0 =>
-          switch %re(`/[a-zA-Z]/`)->Js.Re.test_(char) {
+          switch %re(`/[a-zA-Z]/`)->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -346,7 +346,7 @@ module Path = {
             )
           }
         | _ =>
-          switch %re(`/[A-Za-z0-9_]/`)->Js.Re.test_(char) {
+          switch %re(`/[A-Za-z0-9_]/`)->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -370,7 +370,7 @@ module Path = {
         },
         end_: {
           line: lineNum,
-          column: startCharIdx + pathWithoutQueryParams->Js.String2.length,
+          column: startCharIdx + pathWithoutQueryParams->String.length,
         },
       }
 
@@ -415,7 +415,7 @@ module Path = {
 
         let message =
           `"${rawTypeText}" is not a valid query param type.\n  ` ++ if (
-            fuzzyMatches->Js.Array2.length > 0
+            fuzzyMatches->Array.length > 0
           ) {
             `Did you mean "${fuzzyMatches->Js.Array2.unsafe_get(0)}"?`
           } else if rawTypeText == "boolean" {
@@ -425,7 +425,7 @@ module Path = {
           }
         ctx.addDecodeError(~loc=queryParamLoc, ~message)
       | Ok(queryParam) =>
-        let _ = foundQueryParams->Js.Array2.push({
+        let _ = foundQueryParams->Array.push({
           name: {
             text: key,
             loc: keyLoc,
@@ -445,20 +445,19 @@ module Path = {
     ~ctx,
     ~parentContext: parentContext,
   ): array<queryParamNode> => {
-    let queryParamsStr = path->Js.String2.split("?")->Js.Array2.pop
+    let queryParamsStr = path->String.split("?")->Array.pop
 
     switch queryParamsStr {
     | None => []
     | Some(queryParamsStr) =>
       // + 1 length is accounting for the leading question mark
-      let startChar =
-        loc.start.column + path->Js.String2.length - queryParamsStr->Js.String2.length + 1
+      let startChar = loc.start.column + path->String.length - queryParamsStr->String.length + 1
 
       let foundQueryParams = []
       let context = ref(None)
 
-      for charIdx in 0 to queryParamsStr->Js.String2.length - 1 {
-        let char = queryParamsStr->Js.String2.get(charIdx)
+      for charIdx in 0 to queryParamsStr->String.length - 1 {
+        let char = queryParamsStr->String.get(charIdx)->Option.getWithDefault("")
 
         switch (context.contents, char) {
         | (Some(completedParamCtx), "&") =>
@@ -515,13 +514,13 @@ module Path = {
       // Merge the newly found params with the existing parameters inherited from the parents
       let queryParamsResult: array<queryParamNode> = []
 
-      []
-      ->Js.Array2.concatMany([parentContext.seenQueryParams, foundQueryParams])
-      ->Belt.Array.forEach(param => {
-        switch queryParamsResult->Belt.Array.some(p => p.name.text == param.name.text) {
+      parentContext.seenQueryParams
+      ->Array.concat(foundQueryParams)
+      ->Array.forEach(param => {
+        switch queryParamsResult->Array.some(p => p.name.text == param.name.text) {
         | true => ()
         | false =>
-          let _ = queryParamsResult->Js.Array2.push(param)
+          let _ = queryParamsResult->Array.push(param)
         }
       })
 
@@ -530,11 +529,13 @@ module Path = {
   }
 }
 
+let f = Belt.Array.concatMany
+
 module Validators = {
   open! JsoncParser
 
   let rec routeWithNameAlreadyExists = (existingChildren, ~routeName) => {
-    existingChildren->Js.Array2.some(child =>
+    existingChildren->Array.some(child =>
       switch child {
       | RouteEntry({name}) if name->RouteName.getRouteName == routeName => true
       | Include({content: children}) => children->routeWithNameAlreadyExists(~routeName)
@@ -552,30 +553,30 @@ module Validators = {
           ~loc,
           ~message=`"Route" is a reserved name. Please change your route name to something else.`,
         )
-        Some({loc: loc, name: "_"})
+        Some({loc, name: "_"})
       | routeName =>
         switch (
-          %re(`/^[A-Z][a-zA-Z0-9_]+$/`)->Js.Re.test_(routeName),
+          %re(`/^[A-Z][a-zA-Z0-9_]+$/`)->RegExp.test(routeName),
           siblings->routeWithNameAlreadyExists(~routeName),
         ) {
-        | (true, false) => Some({loc: loc, name: routeName})
+        | (true, false) => Some({loc, name: routeName})
         | (false, _) =>
           ctx.addDecodeError(
             ~loc,
             ~message=`"${routeName}" is not a valid route name. Route names need to start with an uppercase letter, and can only contain letters, digits and underscores.`,
           )
-          Some({loc: loc, name: "_"})
+          Some({loc, name: "_"})
         | (true, _) =>
           ctx.addDecodeError(
             ~loc,
             ~message=`Duplicate route "${routeName}". Routes cannot have siblings with the same names.`,
           )
-          Some({loc: loc, name: "_"})
+          Some({loc, name: "_"})
         }
       }
     | Some({loc, value: node}) =>
       ctx.addDecodeError(~loc, ~message=`"name" needs to be a string. Found ${nodeToString(node)}.`)
-      Some({loc: loc, name: "_"})
+      Some({loc, name: "_"})
     | None => None
     }
   }
@@ -584,7 +585,7 @@ module Validators = {
     switch pathNode {
     | Some({loc, value: String({loc: pathValueLoc, value})}) =>
       Some({
-        loc: loc,
+        loc,
         pathRaw: value,
         pathParams: value->Path.decodePathParams(
           ~lineNum=loc.start.line,
@@ -601,7 +602,7 @@ module Validators = {
       })
     | Some({loc, value: node}) =>
       ctx.addDecodeError(~loc, ~message=`"path" needs to be a string. Found ${nodeToString(node)}.`)
-      Some({loc: loc, pathRaw: "_", pathParams: [], queryParams: []})
+      Some({loc, pathRaw: "_", pathParams: [], queryParams: []})
     | None => None
     }
   }
@@ -621,23 +622,23 @@ module Decode = {
     }
 
   let findPropertyWithName = (properties, ~name) =>
-    properties->Belt.Array.getBy(prop => prop.name == name)
+    properties->Array.find(prop => prop.name == name)
 
   let rec decodeRouteChildren = (children, ~ctx, ~parentContext) => {
     let foundChildren = []
 
-    children->Belt.Array.forEach(child =>
+    children->Array.forEach(child =>
       switch child->decodeRouteChild(~ctx, ~siblings=foundChildren, ~parentContext) {
       | Error(parseError) =>
         let _ = ctx.addDecodeError(~loc=parseError.loc, ~message=parseError.message)
       | Ok(routeChild) =>
-        let _ = foundChildren->Js.Array2.push(routeChild)
+        let _ = foundChildren->Array.push(routeChild)
       }
     )
 
     foundChildren
   }
-  and decodeRouteChild = (child, ~ctx, ~siblings, ~parentContext): Belt.Result.t<
+  and decodeRouteChild = (child, ~ctx, ~siblings, ~parentContext): Result.t<
     routeChild,
     decodeError,
   > => {
@@ -649,7 +650,7 @@ module Decode = {
       switch includeProp {
       | Some({loc: keyLoc, name: "include", value: String({loc: valueLoc, value: fileName})}) =>
         // Check for invalid/illegal properties
-        properties->Belt.Array.forEach(prop => {
+        properties->Array.forEach(prop => {
           if prop.name != "include" {
             ctx.addDecodeError(
               ~loc=prop.loc,
@@ -660,18 +661,18 @@ module Decode = {
 
         let errorRecoveryIncludeNode = Include({
           loc: objLoc,
-          keyLoc: keyLoc,
+          keyLoc,
           fileName: {
             loc: valueLoc,
             text: fileName,
           },
           content: [],
-          parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+          parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
           parentRouteLoc: parentContext.parentRouteLoc,
         })
 
         // Route files must end with .json
-        if !(fileName->Js.String2.endsWith(".json")) {
+        if !(fileName->String.endsWith(".json")) {
           ctx.addDecodeError(
             ~loc=valueLoc,
             ~message=`Route file to include must have .json extension.`,
@@ -687,10 +688,10 @@ module Decode = {
             Ok(
               Include({
                 loc: objLoc,
-                keyLoc: keyLoc,
+                keyLoc,
                 fileName: {loc: valueLoc, text: fileName},
-                content: content,
-                parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+                content,
+                parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
                 parentRouteLoc: parentContext.parentRouteLoc,
               }),
             )
@@ -711,16 +712,16 @@ module Decode = {
         | Some({pathParams}) =>
           let params = []
           pathParams
-          ->Belt.Array.concat(
+          ->Array.concat(
             parentContext.seenPathParams
-            ->Belt.List.map(({seenAtPosition}) => seenAtPosition)
-            ->Belt.List.toArray,
+            ->List.map(({seenAtPosition}) => seenAtPosition)
+            ->List.toArray,
           )
-          ->Belt.Array.forEach(param =>
-            switch params->Js.Array2.includes(param) {
+          ->Array.forEach(param =>
+            switch params->Array.includes(param) {
             | true => ()
             | false =>
-              let _ = params->Js.Array2.push(param)
+              let _ = params->Array.push(param)
             }
           )
 
@@ -742,12 +743,12 @@ module Decode = {
                 loc: path.loc,
                 text: path.pathRaw,
               },
-              pathParams: pathParams,
-              routePath: routePath,
-              queryParams: path.queryParams->Js.Array2.copy,
+              pathParams,
+              routePath,
+              queryParams: path.queryParams->Array.copy,
               children: None,
               sourceFile: ctx.routeFileName,
-              parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+              parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
               parentRouteLoc: parentContext.parentRouteLoc,
             }),
           )
@@ -761,12 +762,12 @@ module Decode = {
                 loc: dummyPos,
                 text: "_",
               },
-              pathParams: pathParams,
+              pathParams,
               queryParams: [],
               routePath: RoutePath.empty(),
               children: None,
               sourceFile: ctx.routeFileName,
-              parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+              parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
               parentRouteLoc: parentContext.parentRouteLoc,
             }),
           )
@@ -782,11 +783,11 @@ module Decode = {
               children->decodeRouteChildren(
                 ~ctx,
                 ~parentContext={
-                  seenPathParams: Belt.List.concatMany([
+                  seenPathParams: List.concatMany([
                     parentContext.seenPathParams,
                     path.pathParams
-                    ->Belt.List.fromArray
-                    ->Belt.List.map((pathParam): seenPathParam => {
+                    ->List.fromArray
+                    ->List.map((pathParam): seenPathParam => {
                       seenInSourceFile: ctx.routeFileName,
                       seenAtPosition: pathParam,
                     }),
@@ -807,20 +808,17 @@ module Decode = {
           Ok(
             RouteEntry({
               loc: objLoc,
-              name: RouteName.make(
-                ~loc=name.loc,
-                ~routeNamePath=thisRouteNamePath->Belt.List.reverse,
-              ),
+              name: RouteName.make(~loc=name.loc, ~routeNamePath=thisRouteNamePath->List.reverse),
               path: {
                 loc: path.loc,
                 text: path.pathRaw,
               },
-              routePath: routePath,
-              pathParams: pathParams,
-              queryParams: path.queryParams->Js.Array2.copy,
-              children: children,
+              routePath,
+              pathParams,
+              queryParams: path.queryParams->Array.copy,
+              children,
               sourceFile: ctx.routeFileName,
-              parentRouteFiles: parentContext.traversedRouteFiles->Belt.List.toArray,
+              parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
               parentRouteLoc: parentContext.parentRouteLoc,
             }),
           )
@@ -910,24 +908,24 @@ let rec parseRouteFile = (
     let lineLookup = Bindings.LinesAndColumns.make(content)
 
     let ctx = {
-      routeFileName: routeFileName,
-      lineLookup: lineLookup,
+      routeFileName,
+      lineLookup,
       addDecodeError: (~loc, ~message) => {
-        let _ = decodeErrors->Js.Array2.push({
-          routeFileName: routeFileName,
-          loc: loc,
-          message: message,
+        let _ = decodeErrors->Array.push({
+          routeFileName,
+          loc,
+          message,
         })
       },
       getRouteFile: (~fileName, ~parentContext) =>
         switch (
-          parserContext.routeFileNames->Js.Array2.includes(fileName),
-          parserContext.routeFiles->Js.Dict.get(fileName),
+          parserContext.routeFileNames->Array.includes(fileName),
+          parserContext.routeFiles->Dict.get(fileName),
         ) {
         | (_, Some(routeFile)) => Ok(routeFile)
         | (false, _) =>
           let matched =
-            fileName->Bindings.FuzzySearch.search(parserContext.routeFileNames)->Belt.Array.get(0)
+            fileName->Bindings.FuzzySearch.search(parserContext.routeFileNames)->Array.get(0)
 
           Error(
             `"${fileName}" could not be found. ${switch matched {
@@ -944,8 +942,8 @@ let rec parseRouteFile = (
             ~parentContext,
           )
 
-          let loadedRouteFile = {fileName: fileName, rawText: rawText, content: result}
-          parserContext.routeFiles->Js.Dict.set(fileName, loadedRouteFile)
+          let loadedRouteFile = {fileName, rawText, content: result}
+          parserContext.routeFiles->Dict.set(fileName, loadedRouteFile)
           Ok(loadedRouteFile)
         },
     }
@@ -968,15 +966,15 @@ let rec parseRouteFile = (
     // know is that syntax is broken - fix it, and if there are still errors
     // you'll get them 1 by 1.
     parseErrors
-    ->Belt.Array.get(0)
-    ->Belt.Option.forEach(parseError => {
+    ->Array.get(0)
+    ->Option.forEach(parseError => {
       let linesAndColumns = Bindings.LinesAndColumns.make(content)
 
-      let _ = decodeErrors->Js.Array2.push({
-        routeFileName: routeFileName,
+      let _ = decodeErrors->Array.push({
+        routeFileName,
         message: switch parseError.error
         ->JsoncParser.decodeParseErrorCode
-        ->Belt.Option.getWithDefault(InvalidSymbol) {
+        ->Option.getWithDefault(InvalidSymbol) {
         | InvalidSymbol => "Invalid symbol."
         | InvalidNumberFormat => "Invalid number format."
         | PropertyNameExpected => "Expected property name."
@@ -1004,7 +1002,7 @@ let rec parseRouteFile = (
     })
 
     {
-      result: result,
+      result,
       rawText: content,
     }
   }
@@ -1020,7 +1018,7 @@ let emptyParentCtx = () => {
 }
 
 let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
-  let routeFiles = Js.Dict.empty()
+  let routeFiles = Dict.empty()
   let decodeErrors = []
 
   let {result, rawText} = "routes.json"->parseRouteFile(
@@ -1028,27 +1026,27 @@ let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
     ~decodeErrors,
     ~parentContext=emptyParentCtx(),
     ~parserContext={
-      routeFiles: routeFiles,
+      routeFiles,
       routeFileNames: Bindings.Glob.glob.sync(
         ["*.json"],
         Bindings.Glob.opts(~cwd=pathInRoutesFolder(~config, ()), ()),
       ),
-      getRouteFileContents: getRouteFileContents,
+      getRouteFileContents,
     },
   )
 
-  routeFiles->Js.Dict.set(
+  routeFiles->Dict.set(
     "routes.json",
     {
       fileName: "routes.json",
-      rawText: rawText,
+      rawText,
       content: result,
     },
   )
 
   {
     errors: decodeErrors,
-    result: result,
-    routeFiles: routeFiles,
+    result,
+    routeFiles,
   }
 }

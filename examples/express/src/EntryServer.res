@@ -72,7 +72,7 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
 
   // Based on our entryPoint and manifest decide what our bootstrap modules are and trigger
   // preloads for any CSS files or assets.
-  let entryChunk = manifest.files->Dict.unsafeGet(manifest.entryPoint)
+  let entryChunk = manifest.files->Js.Dict.unsafeGet(manifest.entryPoint)
   let bootstrapModules = [manifest.entryPoint]->Array.concat(entryChunk.imports)
   entryChunk.css->Array.forEach(url => Style({url: url})->preloadAsset(~priority=Default))
   // TODO: the below line causes a bug because not all `assets` will need `as="image"` for their preload.

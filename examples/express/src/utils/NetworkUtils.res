@@ -1,23 +1,23 @@
 // This is a simple example of how one could leverage `preloadAsset` to preload
 // things from the GraphQL response. This should live inside of the
 // (comprehensive) example application we're going to build eventually.
-let preloadFromResponse = (part: Json.t, ~preloadAsset: RelayRouter__Types.preloadAssetFn) => {
-  switch part->Json.decodeObject {
+let preloadFromResponse = (part: Js.Json.t, ~preloadAsset: RelayRouter__Types.preloadAssetFn) => {
+  switch part->Js.Json.decodeObject {
   | None => ()
   | Some(obj) =>
     switch obj->Dict.get("extensions") {
     | None => ()
     | Some(extensions) =>
-      switch extensions->Json.decodeObject {
+      switch extensions->Js.Json.decodeObject {
       | None => ()
       | Some(extensions) =>
         extensions
         ->Dict.get("preloadableImages")
         ->Option.map(images =>
           images
-          ->Json.decodeArray
+          ->Js.Json.decodeArray
           ->Option.getWithDefault([])
-          ->Array.filterMap(item => item->Json.decodeString)
+          ->Array.filterMap(item => item->Js.Json.decodeString)
         )
         ->Option.getWithDefault([])
         ->Array.forEach(imgUrl => {
@@ -39,9 +39,9 @@ let makeFetchQuery = (~preloadAsset) =>
       "http://localhost:4000/graphql",
       {
         "method": "POST",
-        "headers": Dict.fromArray([("content-type", "application/json")]),
+        "headers": Js.Dict.fromArray([("content-type", "application/json")]),
         "body": {"query": operation.text, "variables": variables}
-        ->Json.stringifyAny
+        ->Js.Json.stringifyAny
         ->Option.getWithDefault(""),
       },
     )
@@ -81,9 +81,9 @@ let makeServerFetchQuery = (
       "http://localhost:4000/graphql",
       {
         "method": "POST",
-        "headers": Dict.fromArray([("content-type", "application/json")]),
+        "headers": Js.Dict.fromArray([("content-type", "application/json")]),
         "body": {"query": operation.text, "variables": variables}
-        ->Json.stringifyAny
+        ->Js.Json.stringifyAny
         ->Option.getWithDefault(""),
       },
     )

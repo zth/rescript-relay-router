@@ -18,7 +18,7 @@ module Config: {
     | Some({config: Some(config), filepath}) => {
         let resolveFullPath = resolveFullPath(~filepath)
 
-        let routesFolderPath = switch config->Js.Dict.get("routesFolderPath") {
+        let routesFolderPath = switch config->Dict.get("routesFolderPath") {
         | Some(routesFolderPath) => routesFolderPath->resolveFullPath
         | None =>
           raise(
@@ -30,12 +30,13 @@ module Config: {
 
         {
           generatedPath: config
-          ->Js.Dict.get("generatedPath")
-          ->Belt.Option.getWithDefault(Path.join([routesFolderPath, "__generated__"]))
+          ->Dict.get("generatedPath")
+          ->Option.getWithDefault(Path.join([routesFolderPath, "__generated__"]))
           ->resolveFullPath,
-          routesFolderPath: routesFolderPath,
+          routesFolderPath,
         }
       }
+
     | _ =>
       raise(
         Invalid_config(
@@ -45,19 +46,19 @@ module Config: {
     }
 
     if !(config.generatedPath->Fs.existsSync) {
-      Js.log("Folder for generatedPath not found, creating...")
+      Console.log("Folder for generatedPath not found, creating...")
       config.generatedPath->Fs.mkdirRecursiveSync
     }
 
     if !(config.routesFolderPath->Fs.existsSync) {
-      Js.log("Folder for routesFolderPath not found, creating...")
+      Console.log("Folder for routesFolderPath not found, creating...")
       config.routesFolderPath->Fs.mkdirRecursiveSync
     }
 
     config
   }
 
-  let exists = () => CosmiConfig.make()->CosmiConfig.search->Belt.Option.isSome
+  let exists = () => CosmiConfig.make()->CosmiConfig.search->Option.isSome
 }
 
 module QueryParams = {
@@ -135,7 +136,7 @@ let pathInGeneratedFolder = (~config, ~fileName="", ()) =>
   Path.join([config.generatedPath, fileName])
 
 let fromRendererFileName = rendererName =>
-  rendererName->Js.String2.replace("_route_renderer.res", "")
+  rendererName->String.replaceString("_route_renderer.res", "")
 
 let toRendererFileName = rendererName => rendererName ++ "_route_renderer.res"
 
@@ -143,7 +144,7 @@ let printablePathParamToTypeStr = p =>
   switch p {
   | PrintableRegularPathParam(_) => "string"
   | PrintablePathParamWithMatchBranches(_, matchBranches) =>
-    `[${matchBranches->Belt.Array.map(b => `#${b}`)->Js.Array2.joinWith(" | ")}]`
+    `[${matchBranches->Array.map(b => `#${b}`)->Array.joinWith(" | ")}]`
   }
 
 let printablePathParamToParamName = p =>
@@ -154,15 +155,15 @@ let printablePathParamToParamName = p =>
 
 let rec rawRouteToMatchable = (route: printableRoute): routeForCliMatching => {
   path: route.path->RoutePath.getPathSegment,
-  params: route.params->Belt.Array.map(printablePathParamToParamName),
+  params: route.params->Array.map(printablePathParamToParamName),
   name: route.name->RouteName.getRouteName,
   queryParams: route.queryParams,
-  children: route.children->Belt.Array.map(rawRouteToMatchable),
+  children: route.children->Array.map(rawRouteToMatchable),
   sourceFile: route.sourceFile,
 }
 
 type routeMatchCli = {
-  params: Js.Dict.t<string>,
+  params: Dict.t<string>,
   route: RescriptRelayRouterCli__Types.routeForCliMatching,
 }
 
@@ -174,30 +175,30 @@ external matchRoutesCli: (
 
 let rec routeChildrenToPrintable = (routeChildren: array<routeChild>): array<printableRoute> => {
   let routes = []
-  routeChildren->Belt.Array.forEach(child => mapRouteChild(child, ~routes))
+  routeChildren->Array.forEach(child => mapRouteChild(child, ~routes))
   routes
 }
 and mapRouteChild = (child, ~routes) => {
   switch child {
-  | Include({content}) => content->Belt.Array.forEach(child => mapRouteChild(child, ~routes))
+  | Include({content}) => content->Array.forEach(child => mapRouteChild(child, ~routes))
   | RouteEntry(routeEntry) =>
-    let _ = routes->Js.Array2.push(parsedToPrintable(routeEntry))
+    let _ = routes->Array.push(parsedToPrintable(routeEntry))
   }
 }
 and parsedToPrintable = (routeEntry: routeEntry): printableRoute => {
   name: routeEntry.name,
   path: routeEntry.routePath,
-  params: routeEntry.pathParams->Belt.Array.map(p =>
+  params: routeEntry.pathParams->Array.map(p =>
     switch p {
     | PathParam({text}) => PrintableRegularPathParam(text)
     | PathParamWithMatchBranches({text}, matchBranches) =>
       PrintablePathParamWithMatchBranches(text, matchBranches)
     }
   ),
-  children: routeEntry.children->Belt.Option.getWithDefault([])->routeChildrenToPrintable,
+  children: routeEntry.children->Option.getWithDefault([])->routeChildrenToPrintable,
   queryParams: routeEntry.queryParams
-  ->Belt.Array.map(({name, queryParam: (_loc, queryParam)}) => (name.text, queryParam))
-  ->Js.Dict.fromArray,
+  ->Array.map(({name, queryParam: (_loc, queryParam)}) => (name.text, queryParam))
+  ->Dict.fromArray,
   sourceFile: routeEntry.sourceFile,
 }
 
@@ -205,7 +206,7 @@ exception Decode_error(RescriptRelayRouterCli__Types.routeStructure)
 
 let readRouteStructure = (config): (
   array<printableRoute>,
-  Js.Dict.t<(RescriptRelayRouterCli__Types.printableRoute, Belt.List.t<string>)>,
+  Dict.t<(RescriptRelayRouterCli__Types.printableRoute, List.t<string>)>,
 ) => {
   let {
     errors,
@@ -216,21 +217,21 @@ let readRouteStructure = (config): (
       try {
         Ok(Fs.readFileSync(pathInRoutesFolder(~config, ~fileName, ())))
       } catch {
-      | Js.Exn.Error(exn) => Error(exn)
+      | Exn.Error(exn) => Error(exn)
       }
     },
   )
 
-  if errors->Belt.Array.length > 0 {
+  if errors->Array.length > 0 {
     raise(Decode_error(routeStructure))
   }
 
   let printable = routeChildrenToPrintable(result)
-  let routeNames = Js.Dict.empty()
+  let routeNames = Dict.empty()
 
   let rec extractRoutes = (routes: array<printableRoute>) => {
-    routes->Belt.Array.forEach(route => {
-      routeNames->Js.Dict.set(route.name->RouteName.getFullRouteName, (route, list{}))
+    routes->Array.forEach(route => {
+      routeNames->Dict.set(route.name->RouteName.getFullRouteName, (route, list{}))
       route.children->extractRoutes
     })
   }
@@ -246,7 +247,7 @@ let ensureRouteStructure = pathToRoutesFolder => {
 
   if !Fs.existsSync(routesFolderPath) {
     Fs.mkdirSync(routesFolderPath)
-    Js.log("[init] Routes folder did not exist. Created it at '" ++ routesFolderPath ++ "'.")
+    Console.log("[init] Routes folder did not exist. Created it at '" ++ routesFolderPath ++ "'.")
   }
 
   if !Fs.existsSync(generatedPath) {
@@ -255,7 +256,7 @@ let ensureRouteStructure = pathToRoutesFolder => {
 }
 
 let printIndentation = (str, indentation) => {
-  str.contents = str.contents ++ "  "->Js.String2.repeat(indentation)
+  str.contents = str.contents ++ "  "->String.repeat(indentation)
 }
 
 let add = (str, s) => {
@@ -275,13 +276,11 @@ let rec printNestedRouteModules = (route: printableRoute, ~indentation): string 
   strEnd->printIndentation(indentation)
   strEnd->add("}\n")
 
-  route.children->Belt.Array.forEach(route => {
+  route.children->Array.forEach(route => {
     str->add(route->printNestedRouteModules(~indentation=indentation + 1))
   })
 
-  "\n" ++
-  str.contents ++
-  strEnd.contents->Js.String2.split("\n")->Belt.Array.reverse->Js.Array2.joinWith("\n")
+  "\n" ++ str.contents ++ strEnd.contents->String.split("\n")->Array.reverse->Array.joinWith("\n")
 }
 
 let queryParamToQueryParamDecoder = (param, ~key) => {

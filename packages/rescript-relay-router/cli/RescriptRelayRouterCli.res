@@ -7,10 +7,10 @@ module Commands = RescriptRelayRouterCli__Commands
 @val
 external argv: array<option<string>> = "process.argv"
 
-let args = argv->Belt.Array.sliceToEnd(2)->Belt.Array.keepMap(arg => arg)
+let args = argv->Array.sliceToEnd(~from=2)->Array.filterMap(arg => arg)
 
 try {
   let _: Commands.cliResult = Commands.runCli(args)
 } catch {
-| Utils.Invalid_config(message) => Js.log("Error: " ++ message)
+| Utils.Invalid_config(message) => Console.log("Error: " ++ message)
 }

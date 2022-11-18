@@ -11,7 +11,7 @@ let make = (~query, ~children) => {
   let query = QueryFragment.use(query)
 
   <>
-    <div> {React.string(query.siteStatistics.currentVisitorsOnline->Belt.Int.toString)} </div>
+    <div> {React.string(query.siteStatistics.currentVisitorsOnline->Int.toString)} </div>
     <div> {children} </div>
   </>
 }

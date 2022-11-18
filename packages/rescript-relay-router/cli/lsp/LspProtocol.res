@@ -211,7 +211,7 @@ module Command = {
   let makeOpenFileAtPosCommand = (~title, ~fileUri, ~pos) => {
     title: title,
     command: `vscode-rescript-relay.open-pos-in-doc`,
-    arguments: Some([fileUri, pos.line->Belt.Int.toString, pos.character->Belt.Int.toString]),
+    arguments: Some([fileUri, pos.line->Int.toString, pos.character->Int.toString]),
   }
 
   let makeTextOnlyCommand = title => {

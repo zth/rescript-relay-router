@@ -2,7 +2,7 @@ let boot = () => {
   let routes = RouteDeclarations.make()
   let routerEnvironment = RelayRouter.RouterEnvironment.makeBrowserEnvironment()
 
-  Js.log("[debug] Doing boot")
+  Console.log("[debug] Doing boot")
 
   RelaySSRUtils.bootOnClient(~render=() => {
     let (_, routerContext) = RelayRouter.Router.make(

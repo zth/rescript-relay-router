@@ -14,7 +14,7 @@ let make = (~queryRef, ~children) => {
     <h1> {React.string("My fine site")} </h1>
     <div style={ReactDOM.Style.make(~display="flex", ~flexDirection="row", ())}>
       {links
-      ->Belt.Array.map(((label, link)) =>
+      ->Array.map(((label, link)) =>
         <RelayRouter.Link key=label to_=link> {React.string(label)} </RelayRouter.Link>
       )
       ->React.array}

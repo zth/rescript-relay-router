@@ -39,14 +39,14 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
       transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
       // Also preload any direct imports for the requested chunk.
       manifest.files
-      ->Js.Dict.get(chunk)
-      ->Belt.Option.forEach(chunk => {
-        chunk.imports->Js.Array2.forEach(url =>
+      ->Dict.get(chunk)
+      ->Option.forEach(chunk => {
+        chunk.imports->Array.forEach(url =>
           Component({chunk: url, load: dummyImportComponent})->preloadAsset(~priority=Default)
         )
-        chunk.css->Js.Array2.forEach(url => Style({url: url})->preloadAsset(~priority=Default))
+        chunk.css->Array.forEach(url => Style({url: url})->preloadAsset(~priority=Default))
         // TODO: the below line causes a bug because not all `assets` will need `as="image"` for their preload.
-        chunk.assets->Js.Array2.forEach(url => Image({url: url})->preloadAsset(~priority=Default))
+        chunk.assets->Array.forEach(url => Image({url: url})->preloadAsset(~priority=Default))
       })
     | Image({url}) =>
       transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<link rel="preload" as="image" href="$url">`)
@@ -72,11 +72,11 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
 
   // Based on our entryPoint and manifest decide what our bootstrap modules are and trigger
   // preloads for any CSS files or assets.
-  let entryChunk = manifest.files->Js.Dict.unsafeGet(manifest.entryPoint)
-  let bootstrapModules = [manifest.entryPoint]->Js.Array2.concat(entryChunk.imports)
-  entryChunk.css->Js.Array2.forEach(url => Style({url: url})->preloadAsset(~priority=Default))
+  let entryChunk = manifest.files->Dict.unsafeGet(manifest.entryPoint)
+  let bootstrapModules = [manifest.entryPoint]->Array.concat(entryChunk.imports)
+  entryChunk.css->Array.forEach(url => Style({url: url})->preloadAsset(~priority=Default))
   // TODO: the below line causes a bug because not all `assets` will need `as="image"` for their preload.
-  entryChunk.assets->Js.Array2.forEach(url => Image({url: url})->preloadAsset(~priority=Default))
+  entryChunk.assets->Array.forEach(url => Image({url: url})->preloadAsset(~priority=Default))
 
   Promise.make((resolve, reject) => {
     let didError = ref(false)
@@ -101,7 +101,7 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
             // Pipe the result from React's rendering through our response stream (to our response).
             // This only pipes the app-shell with any data that has instantly
             // loaded.
-            (stream.contents->Belt.Option.getUnsafe).ReactDOMServer.pipe(
+            (stream.contents->Option.getUnsafe).ReactDOMServer.pipe(
               transformAsWritable(transformOutputStream),
             )
             // Clean up when the transformation stream is closed.
@@ -117,7 +117,7 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
           ~onError=err => {
             cleanup()
             didError := true
-            Js.Console.error(err)
+            Console.error(err)
           },
           (),
         ),

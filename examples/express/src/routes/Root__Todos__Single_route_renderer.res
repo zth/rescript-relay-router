@@ -8,7 +8,7 @@ let renderer = Routes.Root.Todos.Single.Route.makeRenderer(
       ~fetchPolicy=StoreOrNetwork,
       ~variables={
         id: todoId,
-        showMore: showMore->Belt.Option.getWithDefault(false),
+        showMore: showMore->Option.getWithDefault(false),
       },
       (),
     )

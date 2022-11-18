@@ -24,7 +24,7 @@ let make = (~todos) => {
   <div>
     {todos.todosConnection
     ->TododsFragment.getConnectionNodes
-    ->Belt.Array.map(todo => <TodosListItem todo={todo.fragmentRefs} key=todo.id />)
+    ->Array.map(todo => <TodosListItem todo={todo.fragmentRefs} key=todo.id />)
     ->React.array}
   </div>
 }

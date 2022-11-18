@@ -3,7 +3,7 @@ type t
 module Headers = {
   type t
 
-  @get external cookie: t => Js.Nullable.t<string> = "cookie"
+  @get external cookie: t => Nullable.t<string> = "cookie"
 }
 
 module Request = {
@@ -35,7 +35,7 @@ module Response = {
 
   @send external sendStatus: (t, int) => unit = "sendStatus"
 
-  @send external cookie: (t, string, string, Js.Nullable.t<cookieOpts>) => unit = "cookie"
+  @send external cookie: (t, string, string, Nullable.t<cookieOpts>) => unit = "cookie"
   @send external clearCookie: (t, string) => unit = "clearCookie"
   @send external redirect: (t, int, string) => unit = "redirect"
 
@@ -45,7 +45,7 @@ module Response = {
 @val @module("express")
 external make: unit => t = "default"
 
-type requestHandler = (Request.t, Response.t) => Promise.t<unit>
+type requestHandler = (Request.t, Response.t) => promise<unit>
 @send external useRoute: (t, string, requestHandler) => unit = "use"
 
 @send external get: (t, string, requestHandler) => unit = "get"

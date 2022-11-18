@@ -22,8 +22,8 @@ module Internal = {
     render: renderProps<'prepared> => React.element,
   }
   @live
-  let makePrepareProps = (
-    . ~environment: RescriptRelay.Environment.t,
+  let makePrepareProps = (. 
+    ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter.History.location,
@@ -31,11 +31,15 @@ module Internal = {
     ignore(pathParams)
     ignore(queryParams)
     {
-      environment,
-      location,
+      environment: environment,
+  
+      location: location,
     }
   }
+
 }
+
+
 
 @inline
 let routePattern = "/"
@@ -47,10 +51,7 @@ let makeLink = () => {
 
 @live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
-  RelayRouter.Internal.matchPathWithOptions(
-    {"path": routePattern, "end": exact},
-    pathname,
-  )->Belt.Option.isSome
+  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
 }
 
 @live
@@ -65,8 +66,8 @@ type subRoute = [#Todos]
 let getActiveSubRoute = (location: RelayRouter.History.location): option<[#Todos]> => {
   let {pathname} = location
   if RelayRouter.Internal.matchPath("/todos", pathname)->Belt.Option.isSome {
-    Some(#Todos)
-  } else {
+      Some(#Todos)
+    } else {
     None
   }
 }
@@ -84,5 +85,5 @@ external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
-  unit,
+  unit
 ) => Internal.renderers<'prepared> = ""

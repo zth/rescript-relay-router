@@ -35,11 +35,9 @@ function transformManifest(inPath, outPath) {
   var routerManifest = viteManifestToRelayRouterManifest(viteManifest);
   var __x = RelayRouter__Manifest.stringifyWithSpace(routerManifest, 2);
   Fs.writeFileSync(outPath, __x, "utf-8");
-  
 }
 
 export {
   transformManifest ,
-  
 }
 /* fs Not a pure module */

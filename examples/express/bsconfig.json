@@ -10,7 +10,6 @@
       "subdirs": true
     },
     { "dir": ".", "files": ["Server.res"] }
-
   ],
   "package-specs": [
     {
@@ -23,10 +22,9 @@
   "bs-dependencies": [
     "@rescript/react",
     "rescript-relay",
-    "@ryyppy/rescript-promise",
-    "rescript-relay-router"
+    "rescript-relay-router",
+    "@gabnor/rescript-stdlib"
   ],
-  "pinned-dependencies": [
-    "rescript-relay-router"
-  ]
+  "bsc-flags": ["-open RescriptStdlib"],
+  "pinned-dependencies": ["rescript-relay-router"]
 }

@@ -64,8 +64,8 @@ module TargetScrollElement = {
           | None => None
           | Some(targetElementRef) =>
             Some({
-              id: id,
-              targetElementRef: targetElementRef,
+              id,
+              targetElementRef,
             })
           }
         , (id, targetElementRef))}> {children} </ContextProvider>

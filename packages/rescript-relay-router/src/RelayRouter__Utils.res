@@ -27,10 +27,10 @@ let useRouter = (): routerHelpers => {
   }, (history, postRouterEvent))
 
   {
-    push: push,
-    replace: replace,
-    preload: preload,
-    preloadCode: preloadCode,
+    push,
+    replace,
+    preload,
+    preloadCode,
   }
 }
 

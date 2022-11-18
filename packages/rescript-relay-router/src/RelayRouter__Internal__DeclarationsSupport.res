@@ -184,8 +184,8 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
       (
         Some({
           ...preparedEntry,
-          render: render,
-          disposables: disposables,
+          render,
+          disposables,
         }),
         false,
       )
@@ -194,8 +194,8 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     // Whenever there's no existing prepared entry, set a new entry.
     | (_, None) => (
         Some({
-          render: render,
-          disposables: disposables,
+          render,
+          disposables,
           timeout: None,
         }),
         intent == Preload,
@@ -262,13 +262,13 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     // We don't want to preload multiple times, so just return what's already
     // prepared when calling this with the intent to Preload, and there's
     // already a prepare entry for this route.
-    | (Some({render}), Preload) => {routeKey: routeKey, render: render}
+    | (Some({render}), Preload) => {routeKey, render}
     // If calling this with the intent of rendering, we want to re-make the
     // prepare so Relay can re-evaluate and ensure that the data is fresh when
     // rendering. Do that, and ensure that any new disposables is tracked.
     | (Some(_), Render)
-    // Same goes if we had no previous prepare, do a fresh instantiation.
-    | (None, _) =>
+    | // Same goes if we had no previous prepare, do a fresh instantiation.
+    (None, _) =>
       let preparedRef: ref<suspenseEnabledHolder<prepared>> = ref(NotInitiated)
 
       let doPrepare = (routeRenderer: RouteRenderer.t) => {
@@ -322,9 +322,12 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
                 // In short, we need this expire to run after the route renderer
                 // has been unmounted, or Relay gives us a "using preloaded
                 // query that was disposed" error.
-                let _ = Js.Global.setTimeout(() => {
-                  expirePrepared(~routeKey)
-                }, 0)
+                let _ = Js.Global.setTimeout(
+                  () => {
+                    expirePrepared(~routeKey)
+                  },
+                  0,
+                )
               | _ => ()
               }
             }),
@@ -364,12 +367,12 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
         },
       )
 
-      {routeKey: routeKey, render: render}
+      {routeKey, render}
     }
   }
 
   {
-    getPrepared: getPrepared,
-    prepareRoute: prepareRoute,
+    getPrepared,
+    prepareRoute,
   }
 }

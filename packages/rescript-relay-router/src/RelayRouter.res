@@ -34,8 +34,8 @@ let prepareMatches = (
       ~intent=Render,
     )
     {
-      routeKey: routeKey,
-      render: render,
+      routeKey,
+      render,
     }
   })
 }
@@ -84,8 +84,8 @@ module Router = {
       initialMatches->prepareMatches(~environment, ~queryParams=initialQueryParams, ~location)
 
     let currentEntry = ref({
-      location: location,
-      preparedMatches: preparedMatches,
+      location,
+      preparedMatches,
     })
 
     let nextId = ref(0)
@@ -109,8 +109,8 @@ module Router = {
         let matches = matchLocation(location)->Belt.Option.getWithDefault([])
         let preparedMatches = matches->prepareMatches(~environment, ~queryParams, ~location)
         currentEntry.contents = {
-          location: location,
-          preparedMatches: preparedMatches,
+          location,
+          preparedMatches,
         }
 
         // Notify anyone interested about routes that will now unmount.
@@ -155,16 +155,18 @@ module Router = {
       preloadUrl->runOnEachRouteMatch((~match, ~queryParams, ~location as _) => {
         // We don't care about the unsub callback here
         let _ = Internal.runAtPriority(() => {
-          let _ =
-            match.route.preloadCode(.
-              ~environment,
-              ~pathParams=match.params,
-              ~queryParams,
-              ~location,
-            )->Js.Promise.then_(assetsToPreload => {
+          let _ = match.route.preloadCode(.
+            ~environment,
+            ~pathParams=match.params,
+            ~queryParams,
+            ~location,
+          )->Js.Promise.then_(
+            assetsToPreload => {
               assetsToPreload->Belt.Array.forEach(preloadAsset(~priority))
               Js.Promise.resolve()
-            }, _)
+            },
+            _,
+          )
         }, ~priority)
       })
     }
@@ -211,12 +213,12 @@ module Router = {
     (
       cleanup,
       {
-        preloadCode: preloadCode,
-        preload: preload,
-        preloadAsset: preloadAsset,
-        get: get,
-        subscribe: subscribe,
-        history: history,
+        preloadCode,
+        preload,
+        preloadAsset,
+        get,
+        subscribe,
+        history,
         subscribeToEvent: callback => {
           let _ = routerEventListeners.contents->Js.Array2.push(callback)
 
@@ -225,8 +227,8 @@ module Router = {
               routerEventListeners.contents->Belt.Array.keep(cb => cb !== callback)
           }
         },
-        postRouterEvent: postRouterEvent,
-        markNextNavigationAsShallow: markNextNavigationAsShallow,
+        postRouterEvent,
+        markNextNavigationAsShallow,
       },
     )
   }

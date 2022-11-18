@@ -117,7 +117,7 @@ module ReScriptTransformer = {
               | (#property, Some([{typ: #string, value: Some(name)}, rawValue])) =>
                 switch (name->Js.Json.decodeString, rawValue->transformNode(~ctx)) {
                 | (Some(name), Some(value)) =>
-                  let _ = properties->Array.push({
+                  properties->Array.push({
                     loc: child->rangeFromNode(~lineLookup=ctx.lineLookup),
                     name,
                     value,
@@ -206,7 +206,7 @@ module Path = {
           },
           text: currentCtx.paramName,
         }
-        let _ = foundPathParams->Array.push(
+        foundPathParams->Array.push(
           if currentCtx.matchBranches->Array.length > 0 {
             PathParamWithMatchBranches(textNode, currentCtx.matchBranches)
           } else {
@@ -425,7 +425,7 @@ module Path = {
           }
         ctx.addDecodeError(~loc=queryParamLoc, ~message)
       | Ok(queryParam) =>
-        let _ = foundQueryParams->Array.push({
+        foundQueryParams->Array.push({
           name: {
             text: key,
             loc: keyLoc,
@@ -519,8 +519,7 @@ module Path = {
       ->Array.forEach(param => {
         switch queryParamsResult->Array.some(p => p.name.text == param.name.text) {
         | true => ()
-        | false =>
-          let _ = queryParamsResult->Array.push(param)
+        | false => queryParamsResult->Array.push(param)
         }
       })
 
@@ -629,10 +628,8 @@ module Decode = {
 
     children->Array.forEach(child =>
       switch child->decodeRouteChild(~ctx, ~siblings=foundChildren, ~parentContext) {
-      | Error(parseError) =>
-        let _ = ctx.addDecodeError(~loc=parseError.loc, ~message=parseError.message)
-      | Ok(routeChild) =>
-        let _ = foundChildren->Array.push(routeChild)
+      | Error(parseError) => ctx.addDecodeError(~loc=parseError.loc, ~message=parseError.message)
+      | Ok(routeChild) => foundChildren->Array.push(routeChild)
       }
     )
 
@@ -720,8 +717,7 @@ module Decode = {
           ->Array.forEach(param =>
             switch params->Array.includes(param) {
             | true => ()
-            | false =>
-              let _ = params->Array.push(param)
+            | false => params->Array.push(param)
             }
           )
 
@@ -911,7 +907,7 @@ let rec parseRouteFile = (
       routeFileName,
       lineLookup,
       addDecodeError: (~loc, ~message) => {
-        let _ = decodeErrors->Array.push({
+        decodeErrors->Array.push({
           routeFileName,
           loc,
           message,
@@ -970,7 +966,7 @@ let rec parseRouteFile = (
     ->Option.forEach(parseError => {
       let linesAndColumns = Bindings.LinesAndColumns.make(content)
 
-      let _ = decodeErrors->Array.push({
+      decodeErrors->Array.push({
         routeFileName,
         message: switch parseError.error
         ->JsoncParser.decodeParseErrorCode

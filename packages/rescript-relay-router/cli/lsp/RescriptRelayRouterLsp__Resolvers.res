@@ -320,7 +320,7 @@ let codeLens = (routeStructure: routeStructure, ~ctx: lspResolveContext): option
 > => {
   let lenses: array<LspProtocol.codeLens> = []
   let addLens = (~range, ~command, ()) => {
-    let _ = lenses->Array.push(LspProtocol.makeCodeLensItem(~command, ~range))
+    lenses->Array.push(LspProtocol.makeCodeLensItem(~command, ~range))
   }
 
   let rec traverse = (routeChild, ~ctx) => {
@@ -453,7 +453,7 @@ let documentLinks = (routeStructure: routeStructure, ~ctx: lspResolveContext): o
 
   @live
   let addDocumentLink = (~range, ~fileUri, ~tooltip=?, ()) => {
-    let _ = documentLinks->Array.push(LspProtocol.makeDocumentLink(~range, ~fileUri, ~tooltip?, ()))
+    documentLinks->Array.push(LspProtocol.makeDocumentLink(~range, ~fileUri, ~tooltip?, ()))
   }
 
   let rec traverse = (routeChild, ~ctx: lspResolveContext) => {

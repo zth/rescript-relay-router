@@ -391,7 +391,7 @@ let start = (~mode, ~config: config) => {
     CurrentContext.getCurrentRouteStructure(lspResolveContext).errors
     ->Resolvers.diagnostics
     ->Array.forEach(((fileName, diagnostics)) => {
-      let _ = currentFilesWithDiagnostics->Array.push(fileName)
+      currentFilesWithDiagnostics->Array.push(fileName)
 
       PublishDiagnostics({
         uri: Utils.pathInRoutesFolder(
@@ -567,7 +567,7 @@ let start = (~mode, ~config: config) => {
             ->send
           } else {
             shutdownRequestAlreadyReceived := true
-            let _ = theWatcher->Bindings.Chokidar.Watcher.close
+            theWatcher->Bindings.Chokidar.Watcher.close->Promise.done
             Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null(), ())
             ->Message.Response.asMessage
             ->send

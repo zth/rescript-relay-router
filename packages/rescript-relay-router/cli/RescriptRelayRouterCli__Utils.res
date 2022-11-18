@@ -181,8 +181,7 @@ let rec routeChildrenToPrintable = (routeChildren: array<routeChild>): array<pri
 and mapRouteChild = (child, ~routes) => {
   switch child {
   | Include({content}) => content->Array.forEach(child => mapRouteChild(child, ~routes))
-  | RouteEntry(routeEntry) =>
-    let _ = routes->Array.push(parsedToPrintable(routeEntry))
+  | RouteEntry(routeEntry) => routes->Array.push(parsedToPrintable(routeEntry))
   }
 }
 and parsedToPrintable = (routeEntry: routeEntry): printableRoute => {

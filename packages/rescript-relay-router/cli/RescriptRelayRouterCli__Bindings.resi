@@ -12,6 +12,9 @@ module Chokidar: {
     external onUnlink: (t, @as(json`"unlink"`) _, string => unit) => t = "on"
 
     @send
+    external onAdd: (t, @as(json`"add"`) _, string => unit) => t = "on"
+
+    @send
     external close: t => Js.Promise.t<unit> = "close"
   }
   @module("chokidar") @val
@@ -36,6 +39,11 @@ module Path: {
 
   @module("path")
   external extname: string => string = "extname"
+
+  type parsed = {name: string}
+
+  @module("path")
+  external parse: string => parsed = "parse"
 }
 
 module Node: {
@@ -86,6 +94,26 @@ module Fs: {
   external existsSync: string => bool = "existsSync"
 
   let writeFileIfChanged: (string, string) => unit
+}
+
+module ChildProcess: {
+  module Spawn: {
+    type t
+
+    @live
+    type opts = {
+      shell?: bool,
+      cwd?: string,
+      stdio?: [#inherit | #pipe],
+    }
+
+    @module("child_process")
+    external make: (string, array<string>, opts) => t = "spawn"
+
+    @send external onClose: (t, @as(json`"close"`) _, int => unit) => unit = "on"
+
+    let onData: (t, string => unit) => unit
+  }
 }
 
 module URL: {
@@ -139,3 +167,5 @@ module LinesAndColumns: {
   @send
   external offsetForLocation: (t, loc) => int = "indexForLocation"
 }
+
+@val @module("os") external osEOL: string = "EOL"

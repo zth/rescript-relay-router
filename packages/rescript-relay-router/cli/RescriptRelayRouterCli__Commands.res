@@ -299,7 +299,7 @@ let init = () => {
   Console.log("[init] Done! You can now run the `generate -scaffold-renderers` command.")
 }
 
-type cliResult = Done | Watcher({watcher: Chokidar.Watcher.t})
+type cliResult = Done | Watcher({watchers: array<Chokidar.Watcher.t>})
 
 let runCli = args => {
   switch args->List.fromArray {
@@ -379,7 +379,7 @@ let runCli = args => {
           ->Watcher.onUnlink(_ => {
             generateRoutesSafe()
           })
-        Watcher({watcher: theWatcher})
+        Watcher({watchers: [theWatcher]})
       } else {
         Done
       }
@@ -400,8 +400,8 @@ let runCli = args => {
     } else {
       NodeRpc
     }
-    let watcher = Lsp.start(~config, ~mode)
-    Watcher({watcher: watcher})
+    let watchers = Lsp.start(~config, ~mode)
+    Watcher({watchers: watchers})
   | _ =>
     Console.log("Unknown command. Use -help or -h to see all available commands.")
     Done

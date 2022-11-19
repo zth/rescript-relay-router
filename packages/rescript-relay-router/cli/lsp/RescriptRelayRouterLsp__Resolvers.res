@@ -1,9 +1,7 @@
 open RescriptRelayRouterCli__Types
 module Bindings = RescriptRelayRouterCli__Bindings
 module Utils = RescriptRelayRouterCli__Utils
-
-@val
-external log: 'any => unit = "console.error"
+module LspUtils = RescriptRelayRouterLsp__Utils
 
 type lspResolveContext = {
   fileUri: string,
@@ -278,11 +276,8 @@ let codeActions = (routeStructure: routeStructure, ~ctx: lspResolveContext): opt
   array<LspProtocol.codeAction>,
 > => {
   switch routeStructure->findRequestContext(~ctx) {
-  | None =>
-    log("oops, none")
-    None
+  | None => None
   | Some(astLocation) =>
-    log(astLocation)
     switch astLocation {
     | RouteEntry({routeEntry: {parentRouteLoc: Some({childrenArray})}}) =>
       Some([
@@ -308,9 +303,7 @@ let codeActions = (routeStructure: routeStructure, ~ctx: lspResolveContext): opt
           }),
         },
       ])
-    | _ =>
-      log("no match")
-      None
+    | _ => None
     }
   }
 }
@@ -394,30 +387,11 @@ let routeRendererCodeLens = (
 
         // Now let's find the target route so we can open that file via the code
         // lens.
-        let routeName =
-          routeRendererFileName
-          ->String.split("_route_renderer.res")
-          ->Array.get(0)
-          ->Option.getWithDefault("")
+        let routeName = LspUtils.routeNameFromRouteRendererFileName(routeRendererFileName)
 
-        let matchingRouteEntry = ref(None)
-
-        let rec findRouteWithName = (name, ~routeChildren) => {
-          routeChildren->Array.forEach(routeEntry => {
-            switch routeEntry {
-            | RouteEntry(routeEntry) if routeEntry.name->RouteName.getFullRouteName == routeName =>
-              matchingRouteEntry := Some(routeEntry)
-            | RouteEntry({children: Some(children)})
-            | Include({content: children}) =>
-              name->findRouteWithName(~routeChildren=children)
-            | _ => ()
-            }
-          })
-        }
-
-        routeName->findRouteWithName(~routeChildren=routeStructure.result)
-
-        switch matchingRouteEntry.contents {
+        switch routeName->Belt.Option.flatMap(routeName =>
+          routeName->LspUtils.findRouteWithName(~routeChildren=routeStructure.result)
+        ) {
         | None => ()
         | Some(routeEntry) =>
           foundRenderer :=

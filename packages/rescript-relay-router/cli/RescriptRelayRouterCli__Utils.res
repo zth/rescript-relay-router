@@ -301,7 +301,7 @@ let queryParamToQueryParamDecoder = (param, ~key) => {
 
 let maybePluralize = (text, ~count) =>
   text ++ if count == 1 {
-    "s"
-  } else {
     ""
+  } else {
+    "s"
   }

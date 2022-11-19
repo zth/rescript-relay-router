@@ -33,6 +33,7 @@ module Message = {
     | #"textDocument/documentLink"
     | #"textDocument/completion"
     | #"textDocument/codeAction"
+    | #"textDocument/rescriptRelayRouterRoutes"
   ] as 'a
 
   let jsonrpcVersion = "2.0"
@@ -92,6 +93,7 @@ module Message = {
       | DocumentLinks(documentLinkParams)
       | Completion(completionParams)
       | CodeAction(codeActionParams)
+      | RescriptRelayRouterRoutes(string)
       | UnmappedMessage
 
     let decodeLspMessage = (msg: msg): t => {
@@ -104,6 +106,7 @@ module Message = {
       | #"textDocument/documentLink" => DocumentLinks(msg->unsafeGetParams)
       | #"textDocument/completion" => Completion(msg->unsafeGetParams)
       | #"textDocument/codeAction" => CodeAction(msg->unsafeGetParams)
+      | #"textDocument/rescriptRelayRouterRoutes" => RescriptRelayRouterRoutes(msg->unsafeGetParams)
       | _ => UnmappedMessage
       }
     }
@@ -232,6 +235,7 @@ module Message = {
     external fromDocumentLinks: array<LspProtocol.documentLink> => t = "%identity"
     external fromCompletionItems: array<LspProtocol.completionItem> => t = "%identity"
     external fromCodeActions: array<LspProtocol.codeAction> => t = "%identity"
+    external fromRoutesForFile: array<LspProtocol.Command.routeRendererReference> => t = "%identity"
     let null: unit => t
   } = {
     type t
@@ -242,6 +246,7 @@ module Message = {
     external fromDocumentLinks: array<LspProtocol.documentLink> => t = "%identity"
     external fromCompletionItems: array<LspProtocol.completionItem> => t = "%identity"
     external fromCodeActions: array<LspProtocol.codeAction> => t = "%identity"
+    external fromRoutesForFile: array<LspProtocol.Command.routeRendererReference> => t = "%identity"
     let null = () => Nullable.null->fromAny
   }
 
@@ -691,7 +696,6 @@ let start = (~mode, ~config: config) => {
                 ->Message.Response.asMessage
                 ->send
               } else {
-                log("Nope")
                 switch getFreshModuleDepsCache() {
                 | None => ()
                 | Some(promise) =>
@@ -788,6 +792,53 @@ let start = (~mode, ~config: config) => {
               ->Message.Response.asMessage
               ->send
             | _ => ()
+            }
+
+          | RescriptRelayRouterRoutes(thisModuleName) =>
+            switch getFreshModuleDepsCache() {
+            | None => ()
+            | Some(promise) =>
+              promise
+              ->Promise.thenResolve(res => {
+                switch res {
+                | Error(_) => ()
+                | Ok(moduleDepsCache) =>
+                  let foundRoutes = Set.make()
+                  findRoutesForFile(thisModuleName, ~foundRoutes, ~moduleDepsCache)
+                  if foundRoutes->Set.size > 0 {
+                    let result =
+                      foundRoutes
+                      ->Set.values
+                      ->Array.fromIterator
+                      ->Array.filterMap(routeName =>
+                        switch routeName->LspUtils.findRouteWithName(
+                          ~routeChildren=(ctx->CurrentContext.getCurrentRouteStructure).result,
+                        ) {
+                        | None => None
+                        | Some(routeEntry) =>
+                          Some({
+                            LspProtocol.Command.sourceFilePath: Utils.pathInRoutesFolder(
+                              ~fileName=routeEntry.sourceFile,
+                              ~config=ctx->CurrentContext.getConfig,
+                              (),
+                            ),
+                            routeName,
+                            loc: {
+                              line: routeEntry.loc.start.line,
+                              character: routeEntry.loc.start.column,
+                            },
+                          })
+                        }
+                      )
+                      ->Message.Result.fromRoutesForFile
+
+                    Message.Response.make(~id=msg->Message.getId, ~result, ())
+                    ->Message.Response.asMessage
+                    ->send
+                  }
+                }
+              })
+              ->Promise.done
             }
           | DocumentLinks(params) =>
             if params.textDocument.uri->Bindings.Path.extname == ".json" {

@@ -1,5 +1,15 @@
 # @rescript-relay-router-example/express
 
+## 0.0.5
+
+### Patch Changes
+
+- b7ff499: Migrate relevant underlying code to the new ReScript standard library (currently in private testing).
+- Updated dependencies [b7ff499]
+- Updated dependencies [c51701d]
+- Updated dependencies [c51701d]
+  - rescript-relay-router@0.0.24
+
 ## 0.0.4
 
 ### Patch Changes

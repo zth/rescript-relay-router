@@ -1,5 +1,13 @@
 # rescript-relay-router
 
+## 0.0.24
+
+### Patch Changes
+
+- b7ff499: Migrate relevant underlying code to the new ReScript standard library (currently in private testing).
+- c51701d: LSP: Code lens in ReScript files detailing how many routes the file is referenced in.
+- c51701d: LSP: Support custom LSP command for returning routes for a file.
+
 ## 0.0.23
 
 ### Patch Changes

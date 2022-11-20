@@ -93,7 +93,8 @@ module RoutePath: {
   }
 
   let getPathSegment = t => t.pathSegment
-  let getFullRoutePath = t => "/" ++ t.currentRoutePath->List.toArray->Array.joinWith("/")
+  let getFullRoutePath = t =>
+    "/" ++ t.currentRoutePath->List.toArray->Array.reverse->Array.joinWith("/")
 
   let toPattern = t =>
     "/" ++
@@ -207,4 +208,15 @@ type rec routeForCliMatching = {
 type config = {
   generatedPath: string,
   routesFolderPath: string,
+  rescriptLibFolderPath: string,
+}
+
+type dependencyDeclaration = {
+  dependsOn: Set.t<string>,
+  dependents: Set.t<string>,
+}
+
+type moduleDepsCache = {
+  mutable cache: Dict.t<dependencyDeclaration>,
+  mutable compilerLastRebuilt: float,
 }

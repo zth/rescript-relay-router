@@ -528,8 +528,6 @@ module Path = {
   }
 }
 
-let f = Belt.Array.concatMany
-
 module Validators = {
   open! JsoncParser
 

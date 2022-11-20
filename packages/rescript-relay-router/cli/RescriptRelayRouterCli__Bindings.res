@@ -13,6 +13,9 @@ module Chokidar = {
     external onUnlink: (t, @as(json`"unlink"`) _, string => unit) => t = "on"
 
     @send
+    external onAdd: (t, @as(json`"add"`) _, string => unit) => t = "on"
+
+    @send
     external close: t => Promise.t<unit> = "close"
   }
 
@@ -38,6 +41,12 @@ module Path = {
 
   @module("path")
   external extname: string => string = "extname"
+
+  @live
+  type parsed = {name: string}
+
+  @module("path")
+  external parse: string => parsed = "parse"
 }
 
 module Node = {
@@ -115,6 +124,33 @@ module Fs = {
   }
 }
 
+module ChildProcess = {
+  module Spawn = {
+    type stdout
+    type stderr
+    @live
+    type t = {stdout: stdout, stderr: stderr}
+
+    @live
+    type opts = {
+      shell?: bool,
+      cwd?: string,
+      stdio?: [#inherit | #pipe],
+    }
+
+    type buffer
+    @send external bufferToString: buffer => string = "toString"
+
+    @module("child_process")
+    external make: (string, array<string>, opts) => t = "spawn"
+
+    @send external onStdoutData: (stdout, @as(json`"data"`) _, buffer => unit) => unit = "on"
+    @send external onClose: (t, @as(json`"close"`) _, int => unit) => unit = "on"
+
+    let onData = (t, cb) => t.stdout->onStdoutData(buffer => buffer->bufferToString->cb)
+  }
+}
+
 module URL = {
   type t
 
@@ -169,3 +205,5 @@ module LinesAndColumns = {
   @send
   external offsetForLocation: (t, loc) => int = "indexForLocation"
 }
+
+@val @module("os") external osEOL: string = "EOL"

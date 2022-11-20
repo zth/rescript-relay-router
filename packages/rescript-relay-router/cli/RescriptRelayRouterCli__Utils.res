@@ -34,6 +34,10 @@ module Config: {
           ->Option.getWithDefault(Path.join([routesFolderPath, "__generated__"]))
           ->resolveFullPath,
           routesFolderPath,
+          // TODO: This won't work for monorepo setups etc where the ReScript
+          // lib dir isn't at the same level as the router config file. Fix
+          // eventually.
+          rescriptLibFolderPath: Path.join([Path.dirname(filepath), "lib", "bs"]),
         }
       }
 
@@ -294,3 +298,10 @@ let queryParamToQueryParamDecoder = (param, ~key) => {
       )}),\n`
   }
 }
+
+let maybePluralize = (text, ~count) =>
+  text ++ if count == 1 {
+    ""
+  } else {
+    "s"
+  }

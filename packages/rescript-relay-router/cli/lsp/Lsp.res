@@ -6,12 +6,13 @@ let dummyPos: LspProtocol.loc = {
   character: -1,
 }
 
-@val
-external log: 'any => unit = "console.error"
+let log = Console.error
 
 module Bindings = RescriptRelayRouterCli__Bindings
 module Utils = RescriptRelayRouterCli__Utils
 module Resolvers = RescriptRelayRouterLsp__Resolvers
+module DepsReader = RescriptRelayRouterLsp__DepsReader
+module LspUtils = RescriptRelayRouterLsp__Utils
 
 open RescriptRelayRouterCli__Types
 
@@ -32,6 +33,7 @@ module Message = {
     | #"textDocument/documentLink"
     | #"textDocument/completion"
     | #"textDocument/codeAction"
+    | #"textDocument/rescriptRelayRouterRoutes"
   ] as 'a
 
   let jsonrpcVersion = "2.0"
@@ -91,6 +93,7 @@ module Message = {
       | DocumentLinks(documentLinkParams)
       | Completion(completionParams)
       | CodeAction(codeActionParams)
+      | RescriptRelayRouterRoutes(string)
       | UnmappedMessage
 
     let decodeLspMessage = (msg: msg): t => {
@@ -103,6 +106,7 @@ module Message = {
       | #"textDocument/documentLink" => DocumentLinks(msg->unsafeGetParams)
       | #"textDocument/completion" => Completion(msg->unsafeGetParams)
       | #"textDocument/codeAction" => CodeAction(msg->unsafeGetParams)
+      | #"textDocument/rescriptRelayRouterRoutes" => RescriptRelayRouterRoutes(msg->unsafeGetParams)
       | _ => UnmappedMessage
       }
     }
@@ -231,6 +235,7 @@ module Message = {
     external fromDocumentLinks: array<LspProtocol.documentLink> => t = "%identity"
     external fromCompletionItems: array<LspProtocol.completionItem> => t = "%identity"
     external fromCodeActions: array<LspProtocol.codeAction> => t = "%identity"
+    external fromRoutesForFile: array<LspProtocol.Command.routeRendererReference> => t = "%identity"
     let null: unit => t
   } = {
     type t
@@ -241,6 +246,7 @@ module Message = {
     external fromDocumentLinks: array<LspProtocol.documentLink> => t = "%identity"
     external fromCompletionItems: array<LspProtocol.completionItem> => t = "%identity"
     external fromCodeActions: array<LspProtocol.codeAction> => t = "%identity"
+    external fromRoutesForFile: array<LspProtocol.Command.routeRendererReference> => t = "%identity"
     let null = () => Nullable.null->fromAny
   }
 
@@ -370,6 +376,12 @@ let start = (~mode, ~config: config) => {
   let routeFilesCaches: Dict.t<string> = Dict.empty()
   let routeRenderersCache: Dict.t<string> = Dict.empty()
 
+  // Holds the module graph for ReScript modules
+  let moduleDepsCache = {
+    cache: Dict.empty(),
+    compilerLastRebuilt: 0.,
+  }
+
   let getRouteFileContents = fileName => {
     switch routeFilesCaches->Dict.get(fileName) {
     | Some(contents) => Ok(contents)
@@ -435,6 +447,59 @@ let start = (~mode, ~config: config) => {
     publishDiagnostics(lspResolveContext)
   }
 
+  let rebuildingDepsCachePromise = ref(None)
+
+  let doRebuildDepsCacheIfNeeded = async () => {
+    let config = getCurrentLspContext()->CurrentContext.getConfig
+    let currentLastBuiltAt = moduleDepsCache.compilerLastRebuilt
+    let lastBuiltAt = DepsReader.getLastBuiltFromCompilerLog(~config)->Option.getWithDefault(0.)
+
+    if lastBuiltAt > currentLastBuiltAt {
+      switch await DepsReader.readDeps(~config) {
+      | Ok(depsByModuleNames) =>
+        moduleDepsCache.cache = depsByModuleNames
+        moduleDepsCache.compilerLastRebuilt = lastBuiltAt
+        Ok(moduleDepsCache)
+      | Error(err) => Error(err)
+      }
+    } else {
+      Ok(moduleDepsCache)
+    }
+  }
+
+  let getFreshModuleDepsCache = () => {
+    switch rebuildingDepsCachePromise.contents {
+    | None =>
+      rebuildingDepsCachePromise.contents = Some(
+        doRebuildDepsCacheIfNeeded()->Promise.thenResolve(res => {
+          rebuildingDepsCachePromise.contents = None
+          res
+        }),
+      )
+    | Some(_) => ()
+    }
+    rebuildingDepsCachePromise.contents
+  }
+
+  let isRouteRenderer = moduleName => moduleName->String.endsWith("_route_renderer")
+
+  let rec findRoutesForFile = (moduleName, ~moduleDepsCache, ~foundRoutes) => {
+    switch moduleDepsCache.cache->Dict.get(moduleName) {
+    | None => ()
+    | Some({dependents}) =>
+      dependents->Set.forEach(mName => {
+        if isRouteRenderer(mName) {
+          let _: Set.t<_> =
+            foundRoutes->Set.add(
+              mName->String.slice(~start=0, ~end="_route_renderer"->String.length * -1),
+            )
+        } else {
+          findRoutesForFile(mName, ~moduleDepsCache, ~foundRoutes)
+        }
+      })
+    }
+  }
+
   let openedFile = (uri, text) => {
     let key = uri->Bindings.Path.basename
 
@@ -473,7 +538,7 @@ let start = (~mode, ~config: config) => {
     rebuildLspResolveContext()
   }
 
-  let theWatcher =
+  let routeFilesWatcher =
     Bindings.Chokidar.watcher
     ->Bindings.Chokidar.watch(Utils.pathInRoutesFolder(~config, ~fileName="*.json", ()))
     ->Bindings.Chokidar.Watcher.onChange(_ => {
@@ -567,7 +632,7 @@ let start = (~mode, ~config: config) => {
             ->send
           } else {
             shutdownRequestAlreadyReceived := true
-            theWatcher->Bindings.Chokidar.Watcher.close->Promise.done
+            routeFilesWatcher->Bindings.Chokidar.Watcher.close->Promise.done
             Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null(), ())
             ->Message.Response.asMessage
             ->send
@@ -631,7 +696,82 @@ let start = (~mode, ~config: config) => {
                 ->Message.Response.asMessage
                 ->send
               } else {
-                ()
+                switch getFreshModuleDepsCache() {
+                | None => ()
+                | Some(promise) =>
+                  promise
+                  ->Promise.thenResolve(res => {
+                    switch res {
+                    | Error(_) => ()
+                    | Ok(moduleDepsCache) =>
+                      let thisModuleName = (fileName->Bindings.Path.parse).name
+                      let foundRoutes = Set.make()
+                      findRoutesForFile(thisModuleName, ~foundRoutes, ~moduleDepsCache)
+                      if foundRoutes->Set.size > 0 {
+                        let result = [
+                          LspProtocol.makeCodeLensItem(
+                            ~range={
+                              start: {line: 0, character: 0},
+                              end_: {line: 0, character: 0},
+                            },
+                            ~command=LspProtocol.Command.makeTextOnlyCommand(
+                              `RescriptRelayRouter: Referenced in ${foundRoutes
+                                ->Set.size
+                                ->Int.toString} ${Utils.maybePluralize(
+                                  "route",
+                                  ~count=foundRoutes->Set.size,
+                                )}`,
+                            ),
+                          ),
+                          LspProtocol.makeCodeLensItem(
+                            ~range={
+                              start: {line: 0, character: 0},
+                              end_: {line: 0, character: 0},
+                            },
+                            ~command=LspProtocol.Command.makeOpenRouteDefinitionsCommand(
+                              ~title=`Open definition for ${if foundRoutes->Set.size > 1 {
+                                  "routes"
+                                } else {
+                                  "route " ++
+                                  foundRoutes->Set.values->Array.fromIterator->Array.getUnsafe(0)
+                                }}`,
+                              ~routes=foundRoutes
+                              ->Set.values
+                              ->Array.fromIterator
+                              ->Array.filterMap(routeName =>
+                                switch routeName->LspUtils.findRouteWithName(
+                                  ~routeChildren=(
+                                    ctx->CurrentContext.getCurrentRouteStructure
+                                  ).result,
+                                ) {
+                                | None => None
+                                | Some(routeEntry) =>
+                                  Some({
+                                    LspProtocol.Command.sourceFilePath: Utils.pathInRoutesFolder(
+                                      ~fileName=routeEntry.sourceFile,
+                                      ~config=ctx->CurrentContext.getConfig,
+                                      (),
+                                    ),
+                                    routeName,
+                                    loc: {
+                                      line: routeEntry.loc.start.line,
+                                      character: routeEntry.loc.start.column,
+                                    },
+                                  })
+                                }
+                              ),
+                            ),
+                          ),
+                        ]->Message.Result.fromCodeLenses
+
+                        Message.Response.make(~id=msg->Message.getId, ~result, ())
+                        ->Message.Response.asMessage
+                        ->send
+                      }
+                    }
+                  })
+                  ->Promise.done
+                }
               }
 
             | ".json" =>
@@ -653,6 +793,53 @@ let start = (~mode, ~config: config) => {
               ->Message.Response.asMessage
               ->send
             | _ => ()
+            }
+
+          | RescriptRelayRouterRoutes(thisModuleName) =>
+            switch getFreshModuleDepsCache() {
+            | None => ()
+            | Some(promise) =>
+              promise
+              ->Promise.thenResolve(res => {
+                switch res {
+                | Error(_) => ()
+                | Ok(moduleDepsCache) =>
+                  let foundRoutes = Set.make()
+                  findRoutesForFile(thisModuleName, ~foundRoutes, ~moduleDepsCache)
+                  if foundRoutes->Set.size > 0 {
+                    let result =
+                      foundRoutes
+                      ->Set.values
+                      ->Array.fromIterator
+                      ->Array.filterMap(routeName =>
+                        switch routeName->LspUtils.findRouteWithName(
+                          ~routeChildren=(ctx->CurrentContext.getCurrentRouteStructure).result,
+                        ) {
+                        | None => None
+                        | Some(routeEntry) =>
+                          Some({
+                            LspProtocol.Command.sourceFilePath: Utils.pathInRoutesFolder(
+                              ~fileName=routeEntry.sourceFile,
+                              ~config=ctx->CurrentContext.getConfig,
+                              (),
+                            ),
+                            routeName,
+                            loc: {
+                              line: routeEntry.loc.start.line,
+                              character: routeEntry.loc.start.column,
+                            },
+                          })
+                        }
+                      )
+                      ->Message.Result.fromRoutesForFile
+
+                    Message.Response.make(~id=msg->Message.getId, ~result, ())
+                    ->Message.Response.asMessage
+                    ->send
+                  }
+                }
+              })
+              ->Promise.done
             }
           | DocumentLinks(params) =>
             if params.textDocument.uri->Bindings.Path.extname == ".json" {
@@ -712,9 +899,7 @@ let start = (~mode, ~config: config) => {
                 },
               ) {
               | None => Message.Result.null()
-              | Some(codeActions) =>
-                log(codeActions)
-                Message.Result.fromCodeActions(codeActions)
+              | Some(codeActions) => Message.Result.fromCodeActions(codeActions)
               }
 
               Message.Response.make(~id=msg->Message.getId, ~result, ())
@@ -769,5 +954,5 @@ let start = (~mode, ~config: config) => {
     log(`Starting LSP in Node RPC.`)
   }
 
-  theWatcher
+  [routeFilesWatcher]
 }

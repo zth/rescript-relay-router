@@ -214,6 +214,22 @@ module Command = {
     arguments: Some([fileUri, pos.line->Int.toString, pos.character->Int.toString]),
   }
 
+  type routeRendererReference = {
+    sourceFilePath: string,
+    routeName: string,
+    loc: loc,
+  }
+
+  let makeOpenRouteDefinitionsCommand = (~title, ~routes) => {
+    title,
+    command: `vscode-rescript-relay.open-route-definitions`,
+    arguments: Some(
+      routes->Array.map(r =>
+        `${r.sourceFilePath};${r.routeName};${r.loc.line->Int.toString};${r.loc.character->Int.toString}`
+      ),
+    ),
+  }
+
   let makeTextOnlyCommand = title => {
     title,
     command: "",

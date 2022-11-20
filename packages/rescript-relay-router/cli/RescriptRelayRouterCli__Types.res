@@ -93,7 +93,8 @@ module RoutePath: {
   }
 
   let getPathSegment = t => t.pathSegment
-  let getFullRoutePath = t => "/" ++ t.currentRoutePath->List.toArray->Array.joinWith("/")
+  let getFullRoutePath = t =>
+    "/" ++ t.currentRoutePath->List.toArray->Array.reverse->Array.joinWith("/")
 
   let toPattern = t =>
     "/" ++

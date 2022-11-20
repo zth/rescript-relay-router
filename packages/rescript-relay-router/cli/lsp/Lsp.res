@@ -732,6 +732,7 @@ let start = (~mode, ~config: config) => {
                               ~title=`Open definition for ${if foundRoutes->Set.size > 1 {
                                   "routes"
                                 } else {
+                                  "route " ++
                                   foundRoutes->Set.values->Array.fromIterator->Array.getUnsafe(0)
                                 }}`,
                               ~routes=foundRoutes

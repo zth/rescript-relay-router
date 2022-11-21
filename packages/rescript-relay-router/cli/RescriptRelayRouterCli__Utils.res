@@ -161,6 +161,7 @@ let rec rawRouteToMatchable = (route: printableRoute): routeForCliMatching => {
   path: route.path->RoutePath.getPathSegment,
   params: route.params->Array.map(printablePathParamToParamName),
   name: route.name->RouteName.getRouteName,
+  fullName: route.name->RouteName.getFullRouteName,
   queryParams: route.queryParams,
   children: route.children->Array.map(rawRouteToMatchable),
   sourceFile: route.sourceFile,

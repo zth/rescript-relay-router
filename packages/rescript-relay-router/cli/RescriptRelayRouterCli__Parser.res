@@ -621,13 +621,22 @@ module Decode = {
   let findPropertyWithName = (properties, ~name) =>
     properties->Array.find(prop => prop.name == name)
 
-  let rec decodeRouteChildren = (children, ~ctx, ~parentContext) => {
+  let rec decodeRouteChildren = (children, ~ctx, ~parentContext: parentContext) => {
     let foundChildren = []
 
     children->Array.forEach(child =>
       switch child->decodeRouteChild(~ctx, ~siblings=foundChildren, ~parentContext) {
       | Error(parseError) => ctx.addDecodeError(~loc=parseError.loc, ~message=parseError.message)
-      | Ok(routeChild) => foundChildren->Array.push(routeChild)
+      | Ok(routeChild) =>
+        foundChildren->Array.push(routeChild)
+        switch routeChild {
+        | RouteEntry(routeEntry) =>
+          parentContext.routesByName->Dict.set(
+            routeEntry.name->RouteName.getFullRouteName,
+            routeEntry,
+          )
+        | Include(_) => ()
+        }
       }
     )
 
@@ -777,6 +786,7 @@ module Decode = {
               children->decodeRouteChildren(
                 ~ctx,
                 ~parentContext={
+                  ...parentContext,
                   seenPathParams: List.concatMany([
                     parentContext.seenPathParams,
                     path.pathParams
@@ -789,7 +799,6 @@ module Decode = {
                   currentRoutePath: routePath,
                   currentRouteNamePath: thisRouteNamePath,
                   seenQueryParams: path.queryParams,
-                  traversedRouteFiles: parentContext.traversedRouteFiles,
                   parentRouteLoc: Some({
                     childrenArray: loc,
                   }),
@@ -1002,23 +1011,25 @@ let rec parseRouteFile = (
   }
 }
 
-let emptyParentCtx = () => {
+let emptyParentCtx = (~routesByName) => {
   currentRouteNamePath: list{},
   seenQueryParams: [],
   currentRoutePath: RoutePath.empty(),
   seenPathParams: list{},
   traversedRouteFiles: list{},
   parentRouteLoc: None,
+  routesByName,
 }
 
 let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
   let routeFiles = Dict.empty()
+  let routesByName = Dict.empty()
   let decodeErrors = []
 
   let {result, rawText} = "routes.json"->parseRouteFile(
     ~config,
     ~decodeErrors,
-    ~parentContext=emptyParentCtx(),
+    ~parentContext=emptyParentCtx(~routesByName),
     ~parserContext={
       routeFiles,
       routeFileNames: Bindings.Glob.glob.sync(
@@ -1042,5 +1053,6 @@ let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
     errors: decodeErrors,
     result,
     routeFiles,
+    routesByName,
   }
 }

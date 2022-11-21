@@ -40,7 +40,7 @@ describe("Parsing", () => {
     }
 ]`
     let ctx = makeMockParserCtx(~content=mockContent, ())
-    let parentContext = P.emptyParentCtx()
+    let parentContext = P.emptyParentCtx(~routesByName=Dict.empty())
 
     let parsed =
       mockContent

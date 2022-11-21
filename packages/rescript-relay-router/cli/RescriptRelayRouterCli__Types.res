@@ -175,6 +175,7 @@ type parentContext = {
   seenPathParams: list<seenPathParam>,
   traversedRouteFiles: list<string>,
   parentRouteLoc: option<parentRouteLoc>,
+  routesByName: Dict.t<routeEntry>,
 }
 
 // This is the route structure produced
@@ -184,6 +185,7 @@ type routeStructure = {
   errors: array<decodeError>,
   result: array<routeChild>,
   routeFiles: Dict.t<loadedRouteFile>,
+  routesByName: Dict.t<routeEntry>,
 }
 
 // For printing. A simpler AST without unecessary location info etc.
@@ -196,13 +198,15 @@ type rec printableRoute = {
   sourceFile: string,
 }
 
+@live
 type rec routeForCliMatching = {
-  @live path: string,
+  path: string,
   params: array<string>,
   name: string,
+  fullName: string,
   sourceFile: string,
-  @live children: array<routeForCliMatching>,
-  @live queryParams: Dict.t<queryParam>,
+  children: array<routeForCliMatching>,
+  queryParams: Dict.t<queryParam>,
 }
 
 type config = {

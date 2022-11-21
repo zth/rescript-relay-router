@@ -34,6 +34,7 @@ module Message = {
     | #"textDocument/completion"
     | #"textDocument/codeAction"
     | #"textDocument/rescriptRelayRouterRoutes"
+    | #"textDocument/rescriptRelayRouterRoutesMatchingUrl"
   ] as 'a
 
   let jsonrpcVersion = "2.0"
@@ -94,6 +95,7 @@ module Message = {
       | Completion(completionParams)
       | CodeAction(codeActionParams)
       | RescriptRelayRouterRoutes(string)
+      | RescriptRelayRouterRoutesMatchingUrl(array<string>)
       | UnmappedMessage
 
     let decodeLspMessage = (msg: msg): t => {
@@ -107,6 +109,8 @@ module Message = {
       | #"textDocument/completion" => Completion(msg->unsafeGetParams)
       | #"textDocument/codeAction" => CodeAction(msg->unsafeGetParams)
       | #"textDocument/rescriptRelayRouterRoutes" => RescriptRelayRouterRoutes(msg->unsafeGetParams)
+      | #"textDocument/rescriptRelayRouterRoutesMatchingUrl" =>
+        RescriptRelayRouterRoutesMatchingUrl(msg->unsafeGetParams)
       | _ => UnmappedMessage
       }
     }
@@ -236,6 +240,8 @@ module Message = {
     external fromCompletionItems: array<LspProtocol.completionItem> => t = "%identity"
     external fromCodeActions: array<LspProtocol.codeAction> => t = "%identity"
     external fromRoutesForFile: array<LspProtocol.Command.routeRendererReference> => t = "%identity"
+    external fromRoutesMatchingUrl: array<LspProtocol.Command.routeRendererReference> => t =
+      "%identity"
     let null: unit => t
   } = {
     type t
@@ -247,6 +253,8 @@ module Message = {
     external fromCompletionItems: array<LspProtocol.completionItem> => t = "%identity"
     external fromCodeActions: array<LspProtocol.codeAction> => t = "%identity"
     external fromRoutesForFile: array<LspProtocol.Command.routeRendererReference> => t = "%identity"
+    external fromRoutesMatchingUrl: array<LspProtocol.Command.routeRendererReference> => t =
+      "%identity"
     let null = () => Nullable.null->fromAny
   }
 
@@ -757,6 +765,11 @@ let start = (~mode, ~config: config) => {
                                       line: routeEntry.loc.start.line,
                                       character: routeEntry.loc.start.column,
                                     },
+                                    routeRendererFilePath: Utils.pathInRoutesFolder(
+                                      ~fileName=routeEntry.name->RouteName.getRouteRendererName,
+                                      ~config=ctx->CurrentContext.getConfig,
+                                      (),
+                                    ),
                                   })
                                 }
                               ),
@@ -828,6 +841,11 @@ let start = (~mode, ~config: config) => {
                               line: routeEntry.loc.start.line,
                               character: routeEntry.loc.start.column,
                             },
+                            routeRendererFilePath: Utils.pathInRoutesFolder(
+                              ~fileName=routeEntry.name->RouteName.getRouteRendererName,
+                              ~config=ctx->CurrentContext.getConfig,
+                              (),
+                            ),
                           })
                         }
                       )
@@ -841,6 +859,50 @@ let start = (~mode, ~config: config) => {
               })
               ->Promise.done
             }
+          | RescriptRelayRouterRoutesMatchingUrl([url]) =>
+            let urlObj = Bindings.URL.make(
+              switch url->String.startsWith("http") {
+              | true => url
+              | false => "http://localhost" ++ url
+              },
+            )
+            let {result, routesByName} = ctx->CurrentContext.getCurrentRouteStructure
+            let routes =
+              result->Utils.routeChildrenToPrintable->Array.map(Utils.rawRouteToMatchable)
+
+            let result =
+              routes
+              ->Utils.matchRoutesCli({
+                "pathname": urlObj->Bindings.URL.getPathname,
+                "search": urlObj->Bindings.URL.getSearch->Option.getWithDefault(""),
+                "hash": urlObj->Bindings.URL.getHash,
+                "state": urlObj->Bindings.URL.getState,
+              })
+              ->Option.getWithDefault([])
+              ->Array.filterMap(matched => routesByName->Dict.get(matched.route.fullName))
+              ->Array.map(routeEntry => {
+                LspProtocol.Command.sourceFilePath: Utils.pathInRoutesFolder(
+                  ~fileName=routeEntry.sourceFile,
+                  ~config=ctx->CurrentContext.getConfig,
+                  (),
+                ),
+                routeName: routeEntry.name->RouteName.getFullRouteName,
+                loc: {
+                  line: routeEntry.loc.start.line,
+                  character: routeEntry.loc.start.column,
+                },
+                routeRendererFilePath: Utils.pathInRoutesFolder(
+                  ~fileName=routeEntry.name->RouteName.getRouteRendererName ++ ".res",
+                  ~config=ctx->CurrentContext.getConfig,
+                  (),
+                ),
+              })
+              ->Message.Result.fromRoutesMatchingUrl
+
+            Message.Response.make(~id=msg->Message.getId, ~result, ())
+            ->Message.Response.asMessage
+            ->send
+
           | DocumentLinks(params) =>
             if params.textDocument.uri->Bindings.Path.extname == ".json" {
               let result = switch ctx

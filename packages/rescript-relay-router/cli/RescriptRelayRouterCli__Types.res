@@ -175,6 +175,7 @@ type parentContext = {
   seenPathParams: list<seenPathParam>,
   traversedRouteFiles: list<string>,
   parentRouteLoc: option<parentRouteLoc>,
+  routesByName: Dict.t<routeEntry>,
 }
 
 // This is the route structure produced
@@ -184,6 +185,7 @@ type routeStructure = {
   errors: array<decodeError>,
   result: array<routeChild>,
   routeFiles: Dict.t<loadedRouteFile>,
+  routesByName: Dict.t<routeEntry>,
 }
 
 // For printing. A simpler AST without unecessary location info etc.

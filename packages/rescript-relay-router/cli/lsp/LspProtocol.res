@@ -218,6 +218,7 @@ module Command = {
     sourceFilePath: string,
     routeName: string,
     loc: loc,
+    routeRendererFilePath: string,
   }
 
   let makeOpenRouteDefinitionsCommand = (~title, ~routes) => {

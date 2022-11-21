@@ -95,7 +95,7 @@ module Message = {
       | Completion(completionParams)
       | CodeAction(codeActionParams)
       | RescriptRelayRouterRoutes(string)
-      | RescriptRelayRouterRoutesMatchingUrl(string)
+      | RescriptRelayRouterRoutesMatchingUrl(array<string>)
       | UnmappedMessage
 
     let decodeLspMessage = (msg: msg): t => {
@@ -859,7 +859,7 @@ let start = (~mode, ~config: config) => {
               })
               ->Promise.done
             }
-          | RescriptRelayRouterRoutesMatchingUrl(url) =>
+          | RescriptRelayRouterRoutesMatchingUrl([url]) =>
             let urlObj = Bindings.URL.make(
               switch url->String.startsWith("http") {
               | true => url
@@ -879,7 +879,7 @@ let start = (~mode, ~config: config) => {
                 "state": urlObj->Bindings.URL.getState,
               })
               ->Option.getWithDefault([])
-              ->Array.filterMap(matched => routesByName->Dict.get(matched.route.name))
+              ->Array.filterMap(matched => routesByName->Dict.get(matched.route.fullName))
               ->Array.map(routeEntry => {
                 LspProtocol.Command.sourceFilePath: Utils.pathInRoutesFolder(
                   ~fileName=routeEntry.sourceFile,
@@ -892,7 +892,7 @@ let start = (~mode, ~config: config) => {
                   character: routeEntry.loc.start.column,
                 },
                 routeRendererFilePath: Utils.pathInRoutesFolder(
-                  ~fileName=routeEntry.name->RouteName.getRouteRendererName,
+                  ~fileName=routeEntry.name->RouteName.getRouteRendererName ++ ".res",
                   ~config=ctx->CurrentContext.getConfig,
                   (),
                 ),

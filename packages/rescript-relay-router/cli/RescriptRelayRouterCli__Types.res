@@ -198,13 +198,15 @@ type rec printableRoute = {
   sourceFile: string,
 }
 
+@live
 type rec routeForCliMatching = {
-  @live path: string,
+  path: string,
   params: array<string>,
   name: string,
+  fullName: string,
   sourceFile: string,
-  @live children: array<routeForCliMatching>,
-  @live queryParams: Dict.t<queryParam>,
+  children: array<routeForCliMatching>,
+  queryParams: Dict.t<queryParam>,
 }
 
 type config = {

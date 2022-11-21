@@ -226,7 +226,7 @@ module Command = {
     command: `vscode-rescript-relay.open-route-definitions`,
     arguments: Some(
       routes->Array.map(r =>
-        `${r.sourceFilePath};${r.routeName};${r.loc.line->Int.toString};${r.loc.character->Int.toString}`
+        `${r.sourceFilePath};${r.routeName};${r.loc.line->Int.toString};${r.loc.character->Int.toString};${r.routeRendererFilePath}`
       ),
     ),
   }

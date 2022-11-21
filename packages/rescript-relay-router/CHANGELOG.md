@@ -1,5 +1,12 @@
 # rescript-relay-router
 
+## 0.0.25
+
+### Patch Changes
+
+- 504e374: LSP: Support custom request for returning what routes matches arbitrary URLs
+- 6646831: Temporary peer dep to @gabnor/rescript-stdlib until real stdlib pkg is published.
+
 ## 0.0.24
 
 ### Patch Changes

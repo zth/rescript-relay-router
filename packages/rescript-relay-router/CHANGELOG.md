@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 0.0.26
+
+### Patch Changes
+
+- 3d92f0a: Remove peer dep again and switch to package version of stdlib with mjs shipped.
+
 ## 0.0.25
 
 ### Patch Changes

@@ -3,7 +3,7 @@ let renderer = Routes.Root.Todos.ByStatus.Route.makeRenderer(
     ()
   },
   ~render=props => {
-    React.null
+    React.string((props.byStatus :> string))
   },
   (),
 )

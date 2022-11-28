@@ -131,7 +131,7 @@ let useQueryParams = (): useQueryParamsReturn => {
 }
 
 @inline
-let routePattern = "/todos/:byStatus(completed|notCompleted)"
+let routePattern = "/todos/:byStatus"
 
 @live
 let makeLink = (~byStatus: [#completed | #notCompleted], ~statuses: option<array<TodoStatus.t>>=?, ()) => {

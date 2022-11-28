@@ -15,7 +15,7 @@ module Utils = RelayRouter__Utils
 open Types
 open Bindings
 
-@module("react-router") @return(nullable)
+@module("./vendor/react-router.js") @return(nullable)
 external matchRoutes: (array<route>, RelayRouter__History.location) => option<array<routeMatch>> =
   "matchRoutes"
 

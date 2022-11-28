@@ -18,10 +18,10 @@ let useSetQueryParams: unit => setQueryParamsFn
 
 type pathMatch
 
-@module("react-router") @return(nullable)
+@module("./vendor/react-router.js") @return(nullable)
 external matchPath: (string, string) => option<pathMatch> = "matchPath"
 
-@module("react-router") @return(nullable)
+@module("./vendor/react-router.js") @return(nullable)
 external matchPathWithOptions: ({"path": string, "end": bool}, string) => option<pathMatch> =
   "matchPath"
 

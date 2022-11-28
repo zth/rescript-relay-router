@@ -59,7 +59,6 @@
     "history": "^5.2.0",
     "jsonc-parser": "^3.0.0",
     "node-fetch": "^3.2.0",
-    "react-router": "^6.2.1",
     "rescript-relay-router": "workspace:^",
     "vscode-jsonrpc": "^5.0.1"
   }

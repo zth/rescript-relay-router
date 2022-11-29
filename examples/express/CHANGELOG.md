@@ -1,5 +1,15 @@
 # @rescript-relay-router-example/express
 
+## 0.0.8
+
+### Patch Changes
+
+- 8f055d9: Inline what we use from React Router so we do not need to depend on the entire package, plus can easily modify the matching logic to our needs.
+- 8f055d9: Fix typed path params that was previously broken.
+- Updated dependencies [8f055d9]
+- Updated dependencies [8f055d9]
+  - rescript-relay-router@0.0.27
+
 ## 0.0.7
 
 ### Patch Changes

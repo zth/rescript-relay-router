@@ -1,5 +1,12 @@
 # rescript-relay-router
 
+## 0.0.27
+
+### Patch Changes
+
+- 8f055d9: Inline what we use from React Router so we do not need to depend on the entire package, plus can easily modify the matching logic to our needs.
+- 8f055d9: Fix typed path params that was previously broken.
+
 ## 0.0.26
 
 ### Patch Changes

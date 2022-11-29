@@ -687,7 +687,6 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-relay: 14.1.0
-    react-router: ^6.2.1
     relay-runtime: 14.1.0
     rescript: 10.1.0-rc.5
     rescript-relay: 1.0.2
@@ -4899,17 +4898,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:^6.2.1":
-  version: 6.2.1
-  resolution: "react-router@npm:6.2.1"
-  dependencies:
-    history: ^5.2.0
-  peerDependencies:
-    react: ">=16.8"
-  checksum: 081a89237ab4f32195d1f2173bc4b3d95637cd6942a4d1a9e90d4ac8c80faa95528255ca2ec44c1e88c1b369e712c4ca74cba5ae3acef6fc30a51a62805b95a4
-  languageName: node
-  linkType: hard
-
 "react@npm:^18.2.0":
   version: 18.2.0
   resolution: "react@npm:18.2.0"
@@ -5085,7 +5073,6 @@ __metadata:
     jsonc-parser: ^3.0.0
     lines-and-columns: ^2.0.3
     magic-string: ^0.26.2
-    react-router: ^6.2.1
     rescript: 10.1.0-rc.5
     rescript-vitest: 0.3.0
     vitest: ^0.21.1

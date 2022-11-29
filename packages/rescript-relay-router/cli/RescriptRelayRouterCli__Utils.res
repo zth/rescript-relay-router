@@ -172,7 +172,7 @@ type routeMatchCli = {
   route: RescriptRelayRouterCli__Types.routeForCliMatching,
 }
 
-@module("react-router") @return(nullable)
+@module("../src/vendor/react-router.js") @return(nullable)
 external matchRoutesCli: (
   array<RescriptRelayRouterCli__Types.routeForCliMatching>,
   {"pathname": string, "hash": string, "search": string, "state": Js.Json.t},

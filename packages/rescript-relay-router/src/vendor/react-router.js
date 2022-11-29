@@ -100,6 +100,7 @@ function rankRouteBranches(branches) {
 }
 const paramRe = /^:\w+$/;
 const dynamicSegmentValue = 3;
+const regexSegmentValue = 7;
 const indexRouteValue = 2;
 const emptySegmentValue = 1;
 const staticSegmentValue = 10;
@@ -116,16 +117,25 @@ function computeScore(path, index) {
   }
   return segments
     .filter((s) => !isSplat(s))
-    .reduce(
-      (score, segment) =>
-        score +
-        (paramRe.test(segment)
-          ? dynamicSegmentValue
-          : segment === ""
-          ? emptySegmentValue
-          : staticSegmentValue),
-      initialScore
-    );
+    .reduce((score, segment) => {
+      let scoreToAdd = 0;
+      if (paramRe.test(segment)) {
+        // Means regexp segment
+        if (segment.endsWith(")")) {
+          scoreToAdd = regexSegmentValue;
+        } else {
+          scoreToAdd = dynamicSegmentValue;
+        }
+      } else {
+        if (segment === "") {
+          scoreToAdd = emptySegmentValue;
+        } else {
+          scoreToAdd = staticSegmentValue;
+        }
+      }
+
+      return score + scoreToAdd;
+    }, initialScore);
 }
 function compareIndexes(a, b) {
   let siblings =
@@ -181,9 +191,13 @@ function matchRouteBranch(branch, pathname) {
  */
 export function generatePath(path, params = {}) {
   return path
-    .replace(/:(\w+)/g, (_, key) => {
-      invariant(params[key] != null, `Missing ":${key}" param`);
-      return params[key];
+    .replace(/:([\w(|)]+)/g, (_, key) => {
+      let targetKey = key;
+      if (key.endsWith(")")) {
+        targetKey = key.split("(")[0];
+      }
+      invariant(params[targetKey] != null, `Missing ":${targetKey}" param`);
+      return params[targetKey];
     })
     .replace(/(\/?)\*/, (_, prefix, __, str) => {
       const star = "*";
@@ -252,8 +266,14 @@ function compilePath(path, caseSensitive = false, end = true) {
     path
       .replace(/\/*\*?$/, "") // Ignore trailing / and /*, we'll handle it below
       .replace(/^\/*/, "/") // Make sure it has a leading /
-      .replace(/[\\.*+^$?{}|()[\]]/g, "\\$&") // Escape special regex chars
-      .replace(/:(\w+)/g, (_, paramName) => {
+      .replace(/[\\.*+^$?{}[\]]/g, "\\$&") // Escape special regex chars
+      .replace(/:([\w(|)]+)/g, (_, paramName) => {
+        // Check if this is a regexp param. If so, special treatment.
+        if (paramName.endsWith(")")) {
+          let [pname, regexp] = paramName.slice(0, -1).split("(");
+          paramNames.push(pname);
+          return `(${regexp})`;
+        }
         paramNames.push(paramName);
         return "([^\\/]+)";
       });

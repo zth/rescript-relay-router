@@ -163,7 +163,7 @@ type subRoute = [#ByStatus | #Single]
 @live
 let getActiveSubRoute = (location: RelayRouter.History.location): option<[#ByStatus | #Single]> => {
   let {pathname} = location
-  if RelayRouter.Internal.matchPath("/todos/:byStatus", pathname)->Belt.Option.isSome {
+  if RelayRouter.Internal.matchPath("/todos/:byStatus(completed|notCompleted)", pathname)->Belt.Option.isSome {
       Some(#ByStatus)
     } else if RelayRouter.Internal.matchPath("/todos/:todoId", pathname)->Belt.Option.isSome {
       Some(#Single)

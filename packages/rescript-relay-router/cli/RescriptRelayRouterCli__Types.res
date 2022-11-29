@@ -103,12 +103,7 @@ module RoutePath: {
     ->List.filterMap(part =>
       switch part {
       | "/" => None
-      | part =>
-        // Remove potentially typed path params, like
-        // ":someParam(someVal|otherVal)". This is fine because the generated
-        // types already ensure the wrong thing can't be passed to the
-        // parameter.
-        part->String.split("(")->Array.get(0)
+      | part => Some(part)
       }
     )
     ->List.toArray

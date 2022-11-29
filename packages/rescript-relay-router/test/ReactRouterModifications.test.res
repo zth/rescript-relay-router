@@ -27,4 +27,13 @@ describe("ReactRouter modifications", () => {
     ->expect
     ->Expect.toBe(0)
   })
+
+  test("generating URL:s work with enumerations", _t => {
+    "/o/:slug/member/:status(online|offline|idle)"
+    ->RelayRouter.Bindings.generatePath(
+      Dict.fromArray([("slug", "some-slug"), ("status", "online")]),
+    )
+    ->expect
+    ->Expect.toBe("/o/some-slug/member/online")
+  })
 })

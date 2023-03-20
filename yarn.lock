@@ -524,17 +524,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gabnor/rescript-stdlib@npm:1.0.8":
+  version: 1.0.8
+  resolution: "@gabnor/rescript-stdlib@npm:1.0.8"
+  checksum: 43f4a9e3e5d18a89aee8b0286a3358c819bb5dd611bc09d89d1a5c24aad5edbb219fe08ba59f92fc85e14c52d235a4d878939f0ee9f0f63252ca3d30c6dced45
+  languageName: node
+  linkType: hard
+
 "@gabnor/rescript-stdlib@npm:^1.0.6":
   version: 1.0.6
   resolution: "@gabnor/rescript-stdlib@npm:1.0.6"
   checksum: 019f916aa74792a40f6224ce1541dc8dff4bea783e09a74d2c391565cffdff75179579d683fe9401972d5493056961ca17fcad454bf43e0615e9089222b268cc
-  languageName: node
-  linkType: hard
-
-"@gabnor/rescript-stdlib@npm:^1.0.8":
-  version: 1.0.8
-  resolution: "@gabnor/rescript-stdlib@npm:1.0.8"
-  checksum: 43f4a9e3e5d18a89aee8b0286a3358c819bb5dd611bc09d89d1a5c24aad5edbb219fe08ba59f92fc85e14c52d235a4d878939f0ee9f0f63252ca3d30c6dced45
   languageName: node
   linkType: hard
 
@@ -5063,7 +5063,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rescript-relay-router@workspace:packages/rescript-relay-router"
   dependencies:
-    "@gabnor/rescript-stdlib": ^1.0.8
+    "@gabnor/rescript-stdlib": 1.0.8
     chalk: ^5.0.1
     chokidar: ^3.5.3
     cosmiconfig: ^7.0.1

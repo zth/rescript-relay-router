@@ -1,7 +1,8 @@
 {
   "name": "main",
-  "reason": {
-    "react-jsx": 3
+  "jsx": {
+    "version": 4,
+    "mode": "automatic"
   },
   "version": "0.1.0",
   "sources": [

@@ -1,5 +1,16 @@
 # rescript-relay-router
 
+## 0.1.0
+
+### Minor Changes
+
+- 7cb0b5a: Now using JSX v4, which means JSX v4 is required.
+
+### Patch Changes
+
+- 7cb0b5a: Pin (old) stdlib version for now.
+- 7cb0b5a: Move to use JSX v4
+
 ## 0.0.27
 
 ### Patch Changes

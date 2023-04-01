@@ -1,7 +1,8 @@
 {
   "name": "rescript-relay-router",
-  "reason": {
-    "react-jsx": 3
+  "jsx": {
+    "version": 4,
+    "mode": "automatic"
   },
   "version": "0.0.17",
   "sources": [

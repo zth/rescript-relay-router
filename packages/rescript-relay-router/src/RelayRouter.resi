@@ -28,13 +28,7 @@ module Router: {
 }
 
 module Provider: {
-  let make: React.component<{"children": React.element, "value": Types.routerContext}>
-
-  let makeProps: (
-    ~value: Types.routerContext,
-    ~children: React.element,
-    unit,
-  ) => {"children": React.element, "value": Types.routerContext}
+  let make: React.component<React.Context.props<RelayRouter__Types.routerContext>>
 }
 
 let useRouterContext: unit => Types.routerContext

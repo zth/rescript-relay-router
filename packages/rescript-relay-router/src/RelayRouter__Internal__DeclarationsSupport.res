@@ -218,8 +218,8 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
 
   // This does suspense/React gymnastics for loading all the different parts
   // needed to prepare and render a route.
-  let prepareRoute = (
-    . ~environment: RescriptRelay.Environment.t,
+  let prepareRoute = (.
+    ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,

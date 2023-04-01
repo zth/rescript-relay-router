@@ -48,12 +48,6 @@ module TargetScrollElement = {
 
   module ContextProvider = {
     let make = React.Context.provider(context)
-
-    let makeProps = (~value, ~children, ()) =>
-      {
-        "value": value,
-        "children": children,
-      }
   }
 
   module Provider = {

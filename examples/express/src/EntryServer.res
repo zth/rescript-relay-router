@@ -36,7 +36,9 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
     switch asset {
     // TODO: If multiple lazy components are in the same chunk then this may load the same asset multiple times.
     | Component({chunk}) =>
-      transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<script type="module" src="$chunk" async></script>`)
+      transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(
+        `<script type="module" src="${chunk}" async></script>`,
+      )
       // Also preload any direct imports for the requested chunk.
       manifest.files
       ->Dict.get(chunk)
@@ -49,9 +51,13 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
         chunk.assets->Array.forEach(url => Image({url: url})->preloadAsset(~priority=Default))
       })
     | Image({url}) =>
-      transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<link rel="preload" as="image" href="$url">`)
+      transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(
+        `<link rel="preload" as="image" href="${url}">`,
+      )
     | Style({url}) =>
-      transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(j`<link rel="preload" as="style" href="$url">`)
+      transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onAssetPreload(
+        `<link rel="preload" as="style" href="${url}">`,
+      )
     }
 
   // TODO: Fix the RelayEnv.makeServer types so the extra function here isn't needed.

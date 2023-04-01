@@ -681,7 +681,7 @@ __metadata:
     react-dom: ^18.2.0
     react-relay: 15.0.0
     relay-runtime: 15.0.0
-    rescript: 10.1.3
+    rescript: 10.1.4
     rescript-relay: 0.0.0-pre-e1235447
     rescript-relay-router: "workspace:^"
     rollup: ^2
@@ -5066,7 +5066,7 @@ __metadata:
     jsonc-parser: ^3.0.0
     lines-and-columns: ^2.0.3
     magic-string: ^0.26.2
-    rescript: 10.1.3
+    rescript: 10.1.4
     rescript-vitest: 0.3.0
     vitest: ^0.21.1
     vscode-jsonrpc: ^5.0.1
@@ -5123,15 +5123,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rescript@npm:10.1.3":
-  version: 10.1.3
-  resolution: "rescript@npm:10.1.3"
+"rescript@npm:10.1.4":
+  version: 10.1.4
+  resolution: "rescript@npm:10.1.4"
   bin:
     bsc: bsc
     bsrefmt: bsrefmt
     bstracing: lib/bstracing
     rescript: rescript
-  checksum: 24066a11b679afd5d5ed2ed7cb5f9b2c5e7e66c5dc8924134f369e049bd82e79bc918a98dcea782e7ac5253a69d554584d71b1a5c774f1eb925a909531159238
+  checksum: 5bd4b17a9671bc91f369ef56fbd03bba73b4a2cfeab9e09d92f8133f70b62028754914afede07f18d2c1dd877a38a14b2ff5a3b6b90783ea2306b29ff3de54f0
   languageName: node
   linkType: hard
 

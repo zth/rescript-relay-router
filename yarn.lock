@@ -682,7 +682,7 @@ __metadata:
     react-relay: 15.0.0
     relay-runtime: 15.0.0
     rescript: 10.1.4
-    rescript-relay: 0.0.0-pre-e1235447
+    rescript-relay: 1.1.0
     rescript-relay-router: "workspace:^"
     rollup: ^2
     rollup-plugin-visualizer: 5.5.0
@@ -5073,16 +5073,16 @@ __metadata:
   peerDependencies:
     "@rescript/react": 0.11.0
     react: ">=18.2.0"
-    rescript-relay: 0.0.0-pre-e1235447
+    rescript-relay: 1.1.0
     vite: ^3.1.0
   bin:
     rescript-relay-router: cli/RescriptRelayRouterCli.mjs
   languageName: unknown
   linkType: soft
 
-"rescript-relay@npm:0.0.0-pre-e1235447":
-  version: 0.0.0-pre-e1235447
-  resolution: "rescript-relay@npm:0.0.0-pre-e1235447"
+"rescript-relay@npm:1.1.0":
+  version: 1.1.0
+  resolution: "rescript-relay@npm:1.1.0"
   dependencies:
     detect-libc: ^2.0.1
   peerDependencies:
@@ -5093,7 +5093,7 @@ __metadata:
   bin:
     rescript-relay-cli: cli/cli.js
     rescript-relay-compiler: compiler.js
-  checksum: 3c09b70d2aa346aa0c7375c9209e0ec5b43e134220d99b02f31a8ee591961b27a7dab3bb2517d78b5fef914a687caa4a9421b607f12b233e69eac851eb117f44
+  checksum: 01faf11d5157585351b30771446466b39a7d27b7bda739391281f6341d0c7be81bb282c9c8649044a724d55550c39dd5808ff49fdfea7b54bef1383b4cd053eb
   languageName: node
   linkType: hard
 

@@ -170,6 +170,20 @@ let makeLinkFromQueryParams = (~todoId: string, queryParams: queryParams) => {
   makeLink(~todoId, ~statuses=?queryParams.statuses, ~showMore=?queryParams.showMore, ())
 }
 
+@live
+let useMakeLinkWithPreservedPath = () => {
+  let location = RelayRouter.Utils.useLocation()
+  React.useMemo2(() => {
+    (makeNewQueryParams: queryParams => queryParams) => {
+      let newQueryParams = location.search->parseQueryParams->makeNewQueryParams
+      open RelayRouter.Bindings
+      let queryParams = location.search->QueryParams.parse
+      queryParams->applyQueryParams(~newParams=newQueryParams)
+      location.pathname ++ queryParams->QueryParams.toString
+    }
+  }, (location.search, location.search))
+}
+
 
 @live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {

@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 0.1.1
+
+### Patch Changes
+
+- b585a87: Add useMakeLinkWithPreservedPath helper to generated route cod"
+
 ## 0.1.0
 
 ### Minor Changes

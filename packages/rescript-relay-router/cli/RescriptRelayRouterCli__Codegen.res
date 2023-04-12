@@ -77,20 +77,22 @@ let routePattern = "${route.path->RoutePath.toPattern}"
 @live\nlet makeLink = (`,
   )
 
+  let addToStr = s => str := str.contents ++ s
+
   let numLabeledArguments = labeledArguments->Array.length
 
   labeledArguments->Array.forEachWithIndex(((key, typ), index) => {
-    str.contents = str.contents ++ `~${key}: ${typ}`
+    `~${key}: ${typ}`->addToStr
     if index + 1 < numLabeledArguments {
-      str.contents = str.contents ++ ", "
+      ", "->addToStr
     }
   })
 
   if shouldAddUnit {
-    str.contents = str.contents ++ ", ()"
+    ", ()"->addToStr
   }
 
-  str.contents = str.contents ++ ") => {\n"
+  ") => {\n"->addToStr
 
   let pathParamNames = route.params->Array.map(Utils.printablePathParamToParamName)
   let pathParamsAsJsDict = `Js.Dict.fromArray([${pathParamNames
@@ -100,71 +102,80 @@ let routePattern = "${route.path->RoutePath.toPattern}"
     ->Array.joinWith(",")}])`
 
   if hasQueryParams {
-    str.contents =
-      str.contents ++ `  open RelayRouter.Bindings\n  let queryParams = QueryParams.make()`
+    `  open RelayRouter.Bindings\n  let queryParams = QueryParams.make()`->addToStr
 
     queryParamSerializers->Array.forEach(((key, serializer, paramType)) => {
-      str.contents =
-        str.contents ++
-        `
+      `
   switch ${key->SafeParam.getSafeKey} {
     | None => ()
     | Some(${key->SafeParam.getSafeKey}) => queryParams->QueryParams.${switch paramType {
-          | Array(_) => "setParamArray"
-          | _ => "setParam"
-          }}(~key="${key->SafeParam.getOriginalKey}", ~value=${serializer})
-  }\n`
+        | Array(_) => "setParamArray"
+        | _ => "setParam"
+        }}(~key="${key->SafeParam.getOriginalKey}", ~value=${serializer})
+  }\n`->addToStr
     })
   }
 
-  str.contents =
-    str.contents ++ `  RelayRouter.Bindings.generatePath(routePattern, ${pathParamsAsJsDict})`
+  `  RelayRouter.Bindings.generatePath(routePattern, ${pathParamsAsJsDict})`->addToStr
 
   if hasQueryParams {
-    str.contents = str.contents ++ " ++ queryParams->QueryParams.toString"
+    " ++ queryParams->QueryParams.toString"->addToStr
   }
 
-  str.contents = str.contents ++ "\n}"
+  "\n}"->addToStr
 
   if hasQueryParams {
-    str.contents =
-      str.contents ++ `
+    `
 @live
-let makeLinkFromQueryParams = (`
+let makeLinkFromQueryParams = (`->addToStr
     route.params->Array.forEach(p => {
-      str.contents =
-        str.contents ++
-        `~${Utils.printablePathParamToParamName(p)}: ${Utils.printablePathParamToTypeStr(p)}, `
+      `~${Utils.printablePathParamToParamName(p)}: ${Utils.printablePathParamToTypeStr(
+          p,
+        )}, `->addToStr
     })
 
-    str.contents =
-      str.contents ++ `queryParams: queryParams) => {
-  makeLink(`
+    `queryParams: queryParams) => {
+  makeLink(`->addToStr
     route.params->Array.forEach(p => {
-      str.contents = str.contents ++ `~${Utils.printablePathParamToParamName(p)}, `
+      `~${Utils.printablePathParamToParamName(p)}, `->addToStr
     })
 
     route.queryParams
     ->Dict.keysToArray
     ->Array.forEach(queryParamName => {
-      str.contents = str.contents ++ `~${queryParamName}=?queryParams.${queryParamName}, `
+      `~${queryParamName}=?queryParams.${queryParamName}, `->addToStr
     })
 
-    str.contents =
-      str.contents ++ `())
+    `())
 }
-`
+`->addToStr
+
+    `
+@live
+let useMakeLinkWithPreservedPath = () => {
+  let location = RelayRouter.Utils.useLocation()
+  React.useMemo2(() => {
+    (makeNewQueryParams: queryParams => queryParams) => {
+      let newQueryParams = location.search->parseQueryParams->makeNewQueryParams
+      open RelayRouter.Bindings
+      let queryParams = location.search->QueryParams.parse
+      queryParams->applyQueryParams(~newParams=newQueryParams)
+      location.pathname ++ queryParams->QueryParams.toString
+    }
+  }, (location.search, location.search))
+}
+`->addToStr
   }
 
   route.params->Array.forEach(p => {
     switch p {
     | PrintableRegularPathParam(_) => ()
     | PrintablePathParamWithMatchBranches(_) as p =>
-      str.contents =
-        str.contents ++
-        `\n
+      `\n
 @live
-type pathParam_${Utils.printablePathParamToParamName(p)} = ${Utils.printablePathParamToTypeStr(p)}`
+type pathParam_${Utils.printablePathParamToParamName(p)} = ${Utils.printablePathParamToTypeStr(
+          p,
+        )}`->addToStr
     }
   })
   str.contents

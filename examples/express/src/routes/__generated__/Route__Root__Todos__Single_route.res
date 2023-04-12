@@ -173,7 +173,7 @@ let makeLinkFromQueryParams = (~todoId: string, queryParams: queryParams) => {
 @live
 let useMakeLinkWithPreservedPath = () => {
   let location = RelayRouter.Utils.useLocation()
-  React.useMemo2(() => {
+  React.useMemo1(() => {
     (makeNewQueryParams: queryParams => queryParams) => {
       let newQueryParams = location.search->parseQueryParams->makeNewQueryParams
       open RelayRouter.Bindings
@@ -181,7 +181,7 @@ let useMakeLinkWithPreservedPath = () => {
       queryParams->applyQueryParams(~newParams=newQueryParams)
       location.pathname ++ queryParams->QueryParams.toString
     }
-  }, (location.search, location.search))
+  }, [location.search])
 }
 
 

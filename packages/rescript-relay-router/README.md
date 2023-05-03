@@ -68,7 +68,7 @@ Restart Vite. Vite will now watch and autogenerate the router from your route de
 
 Let's set up the actual ReScript code. First, let's initiate our router:
 
-```reasonml
+```rescript
 // Router.res
 
 let preparedAssetsMap = Js.Dict.empty()
@@ -94,7 +94,7 @@ let (_cleanup, routerContext) = RelayRouter.Router.make(
 
 Now we can take `routerContext` and wrap our application with the router context provider:
 
-```reasonml
+```rescript
 <RelayRouter.Provider value={Router.routerContext}>
   <React.Suspense fallback={React.string("Loading...")}>
     <RescriptReactErrorBoundary fallback={_ => React.string("Error!")}>
@@ -106,7 +106,7 @@ Now we can take `routerContext` and wrap our application with the router context
 
 Finally, we'll need to render `<RelayRouter.RouteRenderer />`. You can render that wherever you want to render your routes. It's typically somewhere around the top level, although you might have shared things unaffected by the router that you want to wrap the route renderer with.
 
-```reasonml
+```rescript
 // App.res or similar
 <RelayRouter.RouteRenderer
   // This renders all the time, and when there's a pending navigation (pending via React concurrent mode), pending will be `true`
@@ -161,7 +161,7 @@ In the example above, the route renderer for `Organization` would be `Organizati
 
 A route renderer looks like this:
 
-```reasonml
+```rescript
 // This creates a lazy loaded version of the <OrganizationDashboard /> component, that we can code split and preload. Very handy!
 // You're encouraged to always code split like this for performance, even if the route renderer itself is automatically code split.
 // The router will intelligently load the route code as it's likely to be needed.
@@ -195,7 +195,7 @@ let renderer = Routes.Organization.Dashboard.Route.makeRenderer(
 
 And, just for clarity, `OrganizationDashboard` being rendered looks something like:
 
-```reasonml
+```rescript
 // OrganizationDashboard.res
 module Query = %relay(`
   query OrganizationDashboardQuery($slug: ID!) {
@@ -233,7 +233,7 @@ Now, let's look at what props each part of the route renderer receives:
 
 As you can see, any child route content is passed along as a prop `childRoutes`. Sometimes it's useful to know whether that child route content is actually rendered or not. For example, maybe you want to control whether a slideover or modal shows based on whether there's actual content to show in it. For that purpose, there's a helper called `RelayRouterUtils.childRouteHasContent`. Here's an example of using it:
 
-```reasonml
+```rescript
 <SlideOver open_={RelayRouterUtils.childRouteHasContent(childRoutes)} title=None>
   {childRoutes}
 </SlideOver>
@@ -247,7 +247,7 @@ There, excellent! We've now covered how we define and render routes. Let's move 
 
 Linking to routes is fully type safe, and also quite ergonomic. A type safe `makeLink` function is generated for every defined route. Using it looks like this:
 
-```reasonml
+```rescript
 <RelayRouterLink to_={Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true, ())}>
   {React.string("See active members")}
 </RelayRouterLink>
@@ -267,7 +267,7 @@ In `Routes.res`, any route will have all its generated assets at the route name 
 
 The router lets you navigate and preload/prepare routes programatically if needed. It works like this:
 
-```reasonml
+```rescript
 let {push, replace, preload, preloadCode} = RelayRouterUtils.useRouter()
 
 // This will push a new route
@@ -316,7 +316,7 @@ If your only scrolling area is the document itself, you can enable scroll restor
 
 If you have scrolling content areas that isn't scrolling on the main document itself, you'll need to tell the router about it so it can correctly help you with scroll restoration, and look at the intersection of the correct elements when detecting if links are in view yet. You tell the router about your scrolling areas this way:
 
-```reasonml
+```rescript
 let mainContainerRef = React.useRef(Js.Nullable.null)
 
 <RelayRouterScroll.TargetScrollElement.Provider
@@ -331,7 +331,7 @@ let mainContainerRef = React.useRef(Js.Nullable.null)
 
 This lets the router know that `<main />` is the element that will be scrolling. If you also want the router to do scroll restoration, you can render `<RelayRouterScroll.ScrollRestoration />` at the bottom inside of `<RelayRouterScroll.TargetScrollElement.Provider />`, like so:
 
-```reasonml
+```rescript
 let mainContainerRef = React.useRef(Js.Nullable.null)
 
 <RelayRouterScroll.TargetScrollElement.Provider
@@ -377,7 +377,7 @@ A few things to distill here:
 
 Query parameters can be defined as `string`, `int`, `float`, `boolean` or the type of a _custom module_. A custom module query parameter is defined by pointing at the module's type `t`: `someParam=SomeModule.t`. Doing this, the router expects `SomeModule` to _at least_ look like this:
 
-```reasonml
+```rescript
 type t
 let parse: string => option<t>
 let serialize: t => string
@@ -397,13 +397,13 @@ More notes:
 
 You can access the current value of a route's query parameter like this:
 
-```reasonml
+```rescript
 let {queryParams} = Routes.Organization.Members.Route.useQueryParams()
 ```
 
 You can set query params by using `setParams`:
 
-```reasonml
+```rescript
 let {setParams} = Routes.Organization.Members.Route.useQueryParams()
 
 setParams(
@@ -450,7 +450,7 @@ Here's a few more advanced things you can utilize the router for.
 
 In addition to `makeLink`, there's also a `makeLinkFromQueryParams` function generated to simplify the use case of changing just one or a few of a large set of query params. `makeLinkFromQueryParams` lets you create a link by supplying your new query params as a record rather than each individual query param as a distinct labelled argument. It enables a few neat things:
 
-```reasonml
+```rescript
 // Imagine this is quite a large object of various query params related to the current view.
 let {queryParams} = Routes.Organization.Members.Route.useQueryParams()
 
@@ -467,7 +467,7 @@ The router emits helpers to both check whether a route is active or not, as well
 
 #### Checking whether a specific route is active
 
-```reasonml
+```rescript
 // Tells us whether this specific route is active or not. Every route exports one of this.
 // ~exact: Whether to check whether _exactly_ this route is active. `false` means subroutes of the route will also say it's active.
 let routeActive = Routes.Organization.Members.Route.useIsRouteActive(~exact=false, ())
@@ -475,7 +475,7 @@ let routeActive = Routes.Organization.Members.Route.useIsRouteActive(~exact=fals
 
 #### Checking whether a route is active in a generic way (`<NavLink />`)
 
-```reasonml
+```rescript
 // There's a generic way to check if a route is active or not, `RelayRouterUtils.useIsRouteActive`.
 // Useful for making your own <NavLink /> component that highlights itself in some way when it's active.
 // A very crude example below:
@@ -516,7 +516,7 @@ let routeActive = RelayRouterUtils.isRouteActive(
 
 #### Checking whether a direct sub route of a route is active (for tabs, etc)
 
-```reasonml
+```rescript
 // This will be option<[#Dashboard | #Members]>, meaning it will return if and what immediate sub route is active for the Organization route. You can use this information to for example highlight tabs.
 let activeSubRoute = Routes.Organization.Route.useActiveSubRoute()
 ```

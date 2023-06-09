@@ -3,7 +3,7 @@ module QueryParams = {
 
   let make = () => Js.Dict.empty()
 
-  let deleteParam = (dict, key) => Js.Dict.unsafeDeleteKey(. Obj.magic(dict), key)
+  let deleteParam = (dict, key) => Js.Dict.unsafeDeleteKey(Obj.magic(dict), key)
 
   let setParam = (dict, ~key, ~value) => dict->Js.Dict.set(key, [value])
   let setParamOpt = (dict, ~key, ~value) =>

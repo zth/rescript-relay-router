@@ -114,11 +114,11 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
             ->NodeJs.Stream.fromWritable
             ->NodeJs.Stream.onClose(cleanup)
 
-            resolve(. ignore())
+            resolve(ignore())
           },
           ~onShellError=err => {
             cleanup()
-            reject(. err)
+            reject(err)
           },
           ~onError=err => {
             cleanup()

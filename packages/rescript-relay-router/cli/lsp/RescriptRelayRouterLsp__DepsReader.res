@@ -98,7 +98,7 @@ let readDeps = (~config: Utils.Config.t) => {
     })
 
     t->onClose(exitCode => {
-      resolve(.
+      resolve(
         if exitCode === 0 {
           Ok(byModuleNames)
         } else {

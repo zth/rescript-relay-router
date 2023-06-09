@@ -9,13 +9,13 @@ type suspenseEnabledHolder<'thing> = NotInitiated | Pending(Js.Promise.t<'thing>
 type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
 
 type preparedContainer = {
-  disposables: array<(. unit) => unit>,
+  disposables: array<unit => unit>,
   render: RelayRouter.Types.renderRouteFn,
   mutable timeout: option<Js.Global.timeoutId>,
 }
 
 type makePrepareProps = (
-  . ~environment: RescriptRelay.Environment.t,
+  ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter__History.location,
@@ -41,12 +41,12 @@ let preloadCode: (
 type prepareAssets = {
   getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
   prepareRoute: (
-    . ~environment: RescriptRelay.Environment.t,
+    ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,
     ~makePrepareProps: (
-      . ~environment: RescriptRelay.Environment.t,
+      ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter__History.location,

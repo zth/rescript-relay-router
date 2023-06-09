@@ -16,5 +16,4 @@ let make: (
   ~onClick: unit => unit=?,
   ~style: ReactDOM.Style.t=?,
   ~tabIndex: int=?,
-  unit,
 ) => React.element

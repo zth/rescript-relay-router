@@ -249,7 +249,7 @@ module RouteComponent = {
 
 module RouteRenderer = {
   @react.component
-  let make = (~renderPending=?, ()) => {
+  let make = (~renderPending=?) => {
     let router = useRouterContext()
     let (isPending, startTransition) = ReactExperimental.useTransition()
     let (routeEntry, setRouteEntry) = React.useState(() => router.get())

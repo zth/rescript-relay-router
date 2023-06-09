@@ -7,7 +7,6 @@ let makeMockParserCtx = (
   ~content,
   ~routeFileName="routes.json",
   ~routeFiles=Dict.empty(),
-  (),
 ): P.currentFileContext => {
   let lineLookup = Bindings.LinesAndColumns.make(content)
 
@@ -39,12 +38,12 @@ describe("Parsing", () => {
         ]
     }
 ]`
-    let ctx = makeMockParserCtx(~content=mockContent, ())
+    let ctx = makeMockParserCtx(~content=mockContent)
     let parentContext = P.emptyParentCtx(~routesByName=Dict.empty())
 
     let parsed =
       mockContent
-      ->JsoncParser.parse([], ())
+      ->JsoncParser.parse([])
       ->Option.flatMap(node => node->P.ReScriptTransformer.transformNode(~ctx))
 
     let routes = parsed->P.Decode.decode(~ctx, ~parentContext)

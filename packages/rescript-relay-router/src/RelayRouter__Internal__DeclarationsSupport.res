@@ -1,4 +1,4 @@
-@val external suspend: Js.Promise.t<'any> => unit = "throw"
+@val external suspend: promise<'any> => unit = "throw"
 
 exception Route_loading_failed(string)
 
@@ -28,7 +28,7 @@ module RouteRenderer = {
 
 // This holder makes it easy to suspend (throwing the promise) or synchronously
 // return the loaded thing once availabile.
-type suspenseEnabledHolder<'thing> = NotInitiated | Pending(Js.Promise.t<'thing>) | Loaded('thing)
+type suspenseEnabledHolder<'thing> = NotInitiated | Pending(promise<'thing>) | Loaded('thing)
 
 type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
 
@@ -47,7 +47,7 @@ type makePrepareProps = (
 ) => prepareProps
 
 let doLoadRouteRenderer = (
-  loadFn: unit => Js.Promise.t<RouteRenderer.t>,
+  loadFn: unit => promise<RouteRenderer.t>,
   ~routeName,
   ~loadedRouteRenderers,
 ) => {
@@ -122,7 +122,7 @@ type prepareAssets = {
     ) => string,
     ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
     ~routeName: string,
-    ~loadRouteRenderer: unit => Js.Promise.t<unit>,
+    ~loadRouteRenderer: unit => promise<unit>,
     ~intent: RelayRouter__Types.prepareIntent,
   ) => RelayRouter__Types.preparedRoute,
 }

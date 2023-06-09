@@ -51,18 +51,18 @@ let useLocation = () => {
   location
 }
 
-let isRouteActive = (~pathname, ~routePattern, ~exact=false, ()) => {
+let isRouteActive = (~pathname, ~routePattern, ~exact=false) => {
   RelayRouter__Internal.matchPathWithOptions(
     {"path": routePattern, "end": exact},
     pathname,
   )->Belt.Option.isSome
 }
 
-let useIsRouteActive = (~href, ~routePattern, ~exact=false, ()) => {
+let useIsRouteActive = (~href, ~routePattern, ~exact=false) => {
   let {pathname} = useLocation()
 
   React.useMemo4(
-    () => isRouteActive(~pathname, ~routePattern, ~exact, ()),
+    () => isRouteActive(~pathname, ~routePattern, ~exact),
     (pathname, href, routePattern, exact),
   )
 }

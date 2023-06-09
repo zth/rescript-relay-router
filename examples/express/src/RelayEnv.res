@@ -7,7 +7,7 @@ let network = RescriptRelay.Network.makeObservableBased(
   (),
 )
 
-let makeEnvironmentWithNetwork = (~network, ~missingFieldHandlers=?, ()) =>
+let makeEnvironmentWithNetwork = (~network, ~missingFieldHandlers=?) =>
   RescriptRelay.Environment.make(
     ~network,
     ~missingFieldHandlers=?{missingFieldHandlers},
@@ -20,7 +20,7 @@ let makeEnvironmentWithNetwork = (~network, ~missingFieldHandlers=?, ()) =>
     (),
   )
 
-let environment = makeEnvironmentWithNetwork(~network, ())
+let environment = makeEnvironmentWithNetwork(~network)
 
 @live
 let makeServer = (~onQuery, ~preloadAsset) => {
@@ -28,5 +28,5 @@ let makeServer = (~onQuery, ~preloadAsset) => {
     ~observableFunction=NetworkUtils.makeServerFetchQuery(~onQuery, ~preloadAsset),
     (),
   )
-  makeEnvironmentWithNetwork(~network, ())
+  makeEnvironmentWithNetwork(~network)
 }

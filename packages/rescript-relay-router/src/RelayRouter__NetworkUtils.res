@@ -2,15 +2,15 @@
 type response
 
 @module("@remix-run/web-fetch")
-external fetchServer: (string, 'fetchOpts) => Js.Promise.t<response> = "fetch"
+external fetchServer: (string, 'fetchOpts) => promise<response> = "fetch"
 
 @val
-external fetch: (string, 'fetchOpts) => Js.Promise.t<response> = "fetch"
+external fetch: (string, 'fetchOpts) => promise<response> = "fetch"
 
 type parts
 
 @send
-external getPartsJson: parts => Js.Promise.t<Js.Json.t> = "json"
+external getPartsJson: parts => promise<Js.Json.t> = "json"
 
 let isAsyncIterable: parts => bool = %raw(`function isAsyncIterable(input) {
 	return (
@@ -25,7 +25,7 @@ let decodeEachChunk: (
   parts,
   Js.Json.t => unit,
   Js.Exn.t => unit,
-) => Js.Promise.t<unit> = %raw(`async function(parts, onNext, onError) {
+) => promise<unit> = %raw(`async function(parts, onNext, onError) {
     for await (const part of parts) {
 			if (!part.json) {
         // console.log("no json from part", part);
@@ -42,9 +42,9 @@ let decodeEachChunk: (
 // fetch responses that follow the browser standard, like `@remix-run/web-fetch`
 // etc.
 @module("meros/browser")
-external meros: response => Js.Promise.t<parts> = "meros"
+external meros: response => promise<parts> = "meros"
 
-let getChunks = (response: response, ~onNext, ~onError, ~onComplete): Js.Promise.t<unit> => {
+let getChunks = (response: response, ~onNext, ~onError, ~onComplete): promise<unit> => {
   meros(response)->(Js.Promise.then_(parts => {
       if isAsyncIterable(parts) {
         parts->decodeEachChunk(onNext, onError)->(Js.Promise.then_(() => {

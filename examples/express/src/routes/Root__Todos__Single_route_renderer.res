@@ -13,5 +13,4 @@ let renderer = Routes.Root.Todos.Single.Route.makeRenderer(
   ~render=({prepared}) => {
     <SingleTodo queryRef=prepared />
   },
-  (),
 )

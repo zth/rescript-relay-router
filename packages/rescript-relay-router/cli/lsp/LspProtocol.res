@@ -159,7 +159,7 @@ type textEdit = {
 module DocumentChange: {
   type t
   module CreateFile: {
-    let make: (~uri: string, ~overwrite: bool=?, ~ignoreIfExists: bool=?, unit) => t
+    let make: (~uri: string, ~overwrite: bool=?, ~ignoreIfExists: bool=?) => t
   }
   module TextDocumentEdit: {
     let make: (~textDocumentUri: string, ~edits: array<textEdit>) => t
@@ -169,7 +169,7 @@ module DocumentChange: {
   external cast: 'any => t = "%identity"
 
   module CreateFile = {
-    let make = (~uri, ~overwrite=?, ~ignoreIfExists=?, ()) =>
+    let make = (~uri, ~overwrite=?, ~ignoreIfExists=?) =>
       {
         "kind": "create",
         "uri": uri,
@@ -250,7 +250,7 @@ type documentLink = {
   tooltip: option<string>,
 }
 
-let makeDocumentLink = (~range, ~fileUri, ~tooltip=?, ()) => {
+let makeDocumentLink = (~range, ~fileUri, ~tooltip=?) => {
   range,
   target: fileUri,
   tooltip,

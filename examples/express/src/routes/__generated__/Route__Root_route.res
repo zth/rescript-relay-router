@@ -55,7 +55,7 @@ let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.locatio
 }
 
 @live
-let useIsRouteActive = (~exact=false, ()) => {
+let useIsRouteActive = (~exact=false) => {
   let location = RelayRouter.Utils.useLocation()
   React.useMemo2(() => location->isRouteActive(~exact), (location, exact))
 }
@@ -85,5 +85,4 @@ external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
-  unit
 ) => Internal.renderers<'prepared> = ""

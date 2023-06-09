@@ -20,7 +20,7 @@ type currentFileContext = {
   ) => result<loadedRouteFile, string>,
 }
 
-let pathInRoutesFolder = (~config, ~fileName="", ()) =>
+let pathInRoutesFolder = (~config, ~fileName="") =>
   Bindings.Path.join([config.routesFolderPath, fileName])
 
 module QueryParams = {
@@ -964,7 +964,7 @@ let rec parseRouteFile = (
       traversedRouteFiles: list{routeFileName, ...parentContext.traversedRouteFiles},
     }
 
-    let result = switch parse(content, parseErrors, ()) {
+    let result = switch parse(content, parseErrors) {
     | Some(node) =>
       node
       ->ReScriptTransformer.transformNode(~ctx)
@@ -1040,10 +1040,7 @@ let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
     ~parentContext=emptyParentCtx(~routesByName),
     ~parserContext={
       routeFiles,
-      routeFileNames: Bindings.Glob.glob.sync(
-        ["*.json"],
-        Bindings.Glob.opts(~cwd=pathInRoutesFolder(~config, ()), ()),
-      ),
+      routeFileNames: Bindings.Glob.glob.sync(["*.json"], {cwd: pathInRoutesFolder(~config)}),
       getRouteFileContents,
     },
   )

@@ -28,13 +28,13 @@ type rec route = {
   path: string,
   name: string,
   @as("__$rescriptChunkName__") chunk: string,
-  loadRouteRenderer: unit => Js.Promise.t<unit>,
+  loadRouteRenderer: unit => promise<unit>,
   preloadCode: (
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter__Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,
-  ) => Js.Promise.t<array<preloadAsset>>,
+  ) => promise<array<preloadAsset>>,
   prepare: (
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,

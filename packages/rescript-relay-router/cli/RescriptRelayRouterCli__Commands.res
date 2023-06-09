@@ -9,7 +9,7 @@ let scaffoldRouteRenderers = (~deleteRemoved, ~config) => {
   let (_routes, routeNamesDict) = Utils.readRouteStructure(config)
   let existingRenderers = Glob.glob.sync(
     ["**/*_route_renderer.res"],
-    Glob.opts(~cwd=Utils.pathInRoutesFolder(~config, ()), ()),
+    {cwd: Utils.pathInRoutesFolder(~config)},
   )
 
   let routeNamesWithRenderers = Dict.empty()
@@ -25,7 +25,7 @@ let scaffoldRouteRenderers = (~deleteRemoved, ~config) => {
       | None =>
         // No route exists with this name, remove the file.
         Console.log("Removing unused renderer \"" ++ rendererFileName ++ "\"")
-        Fs.unlinkSync(Utils.pathInRoutesFolder(~config, ~fileName=rendererFileName, ()))
+        Fs.unlinkSync(Utils.pathInRoutesFolder(~config, ~fileName=rendererFileName))
       | Some(_) => // Exists, don't mind this
         ()
       }
@@ -43,7 +43,7 @@ let scaffoldRouteRenderers = (~deleteRemoved, ~config) => {
       // No renderer, lets write it
 
       Fs.writeFileIfChanged(
-        Utils.pathInRoutesFolder(~config, ~fileName=Utils.toRendererFileName(routeName), ()),
+        Utils.pathInRoutesFolder(~config, ~fileName=Utils.toRendererFileName(routeName)),
         `let renderer = Routes.${route.name->Types.RouteName.getFullRouteAccessPath}.makeRenderer(
   ~prepare=props => {
     ()
@@ -73,13 +73,13 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
 
   // Let's start by writing the Routes file
   Fs.writeFileIfChanged(
-    Utils.pathInGeneratedFolder(~config, ~fileName="Routes.res", ()),
+    Utils.pathInGeneratedFolder(~config, ~fileName="Routes.res"),
     routesFile.contents,
   )
 
   let currentFilesInOutputTarget = Glob.glob.sync(
     ["Route__*_route.res"],
-    Glob.opts(~cwd=Utils.pathInGeneratedFolder(~config, ()), ()),
+    {cwd: Utils.pathInGeneratedFolder(~config)},
   )
 
   // Remove files in the generated folder no longer needed
@@ -99,7 +99,7 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
     }
 
     if shouldDelete {
-      Fs.unlinkSync(Utils.pathInGeneratedFolder(~config, ~fileName, ()))
+      Fs.unlinkSync(Utils.pathInGeneratedFolder(~config, ~fileName))
     }
   })
 
@@ -124,7 +124,6 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
       Utils.pathInGeneratedFolder(
         ~config,
         ~fileName=`${route.name->Types.RouteName.toGeneratedRouteModuleName}.res`,
-        (),
       ),
       assetsContent,
     )
@@ -141,7 +140,7 @@ external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 ${routeNamesEntries
     ->Array.map(((routeName, _)) => {
       `
-@val external import__${routeName}: (@as(json\`"@rescriptModule/${routeName}_route_renderer"\`) _, unit) => Js.Promise.t<RouteRenderer.t> = "import"`
+@val external import__${routeName}: (@as(json\`"@rescriptModule/${routeName}_route_renderer"\`) _, unit) => promise<RouteRenderer.t> = "import"`
     })
     ->Array.joinWith("\n")}
 
@@ -149,7 +148,7 @@ let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.Hash
   ~hintSize=${routeNamesEntries->Array.length->Int.toString},
 )
 
-let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.route> => {
+let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
   let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
 
   [
@@ -159,18 +158,15 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
   ]
 }`
 
-  Utils.pathInGeneratedFolder(
-    ~config,
-    ~fileName="RouteDeclarations.res",
-    (),
-  )->Fs.writeFileIfChanged(fileContents)
+  Utils.pathInGeneratedFolder(~config, ~fileName="RouteDeclarations.res")->Fs.writeFileIfChanged(
+    fileContents,
+  )
 
   // Write interface file as the signature of this will never change
   Utils.pathInGeneratedFolder(
     ~config,
     ~fileName="RouteDeclarations.resi",
-    (),
-  )->Fs.writeFileIfChanged(`let make: (~prepareDisposeTimeout: int=?, unit) => array<RelayRouter.Types.route>`)
+  )->Fs.writeFileIfChanged(`let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>`)
 
   if scaffoldAfter {
     scaffoldRouteRenderers(~deleteRemoved, ~config)
@@ -267,7 +263,7 @@ let init = () => {
 
   try {
     let config = Utils.Config.load()
-    let routesJsonPath = Utils.pathInRoutesFolder(~config, ~fileName="routes.json", ())
+    let routesJsonPath = Utils.pathInRoutesFolder(~config, ~fileName="routes.json")
 
     if !Fs.existsSync(routesJsonPath) {
       Console.log("[init] `routes.json` does not exist, creating...")
@@ -372,7 +368,7 @@ let runCli = args => {
 
         let theWatcher =
           watcher
-          ->watch(Utils.pathInRoutesFolder(~config, ~fileName="*.json", ()))
+          ->watch(Utils.pathInRoutesFolder(~config, ~fileName="*.json"))
           ->Watcher.onChange(_ => {
             generateRoutesSafe()
           })

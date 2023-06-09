@@ -79,7 +79,7 @@ let printDiagnostics = ({errors, routeFiles}: routeStructure, ~config) => {
       prettyPrintDiagnostic(
         ~diagnostic=decodeError,
         ~lines=rawText->String.split("\n"),
-        ~sourceFile=RescriptRelayRouterCli__Parser.pathInRoutesFolder(~config, ~fileName, ()),
+        ~sourceFile=RescriptRelayRouterCli__Parser.pathInRoutesFolder(~config, ~fileName),
       )
       Console.log("\n")
     }

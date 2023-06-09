@@ -15,7 +15,7 @@ module Chokidar: {
     external onAdd: (t, @as(json`"add"`) _, string => unit) => t = "on"
 
     @send
-    external close: t => Js.Promise.t<unit> = "close"
+    external close: t => promise<unit> = "close"
   }
   @module("chokidar") @val
   external watcher: t = "default"
@@ -60,12 +60,10 @@ module Process: {
 }
 
 module Glob: {
-  @deriving(abstract) @live
+  @live
   type opts = {
-    @optional
-    dot: bool,
-    @optional
-    cwd: string,
+    dot?: bool,
+    cwd?: string,
   }
 
   type glob = {sync: (array<string>, opts) => array<string>}

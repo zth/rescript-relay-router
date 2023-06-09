@@ -187,7 +187,6 @@ module Message = {
       ~codeLensProvider: bool=?,
       ~documentLinkProvider: bool=?,
       ~codeActionProvider: bool=?,
-      unit,
     ) => t
   } = {
     type completionProvider = {triggerCharacters: array<string>}
@@ -218,7 +217,6 @@ module Message = {
       ~codeLensProvider=false,
       ~documentLinkProvider=false,
       ~codeActionProvider=false,
-      (),
     ) => {
       capabilities: {
         textDocumentSync: textDocumentSync->textDocumentSyncToInt,
@@ -261,7 +259,7 @@ module Message = {
   module Response: {
     type t
     external asMessage: t => msg = "%identity"
-    let make: (~id: string, ~error: Error.t=?, ~result: Result.t=?, unit) => t
+    let make: (~id: string, ~error: Error.t=?, ~result: Result.t=?) => t
   } = {
     @live
     type t = {
@@ -272,7 +270,7 @@ module Message = {
     }
     external asMessage: t => msg = "%identity"
 
-    let make = (~id, ~error=?, ~result=?, ()) => {
+    let make = (~id, ~error=?, ~result=?) => {
       jsonrpc: jsonrpcVersion,
       id,
       error,
@@ -358,10 +356,7 @@ module CurrentContext: {
       ~getRouteFileContents,
     ),
     config,
-    routeFileNames: Bindings.Glob.glob.sync(
-      ["*.json"],
-      Bindings.Glob.opts(~cwd=Utils.pathInRoutesFolder(~config, ()), ()),
-    ),
+    routeFileNames: Bindings.Glob.glob.sync(["*.json"], {cwd: Utils.pathInRoutesFolder(~config)}),
     routeRenderersCache,
   }
 
@@ -371,7 +366,7 @@ module CurrentContext: {
   let isValidRouteFile = (t, fileUri) => {
     let fileUri = fileUri->fileURLToPath
     let fileName = fileUri->Bindings.Path.basename
-    fileUri == Utils.pathInRoutesFolder(~config=t.config, ~fileName, ())
+    fileUri == Utils.pathInRoutesFolder(~config=t.config, ~fileName)
   }
 
   let getCurrentRouteStructure = t => t.routeStructure
@@ -395,7 +390,7 @@ let start = (~mode, ~config: config) => {
     | Some(contents) => Ok(contents)
     | None =>
       try {
-        Ok(Bindings.Fs.readFileSync(Utils.pathInRoutesFolder(~config, ~fileName, ())))
+        Ok(Bindings.Fs.readFileSync(Utils.pathInRoutesFolder(~config, ~fileName)))
       } catch {
       | Exn.Error(exn) => Error(exn)
       }
@@ -417,7 +412,6 @@ let start = (~mode, ~config: config) => {
         uri: Utils.pathInRoutesFolder(
           ~config=lspResolveContext->CurrentContext.getConfig,
           ~fileName,
-          (),
         ),
         diagnostics,
       })
@@ -434,7 +428,6 @@ let start = (~mode, ~config: config) => {
           uri: Utils.pathInRoutesFolder(
             ~config=lspResolveContext->CurrentContext.getConfig,
             ~fileName,
-            (),
           ),
           diagnostics: [],
         })
@@ -548,7 +541,7 @@ let start = (~mode, ~config: config) => {
 
   let routeFilesWatcher =
     Bindings.Chokidar.watcher
-    ->Bindings.Chokidar.watch(Utils.pathInRoutesFolder(~config, ~fileName="*.json", ()))
+    ->Bindings.Chokidar.watch(Utils.pathInRoutesFolder(~config, ~fileName="*.json"))
     ->Bindings.Chokidar.Watcher.onChange(_ => {
       rebuildLspResolveContext()
     })
@@ -598,7 +591,6 @@ let start = (~mode, ~config: config) => {
         Message.Response.make(
           ~id=msg->Message.getId,
           ~error=Message.Error.make(~code=ServerNotInitialized, ~message=`Server not initialized.`),
-          (),
         )
         ->Message.Response.asMessage
         ->send
@@ -613,9 +605,7 @@ let start = (~mode, ~config: config) => {
             ~codeLensProvider=true,
             ~documentLinkProvider=true,
             ~codeActionProvider=true,
-            (),
           )->Message.Result.fromInitialize,
-          (),
         )
         ->Message.Response.asMessage
         ->send
@@ -623,7 +613,7 @@ let start = (~mode, ~config: config) => {
       | (true, method) =>
         switch method {
         | #initialize =>
-          Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null(), ())
+          Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null())
           ->Message.Response.asMessage
           ->send
         | #shutdown =>
@@ -634,14 +624,13 @@ let start = (~mode, ~config: config) => {
                 ~code=InvalidRequest,
                 ~message=`Language server already received the shutdown request.`,
               ),
-              (),
             )
             ->Message.Response.asMessage
             ->send
           } else {
             shutdownRequestAlreadyReceived := true
             routeFilesWatcher->Bindings.Chokidar.Watcher.close->Promise.done
-            Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null(), ())
+            Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null())
             ->Message.Response.asMessage
             ->send
           }
@@ -664,7 +653,7 @@ let start = (~mode, ~config: config) => {
               | Some(hover) => Message.Result.fromHover(hover)
               }
 
-              Message.Response.make(~id=msg->Message.getId, ~result, ())
+              Message.Response.make(~id=msg->Message.getId, ~result)
               ->Message.Response.asMessage
               ->send
             }
@@ -700,7 +689,7 @@ let start = (~mode, ~config: config) => {
                   }
                 }
 
-                Message.Response.make(~id=msg->Message.getId, ~result, ())
+                Message.Response.make(~id=msg->Message.getId, ~result)
                 ->Message.Response.asMessage
                 ->send
               } else {
@@ -758,7 +747,6 @@ let start = (~mode, ~config: config) => {
                                     LspProtocol.Command.sourceFilePath: Utils.pathInRoutesFolder(
                                       ~fileName=routeEntry.sourceFile,
                                       ~config=ctx->CurrentContext.getConfig,
-                                      (),
                                     ),
                                     routeName,
                                     loc: {
@@ -768,7 +756,6 @@ let start = (~mode, ~config: config) => {
                                     routeRendererFilePath: Utils.pathInRoutesFolder(
                                       ~fileName=routeEntry.name->RouteName.getRouteRendererName,
                                       ~config=ctx->CurrentContext.getConfig,
-                                      (),
                                     ),
                                   })
                                 }
@@ -777,7 +764,7 @@ let start = (~mode, ~config: config) => {
                           ),
                         ]->Message.Result.fromCodeLenses
 
-                        Message.Response.make(~id=msg->Message.getId, ~result, ())
+                        Message.Response.make(~id=msg->Message.getId, ~result)
                         ->Message.Response.asMessage
                         ->send
                       }
@@ -802,7 +789,7 @@ let start = (~mode, ~config: config) => {
               | Some(codeLenses) => Message.Result.fromCodeLenses(codeLenses)
               }
 
-              Message.Response.make(~id=msg->Message.getId, ~result, ())
+              Message.Response.make(~id=msg->Message.getId, ~result)
               ->Message.Response.asMessage
               ->send
             | _ => ()
@@ -834,7 +821,6 @@ let start = (~mode, ~config: config) => {
                             LspProtocol.Command.sourceFilePath: Utils.pathInRoutesFolder(
                               ~fileName=routeEntry.sourceFile,
                               ~config=ctx->CurrentContext.getConfig,
-                              (),
                             ),
                             routeName,
                             loc: {
@@ -844,14 +830,13 @@ let start = (~mode, ~config: config) => {
                             routeRendererFilePath: Utils.pathInRoutesFolder(
                               ~fileName=routeEntry.name->RouteName.getRouteRendererName,
                               ~config=ctx->CurrentContext.getConfig,
-                              (),
                             ),
                           })
                         }
                       )
                       ->Message.Result.fromRoutesForFile
 
-                    Message.Response.make(~id=msg->Message.getId, ~result, ())
+                    Message.Response.make(~id=msg->Message.getId, ~result)
                     ->Message.Response.asMessage
                     ->send
                   }
@@ -884,7 +869,6 @@ let start = (~mode, ~config: config) => {
                 LspProtocol.Command.sourceFilePath: Utils.pathInRoutesFolder(
                   ~fileName=routeEntry.sourceFile,
                   ~config=ctx->CurrentContext.getConfig,
-                  (),
                 ),
                 routeName: routeEntry.name->RouteName.getFullRouteName,
                 loc: {
@@ -894,14 +878,11 @@ let start = (~mode, ~config: config) => {
                 routeRendererFilePath: Utils.pathInRoutesFolder(
                   ~fileName=routeEntry.name->RouteName.getRouteRendererName ++ ".res",
                   ~config=ctx->CurrentContext.getConfig,
-                  (),
                 ),
               })
               ->Message.Result.fromRoutesMatchingUrl
 
-            Message.Response.make(~id=msg->Message.getId, ~result, ())
-            ->Message.Response.asMessage
-            ->send
+            Message.Response.make(~id=msg->Message.getId, ~result)->Message.Response.asMessage->send
 
           | DocumentLinks(params) =>
             if params.textDocument.uri->Bindings.Path.extname == ".json" {
@@ -919,7 +900,7 @@ let start = (~mode, ~config: config) => {
               | Some(documentLinks) => Message.Result.fromDocumentLinks(documentLinks)
               }
 
-              Message.Response.make(~id=msg->Message.getId, ~result, ())
+              Message.Response.make(~id=msg->Message.getId, ~result)
               ->Message.Response.asMessage
               ->send
             }
@@ -939,11 +920,11 @@ let start = (~mode, ~config: config) => {
               | Some(completionItems) => Message.Result.fromCompletionItems(completionItems)
               }
 
-              Message.Response.make(~id=msg->Message.getId, ~result, ())
+              Message.Response.make(~id=msg->Message.getId, ~result)
               ->Message.Response.asMessage
               ->send
             } else {
-              Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null(), ())
+              Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null())
               ->Message.Response.asMessage
               ->send
             }
@@ -964,11 +945,11 @@ let start = (~mode, ~config: config) => {
               | Some(codeActions) => Message.Result.fromCodeActions(codeActions)
               }
 
-              Message.Response.make(~id=msg->Message.getId, ~result, ())
+              Message.Response.make(~id=msg->Message.getId, ~result)
               ->Message.Response.asMessage
               ->send
             } else {
-              Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null(), ())
+              Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null())
               ->Message.Response.asMessage
               ->send
             }
@@ -979,7 +960,6 @@ let start = (~mode, ~config: config) => {
                 ~code=InvalidRequest,
                 ~message=`Unrecognized editor request.`,
               ),
-              (),
             )
             ->Message.Response.asMessage
             ->send
@@ -990,7 +970,6 @@ let start = (~mode, ~config: config) => {
         Message.Response.make(
           ~id=msg->Message.getId,
           ~error=Message.Error.make(~code=InvalidRequest, ~message=`Unrecognized editor request.`),
-          (),
         )
         ->Message.Response.asMessage
         ->send

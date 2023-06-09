@@ -4,19 +4,19 @@ open RelayRouter__Internal__DeclarationsSupport
 external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
 
-@val external import__Root: (@as(json`"@rescriptModule/Root_route_renderer"`) _, unit) => Js.Promise.t<RouteRenderer.t> = "import"
+@val external import__Root: (@as(json`"@rescriptModule/Root_route_renderer"`) _, unit) => promise<RouteRenderer.t> = "import"
 
-@val external import__Root__Todos: (@as(json`"@rescriptModule/Root__Todos_route_renderer"`) _, unit) => Js.Promise.t<RouteRenderer.t> = "import"
+@val external import__Root__Todos: (@as(json`"@rescriptModule/Root__Todos_route_renderer"`) _, unit) => promise<RouteRenderer.t> = "import"
 
-@val external import__Root__Todos__ByStatus: (@as(json`"@rescriptModule/Root__Todos__ByStatus_route_renderer"`) _, unit) => Js.Promise.t<RouteRenderer.t> = "import"
+@val external import__Root__Todos__ByStatus: (@as(json`"@rescriptModule/Root__Todos__ByStatus_route_renderer"`) _, unit) => promise<RouteRenderer.t> = "import"
 
-@val external import__Root__Todos__Single: (@as(json`"@rescriptModule/Root__Todos__Single_route_renderer"`) _, unit) => Js.Promise.t<RouteRenderer.t> = "import"
+@val external import__Root__Todos__Single: (@as(json`"@rescriptModule/Root__Todos__Single_route_renderer"`) _, unit) => promise<RouteRenderer.t> = "import"
 
 let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.HashMap.String.make(
   ~hintSize=4,
 )
 
-let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.route> => {
+let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
   let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
 
   [
@@ -45,7 +45,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
       chunk: "Root_route_renderer",
       loadRouteRenderer,
       preloadCode: (
-        . ~environment: RescriptRelay.Environment.t,
+        ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
         ~location: RelayRouter.History.location,
@@ -60,13 +60,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
         ~queryParams,
       ),
       prepare: (
-        . ~environment: RescriptRelay.Environment.t,
+        ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
         ~location: RelayRouter.History.location,
         ~intent: RelayRouter.Types.prepareIntent,
       ) => prepareRoute(
-        .
         ~environment,
         ~pathParams,
         ~queryParams,
@@ -115,7 +114,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
           chunk: "Root__Todos_route_renderer",
           loadRouteRenderer,
           preloadCode: (
-            . ~environment: RescriptRelay.Environment.t,
+            ~environment: RescriptRelay.Environment.t,
             ~pathParams: Js.Dict.t<string>,
             ~queryParams: RelayRouter.Bindings.QueryParams.t,
             ~location: RelayRouter.History.location,
@@ -130,13 +129,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
             ~queryParams,
           ),
           prepare: (
-            . ~environment: RescriptRelay.Environment.t,
+            ~environment: RescriptRelay.Environment.t,
             ~pathParams: Js.Dict.t<string>,
             ~queryParams: RelayRouter.Bindings.QueryParams.t,
             ~location: RelayRouter.History.location,
             ~intent: RelayRouter.Types.prepareIntent,
           ) => prepareRoute(
-            .
             ~environment,
             ~pathParams,
             ~queryParams,
@@ -184,7 +182,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                 chunk: "Root__Todos__ByStatus_route_renderer",
                 loadRouteRenderer,
                 preloadCode: (
-                  . ~environment: RescriptRelay.Environment.t,
+                  ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.History.location,
@@ -199,13 +197,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   ~queryParams,
                 ),
                 prepare: (
-                  . ~environment: RescriptRelay.Environment.t,
+                  ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.History.location,
                   ~intent: RelayRouter.Types.prepareIntent,
                 ) => prepareRoute(
-                  .
                   ~environment,
                   ~pathParams,
                   ~queryParams,
@@ -260,7 +257,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                 chunk: "Root__Todos__Single_route_renderer",
                 loadRouteRenderer,
                 preloadCode: (
-                  . ~environment: RescriptRelay.Environment.t,
+                  ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.History.location,
@@ -275,13 +272,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.r
                   ~queryParams,
                 ),
                 prepare: (
-                  . ~environment: RescriptRelay.Environment.t,
+                  ~environment: RescriptRelay.Environment.t,
                   ~pathParams: Js.Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.History.location,
                   ~intent: RelayRouter.Types.prepareIntent,
                 ) => prepareRoute(
-                  .
                   ~environment,
                   ~pathParams,
                   ~queryParams,

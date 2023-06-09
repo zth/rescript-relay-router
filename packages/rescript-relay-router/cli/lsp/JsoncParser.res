@@ -69,5 +69,4 @@ external parse: (
   string,
   array<parseError>,
   @as(json`{"disallowComments": false,"allowTrailingComma": true,"allowEmptyContent": true}`) _,
-  unit,
 ) => option<rawNode> = "parseTree"

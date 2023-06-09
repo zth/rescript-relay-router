@@ -160,14 +160,12 @@ module Router = {
             ~pathParams=match.params,
             ~queryParams,
             ~location,
-          )->(
-            Js.Promise.then_(
-              assetsToPreload => {
-                assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
-                Js.Promise.resolve()
-              },
-              _,
-            )
+          )->Js.Promise.then_(
+            assetsToPreload => {
+              assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
+              Js.Promise.resolve()
+            },
+            _,
           )
         }, ~priority)
       })
@@ -249,7 +247,7 @@ module RouteComponent = {
 
 module RouteRenderer = {
   @react.component
-  let make = (~renderPending=?, ()) => {
+  let make = (~renderPending=?) => {
     let router = useRouterContext()
     let (isPending, startTransition) = ReactExperimental.useTransition()
     let (routeEntry, setRouteEntry) = React.useState(() => router.get())

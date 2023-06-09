@@ -68,7 +68,6 @@ let getRouteMakerAndAssets = (route: printableRoute) => {
   })
 
   let hasQueryParams = queryParamSerializers->Array.length > 0
-  let shouldAddUnit = hasQueryParams
 
   let str = ref(
     `@inline
@@ -87,10 +86,6 @@ let routePattern = "${route.path->RoutePath.toPattern}"
       ", "->addToStr
     }
   })
-
-  if shouldAddUnit {
-    ", ()"->addToStr
-  }
 
   ") => {\n"->addToStr
 
@@ -146,7 +141,7 @@ let makeLinkFromQueryParams = (`->addToStr
       `~${queryParamName}=?queryParams.${queryParamName}, `->addToStr
     })
 
-    `())
+    `)
 }
 `->addToStr
 
@@ -250,7 +245,6 @@ type useQueryParamsReturn = {
     ~navigationMode_: RelayRouter.Types.setQueryParamsMode=?,
     ~removeNotControlledParams: bool=?,
     ~shallow: bool=?,
-    unit
   ) => unit
 }
 
@@ -268,7 +262,6 @@ let useQueryParams = (): useQueryParamsReturn => {
     ~navigationMode_=RelayRouter.Types.Push,
     ~removeNotControlledParams=true,
     ~shallow=true,
-    (),
   ) => {
     let newParams = setter(currentQueryParams)
 
@@ -513,7 +506,6 @@ external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
-  unit
 ) => Internal.renderers<'prepared> = ""`
 
   str.contents
@@ -537,7 +529,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
     chunk: "${route.name->RouteName.getRouteRendererName}",
     loadRouteRenderer,
     preloadCode: (
-      . ~environment: RescriptRelay.Environment.t,
+      ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.History.location,
@@ -552,13 +544,12 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~queryParams,
     ),
     prepare: (
-      . ~environment: RescriptRelay.Environment.t,
+      ~environment: RescriptRelay.Environment.t,
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.History.location,
       ~intent: RelayRouter.Types.prepareIntent,
     ) => prepareRoute(
-      .
       ~environment,
       ~pathParams,
       ~queryParams,
@@ -589,7 +580,7 @@ let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.locatio
 }
 
 @live
-let useIsRouteActive = (~exact=false, ()) => {
+let useIsRouteActive = (~exact=false) => {
   let location = RelayRouter.Utils.useLocation()
   React.useMemo2(() => location->isRouteActive(~exact), (location, exact))
 }`

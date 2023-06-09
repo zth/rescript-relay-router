@@ -11,7 +11,7 @@ let make = (~todo) => {
 
   <div>
     <h2>
-      <RelayRouter.Link to_={Routes.Root.Todos.Single.Route.makeLink(~todoId=todo.id, ())}>
+      <RelayRouter.Link to_={Routes.Root.Todos.Single.Route.makeLink(~todoId=todo.id)}>
         {todo.text->React.string}
       </RelayRouter.Link>
     </h2>

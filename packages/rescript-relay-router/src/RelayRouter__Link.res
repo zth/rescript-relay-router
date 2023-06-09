@@ -49,7 +49,6 @@ let make = (
   ~onClick=?,
   ~style=?,
   ~tabIndex=?,
-  (),
 ) => {
   let linkElement = React.useRef(Js.Nullable.null)
   let hasPreloaded = React.useRef(false)

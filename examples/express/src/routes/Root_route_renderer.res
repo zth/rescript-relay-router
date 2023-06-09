@@ -5,5 +5,4 @@ let renderer = Route__Root_route.makeRenderer(
   ~render=props => {
     <Layout queryRef=props.prepared> {props.childRoutes} </Layout>
   },
-  (),
 )

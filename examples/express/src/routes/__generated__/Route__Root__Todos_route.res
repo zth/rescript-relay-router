@@ -83,7 +83,6 @@ type useQueryParamsReturn = {
     ~navigationMode_: RelayRouter.Types.setQueryParamsMode=?,
     ~removeNotControlledParams: bool=?,
     ~shallow: bool=?,
-    unit
   ) => unit
 }
 
@@ -101,7 +100,6 @@ let useQueryParams = (): useQueryParamsReturn => {
     ~navigationMode_=RelayRouter.Types.Push,
     ~removeNotControlledParams=true,
     ~shallow=true,
-    (),
   ) => {
     let newParams = setter(currentQueryParams)
 
@@ -132,7 +130,7 @@ let useQueryParams = (): useQueryParamsReturn => {
 let routePattern = "/todos"
 
 @live
-let makeLink = (~statuses: option<array<TodoStatus.t>>=?, ()) => {
+let makeLink = (~statuses: option<array<TodoStatus.t>>=?) => {
   open RelayRouter.Bindings
   let queryParams = QueryParams.make()
   switch statuses {
@@ -143,7 +141,7 @@ let makeLink = (~statuses: option<array<TodoStatus.t>>=?, ()) => {
 }
 @live
 let makeLinkFromQueryParams = (queryParams: queryParams) => {
-  makeLink(~statuses=?queryParams.statuses, ())
+  makeLink(~statuses=?queryParams.statuses, )
 }
 
 @live
@@ -167,7 +165,7 @@ let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.locatio
 }
 
 @live
-let useIsRouteActive = (~exact=false, ()) => {
+let useIsRouteActive = (~exact=false) => {
   let location = RelayRouter.Utils.useLocation()
   React.useMemo2(() => location->isRouteActive(~exact), (location, exact))
 }
@@ -199,5 +197,4 @@ external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
-  unit
 ) => Internal.renderers<'prepared> = ""

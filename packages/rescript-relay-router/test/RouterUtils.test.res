@@ -60,7 +60,7 @@ describe("RelayRouter__Utils", () => {
         test(
           `pattern: "${routePattern}", path: "${pathname}", exact: ${exact ? "true" : "false"}`,
           _t => {
-            expect(isRouteActive(~exact, ~pathname, ~routePattern, ()))->Expect.toBe(expected)
+            expect(isRouteActive(~exact, ~pathname, ~routePattern))->Expect.toBe(expected)
           },
         )
       },

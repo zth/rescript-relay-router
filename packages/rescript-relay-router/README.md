@@ -207,7 +207,7 @@ module Query = %relay(`
 
 @react.component @relay.deferredComponent
 let make = (~queryRef) => {
-  let data = Query.usePreloaded(~queryRef, ())
+  let data = Query.usePreloaded(~queryRef)
 
   ....
 }
@@ -248,7 +248,7 @@ There, excellent! We've now covered how we define and render routes. Let's move 
 Linking to routes is fully type safe, and also quite ergonomic. A type safe `makeLink` function is generated for every defined route. Using it looks like this:
 
 ```rescript
-<RelayRouterLink to_={Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true, ())}>
+<RelayRouterLink to_={Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true)}>
   {React.string("See active members")}
 </RelayRouterLink>
 ```

@@ -66,7 +66,6 @@ let make = (~todo) => {
                 )
               })
             },
-            (),
           )
         }}>
         {React.string("Show more")}

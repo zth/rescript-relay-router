@@ -15,7 +15,7 @@ let useRouter: unit => routerHelpers
 let useLocation: unit => RelayRouter__History.location
 
 @live
-let isRouteActive: (~pathname: string, ~routePattern: string, ~exact: bool=?, unit) => bool
+let isRouteActive: (~pathname: string, ~routePattern: string, ~exact: bool=?) => bool
 
 @live
-let useIsRouteActive: (~href: string, ~routePattern: string, ~exact: bool=?, unit) => bool
+let useIsRouteActive: (~href: string, ~routePattern: string, ~exact: bool=?) => bool

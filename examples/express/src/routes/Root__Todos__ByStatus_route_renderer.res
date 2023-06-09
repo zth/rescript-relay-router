@@ -5,5 +5,4 @@ let renderer = Routes.Root.Todos.ByStatus.Route.makeRenderer(
   ~render=_props => {
     React.null
   },
-  (),
 )

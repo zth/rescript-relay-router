@@ -1,3 +1,5 @@
+@@directive("#!/usr/bin/env node")
+
 module Utils = RescriptRelayRouterCli__Utils
 module Commands = RescriptRelayRouterCli__Commands
 

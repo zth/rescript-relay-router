@@ -33,8 +33,7 @@
     "dev": "yarn build -w",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "release": "yarn npm publish",
-    "postinstall": "patch-package"
+    "release": "yarn npm publish"
   },
   "bin": "cli/RescriptRelayRouterCli.mjs",
   "peerDependencies": {
@@ -57,7 +56,6 @@
     "vscode-jsonrpc": "^5.0.1"
   },
   "devDependencies": {
-    "patch-package": "^7.0.0",
     "rescript": "11.0.0-beta.2",
     "rescript-vitest": "0.3.0",
     "vitest": "^0.21.1"

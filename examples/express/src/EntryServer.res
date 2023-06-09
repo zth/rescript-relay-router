@@ -62,7 +62,7 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
 
   // TODO: Fix the RelayEnv.makeServer types so the extra function here isn't needed.
   let environment = RelayEnv.makeServer(
-    ~onQuery=transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onQuery,
+    ~onQuery=RelayRouter.PreloadInsertingStream.Node.onQuery(transformOutputStream, ...),
     ~preloadAsset,
   )
   let routerEnvironment = RelayRouter.RouterEnvironment.makeServerEnvironment(~initialUrl)
@@ -114,11 +114,11 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
             ->NodeJs.Stream.fromWritable
             ->NodeJs.Stream.onClose(cleanup)
 
-            resolve(. ignore())
+            resolve(ignore())
           },
           ~onShellError=err => {
             cleanup()
-            reject(. err)
+            reject(err)
           },
           ~onError=err => {
             cleanup()

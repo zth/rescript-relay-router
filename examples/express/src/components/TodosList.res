@@ -6,7 +6,7 @@ module Query = %relay(`
 
 @react.component @relay.deferredComponent
 let make = (~queryRef, ~children) => {
-  let data = Query.usePreloaded(~queryRef, ())
+  let data = Query.usePreloaded(~queryRef)
 
   <>
     <React.Suspense fallback={<div> {React.string("Loading todos...")} </div>}>

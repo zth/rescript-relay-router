@@ -47,15 +47,15 @@ let makeFetchQuery = (~preloadAsset) =>
     )
     ->Promise.thenResolve(r => {
       r->getChunks(
-        ~onNext=(. part) => {
+        ~onNext=part => {
           part->preloadFromResponse(~preloadAsset)
-          sink.next(. part)
+          sink.next(part)
         },
-        ~onError=(. err) => {
-          sink.error(. err)
+        ~onError=err => {
+          sink.error(err)
         },
-        ~onComplete=(. ()) => {
-          sink.complete(.)
+        ~onComplete=() => {
+          sink.complete()
         },
       )
     })
@@ -89,15 +89,15 @@ let makeServerFetchQuery = (
     )
     ->Promise.thenResolve(r => {
       r->getChunks(
-        ~onNext=(. part) => {
+        ~onNext=part => {
           part->preloadFromResponse(~preloadAsset)
-          sink.next(. part)
+          sink.next(part)
         },
-        ~onError=(. err) => {
-          sink.error(. err)
+        ~onError=err => {
+          sink.error(err)
         },
-        ~onComplete=(. ()) => {
-          sink.complete(.)
+        ~onComplete=() => {
+          sink.complete()
         },
       )
     })

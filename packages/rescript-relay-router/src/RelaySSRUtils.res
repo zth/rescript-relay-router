@@ -2,7 +2,7 @@ open RelayRouter__Bindings
 
 type window
 
-type pushEntryFn = (. streamedEntry) => unit
+type pushEntryFn = streamedEntry => unit
 
 @live
 type relayDataStructure = {push: pushEntryFn}
@@ -16,7 +16,7 @@ external setRelayDataStructure: (window, relayDataStructure) => unit = "__RELAY_
 @get @return(nullable)
 external unsafe_initialRelayData: window => option<array<streamedEntry>> = "__RELAY_DATA"
 
-let deleteKey = (dict, key) => Js.Dict.unsafeDeleteKey(. Obj.magic(dict), key)
+let deleteKey = (dict, key) => Js.Dict.unsafeDeleteKey(Obj.magic(dict), key)
 
 let streamedPreCache: Js.Dict.t<array<streamedEntry>> = Js.Dict.empty()
 let replaySubjects: Js.Dict.t<RelayReplaySubject.t> = Js.Dict.empty()
@@ -73,7 +73,7 @@ let bootOnClient = (~render) => {
     })
 
     window->setRelayDataStructure({
-      push: (. streamedEntry) => {
+      push: streamedEntry => {
         Js.log2("[debug] Got stream response when client was ready: ", streamedEntry)
         handleIncomingStreamedDataEntry(streamedEntry)
       },
@@ -104,13 +104,13 @@ let subscribeToReplaySubject = (replaySubject, ~sink: RescriptRelay.Observable.s
   replaySubject->RelayReplaySubject.subscribe(
     RescriptRelay.Observable.makeObserver(
       ~next=data => {
-        sink.next(. data)
+        sink.next(data)
       },
       ~complete=() => {
-        sink.complete(.)
+        sink.complete()
       },
       ~error=e => {
-        sink.error(. e)
+        sink.error(e)
       },
       (),
     ),

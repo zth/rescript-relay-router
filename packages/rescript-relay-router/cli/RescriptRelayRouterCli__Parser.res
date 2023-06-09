@@ -621,11 +621,17 @@ module Decode = {
   let findPropertyWithName = (properties, ~name) =>
     properties->Array.find(prop => prop.name == name)
 
-  let rec decodeRouteChildren = (children, ~ctx, ~parentContext: parentContext) => {
+  let rec decodeRouteChildren = (
+    children,
+    ~ctx: currentFileContext,
+    ~parentContext: parentContext,
+  ) => {
     let foundChildren = []
 
-    children->Array.forEach(child =>
-      switch child->decodeRouteChild(~ctx, ~siblings=foundChildren, ~parentContext) {
+    children->Array.forEach(child => {
+      let decoded: result<routeChild, decodeError> =
+        child->decodeRouteChild(~ctx, ~siblings=foundChildren, ~parentContext)
+      switch decoded {
       | Error(parseError) => ctx.addDecodeError(~loc=parseError.loc, ~message=parseError.message)
       | Ok(routeChild) =>
         foundChildren->Array.push(routeChild)
@@ -638,14 +644,16 @@ module Decode = {
         | Include(_) => ()
         }
       }
-    )
+    })
 
     foundChildren
   }
-  and decodeRouteChild = (child, ~ctx, ~siblings, ~parentContext): Result.t<
-    routeChild,
-    decodeError,
-  > => {
+  and decodeRouteChild = (
+    child: JsoncParser.node,
+    ~ctx: currentFileContext,
+    ~siblings,
+    ~parentContext,
+  ): result<routeChild, decodeError> => {
     switch child {
     | Object({loc: objLoc, properties}) =>
       let includeProp = properties->findPropertyWithName(~name="include")

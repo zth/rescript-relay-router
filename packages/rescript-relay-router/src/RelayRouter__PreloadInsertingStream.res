@@ -16,7 +16,6 @@ module Node = {
     ~response: option<Js.Json.t>=?,
     ~final: option<bool>=?,
   ) => unit = "onQuery"
-  let onQuery: t => onQuery = onQuery
+
   @send external onAssetPreload: (t, string) => unit = "onAssetPreload"
-  let onAssetPreload: t => onAssetPreload = onAssetPreload
 }

@@ -1,6 +1,6 @@
 open RelayRouter__Bindings
 
-type renderRouteFn = (. ~childRoutes: React.element) => React.element
+type renderRouteFn = (~childRoutes: React.element) => React.element
 
 @live
 type preloadPriority = High | Default | Low
@@ -30,13 +30,13 @@ type rec route = {
   @as("__$rescriptChunkName__") chunk: string,
   loadRouteRenderer: unit => Js.Promise.t<unit>,
   preloadCode: (
-    . ~environment: RescriptRelay.Environment.t,
+    ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: RelayRouter__Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,
   ) => Js.Promise.t<array<preloadAsset>>,
   prepare: (
-    . ~environment: RescriptRelay.Environment.t,
+    ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
     ~queryParams: QueryParams.t,
     ~location: RelayRouter__History.location,

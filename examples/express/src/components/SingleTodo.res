@@ -10,7 +10,7 @@ module Query = %relay(`
 
 @react.component @relay.deferredComponent
 let make = (~queryRef) => {
-  let data = Query.usePreloaded(~queryRef, ())
+  let data = Query.usePreloaded(~queryRef)
 
   switch data.node {
   | None => React.string("Oops, did not find todo!")

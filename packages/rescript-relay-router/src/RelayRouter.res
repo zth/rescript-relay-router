@@ -26,7 +26,7 @@ let prepareMatches = (
   ~location: RelayRouter__History.location,
 ): array<preparedMatch> => {
   matches->Js.Array2.map(match => {
-    let {render, routeKey} = match.route.prepare(.
+    let {render, routeKey} = match.route.prepare(
       ~pathParams=match.params,
       ~environment,
       ~queryParams,
@@ -67,7 +67,7 @@ module Router = {
       routerEventListeners.contents->Belt.Array.forEach(cb => cb(event))
     }
 
-    let matchLocation = matchRoutes(routes)
+    let matchLocation = matchRoutes(routes, ...)
     let location = RelayRouter__History.getLocation(history)
     let initialQueryParams = QueryParams.parse(location.search)
     let initialMatches = matchLocation(location)->Belt.Option.getWithDefault([])
@@ -155,17 +155,19 @@ module Router = {
       preloadUrl->runOnEachRouteMatch((~match, ~queryParams, ~location as _) => {
         // We don't care about the unsub callback here
         let _ = Internal.runAtPriority(() => {
-          let _ = match.route.preloadCode(.
+          let _ = match.route.preloadCode(
             ~environment,
             ~pathParams=match.params,
             ~queryParams,
             ~location,
-          )->Js.Promise.then_(
-            assetsToPreload => {
-              assetsToPreload->Belt.Array.forEach(preloadAsset(~priority))
-              Js.Promise.resolve()
-            },
-            _,
+          )->(
+            Js.Promise.then_(
+              assetsToPreload => {
+                assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
+                Js.Promise.resolve()
+              },
+              _,
+            )
           )
         }, ~priority)
       })
@@ -177,7 +179,7 @@ module Router = {
         // We don't care about the render function returned to us when
         // preparing, and we don't care about the run priority unsub
         let _ = Internal.runAtPriority(() => {
-          let _: preparedRoute = match.route.prepare(.
+          let _: preparedRoute = match.route.prepare(
             ~environment,
             ~pathParams=match.params,
             ~queryParams,
@@ -241,7 +243,7 @@ let useRouterContext = RelayRouter__Context.useRouterContext
 module RouteComponent = {
   @react.component
   let make = (~render: renderRouteFn, ~children) => {
-    render(. ~childRoutes=children)
+    render(~childRoutes=children)
   }
 }
 

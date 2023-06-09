@@ -130,7 +130,7 @@ let useQueryParams = (): useQueryParamsReturn => {
     }
 
     internalSetQueryParams({
-      applyQueryParams: applyQueryParams(~newParams),
+      applyQueryParams: applyQueryParams(~newParams, ...),
       currentSearch: search,
       navigationMode_: navigationMode_,
       removeNotControlledParams: removeNotControlledParams,

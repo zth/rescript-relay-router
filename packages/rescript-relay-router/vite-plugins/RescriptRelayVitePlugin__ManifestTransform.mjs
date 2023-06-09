@@ -33,7 +33,9 @@ function viteManifestToRelayRouterManifest(manifest) {
 function transformManifest(inPath, outPath) {
   var viteManifest = JSON.parse(Fs.readFileSync(inPath, "utf-8"));
   var routerManifest = viteManifestToRelayRouterManifest(viteManifest);
-  var __x = RelayRouter__Manifest.stringifyWithSpace(routerManifest, 2);
+  var __x = (function (__x) {
+        return RelayRouter__Manifest.stringifyWithSpace(__x, 2);
+      })(routerManifest);
   Fs.writeFileSync(outPath, __x, "utf-8");
 }
 

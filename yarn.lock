@@ -531,6 +531,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gabnor/rescript-stdlib@patch:@gabnor/rescript-stdlib@npm:1.0.8#.yarn/patches/@gabnor-rescript-stdlib-npm-1.0.8-da2b08ff40.patch::locator=rescript-relay-router-monorepo%40workspace%3A.":
+  version: 1.0.8
+  resolution: "@gabnor/rescript-stdlib@patch:@gabnor/rescript-stdlib@npm%3A1.0.8#.yarn/patches/@gabnor-rescript-stdlib-npm-1.0.8-da2b08ff40.patch::version=1.0.8&hash=2b861d&locator=rescript-relay-router-monorepo%40workspace%3A."
+  checksum: 2bb3624f12e0084cede21801767fd2f159a1132eff190f7eba7a737e875133076ca266f0ceafa8d0757cc9b4ff23b8eb6086189e625a6ebef1c7f90c52aa21f2
+  languageName: node
+  linkType: hard
+
 "@gar/promisify@npm:^1.1.3":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -659,7 +666,7 @@ __metadata:
   dependencies:
     "@gabnor/rescript-stdlib": 1.0.8
     "@remix-run/web-fetch": ^4.1.3
-    "@rescript/react": 0.11.0
+    "@rescript/react": 0.12.0-alpha.2
     "@vitejs/plugin-react-refresh": 1.3.3
     chalk: ^5.0.1
     chokidar: ^3.5.3
@@ -681,8 +688,8 @@ __metadata:
     react-dom: ^18.2.0
     react-relay: 15.0.0
     relay-runtime: 15.0.0
-    rescript: 10.1.4
-    rescript-relay: 1.1.0
+    rescript: 11.0.0-beta.2
+    rescript-relay: 2.0.0-alpha.0
     rescript-relay-router: "workspace:^"
     rollup: ^2
     rollup-plugin-visualizer: 5.5.0
@@ -692,13 +699,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rescript/react@npm:0.11.0":
-  version: 0.11.0
-  resolution: "@rescript/react@npm:0.11.0"
+"@rescript/react@npm:0.12.0-alpha.2":
+  version: 0.12.0-alpha.2
+  resolution: "@rescript/react@npm:0.12.0-alpha.2"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: c399d114f7081dca56b200c377dc4896f7c4e7ec092a73f6b42aadffd7b3b146a462009139e71c834db5989331777ffd57bbcef2adfb165104510aa5c60c9ada
+  checksum: 7baafec7866e6bf4c67aa46307692e73f34047c06c3869a72027568671127ba5875e5e87b67cb920c625a1ef9f68f6a16890cc376d477f08b76ce9a0d5550a70
   languageName: node
   linkType: hard
 
@@ -5066,34 +5073,34 @@ __metadata:
     jsonc-parser: ^3.0.0
     lines-and-columns: ^2.0.3
     magic-string: ^0.26.2
-    rescript: 10.1.4
+    rescript: 11.0.0-beta.2
     rescript-vitest: 0.3.0
     vitest: ^0.21.1
     vscode-jsonrpc: ^5.0.1
   peerDependencies:
-    "@rescript/react": 0.11.0
+    "@rescript/react": 0.12.0-alpha.2
     react: ">=18.2.0"
-    rescript-relay: ^1.1.0
+    rescript-relay: 2.0.0-alpha.0
     vite: ^3.1.0
   bin:
     rescript-relay-router: cli/RescriptRelayRouterCli.mjs
   languageName: unknown
   linkType: soft
 
-"rescript-relay@npm:1.1.0":
-  version: 1.1.0
-  resolution: "rescript-relay@npm:1.1.0"
+"rescript-relay@npm:2.0.0-alpha.0":
+  version: 2.0.0-alpha.0
+  resolution: "rescript-relay@npm:2.0.0-alpha.0"
   dependencies:
     detect-libc: ^2.0.1
   peerDependencies:
     "@rescript/react": "*"
     react-relay: ">=15.0.0"
     relay-runtime: "*"
-    rescript: ">=10.1.0"
+    rescript: "*"
   bin:
     rescript-relay-cli: cli/cli.js
     rescript-relay-compiler: compiler.js
-  checksum: 01faf11d5157585351b30771446466b39a7d27b7bda739391281f6341d0c7be81bb282c9c8649044a724d55550c39dd5808ff49fdfea7b54bef1383b4cd053eb
+  checksum: 2962c8452fd8a966c8cc0fedbbb058d44ea7a3f0fc8a35df67e142572976f71db50f1f291f40d7f40f86b1b0cc7052b94ce9d0cdadd3b185e9ab9433a502724c
   languageName: node
   linkType: hard
 
@@ -5123,15 +5130,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rescript@npm:10.1.4":
-  version: 10.1.4
-  resolution: "rescript@npm:10.1.4"
+"rescript@npm:11.0.0-beta.2":
+  version: 11.0.0-beta.2
+  resolution: "rescript@npm:11.0.0-beta.2"
   bin:
     bsc: bsc
-    bsrefmt: bsrefmt
     bstracing: lib/bstracing
     rescript: rescript
-  checksum: 5bd4b17a9671bc91f369ef56fbd03bba73b4a2cfeab9e09d92f8133f70b62028754914afede07f18d2c1dd877a38a14b2ff5a3b6b90783ea2306b29ff3de54f0
+  checksum: ed35cacf9a07c2695ee5ea5d7bcd919281c718540077717347e9e4297d113186c8411ea2f0e473f5099757db9fe776afbbdaaae44c5e608136408aec7bee3dba
   languageName: node
   linkType: hard
 

@@ -16,7 +16,7 @@ module Config: {
   let load = () => {
     let config = switch CosmiConfig.make()->CosmiConfig.search {
     | Some({config: Some(config), filepath}) => {
-        let resolveFullPath = resolveFullPath(~filepath)
+        let resolveFullPath = resolveFullPath(~filepath, ...)
 
         let routesFolderPath = switch config->Dict.get("routesFolderPath") {
         | Some(routesFolderPath) => routesFolderPath->resolveFullPath

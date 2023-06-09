@@ -35,7 +35,7 @@ let preloadAssetViaLinkTag = asset => {
 }
 
 type preparedAssetsMap = Js.Dict.t<bool>
-let makeClientAssetPreloader = (preparedAssetsMap, ~priority, asset) => {
+let makeClientAssetPreloader = preparedAssetsMap => (~priority, asset) => {
   let assetIdentifier = switch asset {
   | RelayRouter__Types.Component({chunk}) => "component:" ++ chunk
   | Image({url}) => "image:" ++ url

@@ -1,5 +1,6 @@
 {
   "name": "main",
+  "uncurried": true,
   "jsx": {
     "version": 4,
     "mode": "automatic"
@@ -19,7 +20,7 @@
     }
   ],
   "suffix": ".mjs",
-  "ppx-flags": ["rescript-relay/ppx"],
+  "ppx-flags": [["rescript-relay/ppx", "-uncurried"]],
   "bs-dependencies": [
     "@rescript/react",
     "rescript-relay",

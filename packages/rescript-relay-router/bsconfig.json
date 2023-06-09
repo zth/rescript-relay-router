@@ -4,6 +4,7 @@
     "version": 4,
     "mode": "automatic"
   },
+  "uncurried": true,
   "version": "0.0.17",
   "sources": [
     {
@@ -38,8 +39,5 @@
     "@gabnor/rescript-stdlib"
   ],
   "bs-dev-dependencies": ["rescript-vitest"],
-  "bsc-flags": ["-open RescriptStdlib"],
-  "js-post-build": {
-    "cmd": "./scripts/post-build.sh"
-  }
+  "bsc-flags": ["-open RescriptStdlib"]
 }

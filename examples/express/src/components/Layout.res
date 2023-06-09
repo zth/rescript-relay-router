@@ -8,7 +8,7 @@ let links = [("Todos", Routes.Root.Todos.Route.makeLink())]
 
 @react.component
 let make = (~queryRef, ~children) => {
-  let data = Query.usePreloaded(~queryRef, ())
+  let data = Query.usePreloaded(~queryRef)
 
   <div>
     <h1> {React.string("My fine site")} </h1>

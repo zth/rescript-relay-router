@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 0.2.0
+
+### Minor Changes
+
+- 5f6cbbb: Move to ReScript v11 and make it build in uncurried mode
+
 ## 0.1.1
 
 ### Patch Changes

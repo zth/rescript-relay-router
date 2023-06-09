@@ -312,7 +312,7 @@ let codeLens = (routeStructure: routeStructure, ~ctx: lspResolveContext): option
   array<LspProtocol.codeLens>,
 > => {
   let lenses: array<LspProtocol.codeLens> = []
-  let addLens = (~range, ~command, ()) => {
+  let addLens = (~range, ~command) => {
     lenses->Array.push(LspProtocol.makeCodeLensItem(~command, ~range))
   }
 
@@ -324,7 +324,6 @@ let codeLens = (routeStructure: routeStructure, ~ctx: lspResolveContext): option
       addLens(
         ~range=routeEntry.name->RouteName.getLoc->mapRangeFromStartOnly,
         ~command=LspProtocol.Command.makeTextOnlyCommand(fullRouteName),
-        (),
       )
 
       addLens(
@@ -332,7 +331,6 @@ let codeLens = (routeStructure: routeStructure, ~ctx: lspResolveContext): option
         ~command=LspProtocol.Command.makeTextOnlyCommand(
           routeEntry.routePath->RoutePath.getFullRoutePath,
         ),
-        (),
       )
 
       routeEntry.children->Option.getWithDefault([])->traverseRouteChildren(~ctx)
@@ -404,7 +402,6 @@ let routeRendererCodeLens = (
                   ~fileUri=Utils.pathInRoutesFolder(
                     ~fileName=routeEntry.sourceFile,
                     ~config=ctx.config,
-                    (),
                   ),
                 ),
               ),
@@ -426,8 +423,8 @@ let documentLinks = (routeStructure: routeStructure, ~ctx: lspResolveContext): o
   let documentLinks: array<LspProtocol.documentLink> = []
 
   @live
-  let addDocumentLink = (~range, ~fileUri, ~tooltip=?, ()) => {
-    documentLinks->Array.push(LspProtocol.makeDocumentLink(~range, ~fileUri, ~tooltip?, ()))
+  let addDocumentLink = (~range, ~fileUri, ~tooltip=?) => {
+    documentLinks->Array.push(LspProtocol.makeDocumentLink(~range, ~fileUri, ~tooltip?))
   }
 
   let rec traverse = (routeChild, ~ctx: lspResolveContext) => {
@@ -438,10 +435,8 @@ let documentLinks = (routeStructure: routeStructure, ~ctx: lspResolveContext): o
         ~fileUri=Utils.pathInRoutesFolder(
           ~config=ctx.config,
           ~fileName=routeEntry.name->RouteName.getRouteRendererFileName,
-          (),
         ),
         ~tooltip=`Open route renderer`,
-        (),
       )
 
       routeEntry.children->Option.getWithDefault([])->traverseRouteChildren(~ctx)
@@ -453,10 +448,8 @@ let documentLinks = (routeStructure: routeStructure, ~ctx: lspResolveContext): o
           ~fileUri=Utils.pathInRoutesFolder(
             ~config=ctx.config,
             ~fileName=includeEntry.fileName.text,
-            (),
           ),
           ~tooltip=`Open file`,
-          (),
         )
       }
     }

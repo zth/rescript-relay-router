@@ -16,7 +16,7 @@ let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.Hash
   ~hintSize=4,
 )
 
-let make = (~prepareDisposeTimeout=5 * 60 * 1000, ()): array<RelayRouter.Types.route> => {
+let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
   let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
 
   [

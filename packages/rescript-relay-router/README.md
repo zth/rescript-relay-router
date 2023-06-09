@@ -79,8 +79,7 @@ let (_cleanup, routerContext) = RelayRouter.Router.make(
   ~routes=RouteDeclarations.make(
     // prepareDisposeTimeout - How long is prepared data allowed to live without being used before it's
     // potentially cleaned up? Default is 5 minutes.
-    ~prepareDisposeTimeout=5 * 60 * 1000,
-    ()
+    ~prepareDisposeTimeout=5 * 60 * 1000
   ),
 
   // This is your Relay environment
@@ -189,7 +188,6 @@ let renderer = Routes.Organization.Dashboard.Route.makeRenderer(
   ~render=props => {
     <OrganizationDashboard queryRef=props.prepared> {props.childRoutes} </OrganizationDashboard>
   },
-  (),
 )
 ```
 
@@ -271,23 +269,21 @@ The router lets you navigate and preload/prepare routes programatically if neede
 let {push, replace, preload, preloadCode} = RelayRouterUtils.useRouter()
 
 // This will push a new route
-push(Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true, ()))
+push(Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true))
 
 // This will replace
-replace(Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true, ()))
+replace(Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true))
 
 // This will prepare the *code* for a specific route, as in download the code for the route. Notice `priority` - it goes from Low | Default | High, and lets you control how fast you need this to be prepared.
 preloadCode(
   ~priority=High,
-  Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true, ()),
-  ()
+  Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true)
 )
 
 // This will preload the code _and_ data for a route.
 preload(
   ~priority=High,
-  Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true, ()),
-  ()
+  Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true)
 )
 ```
 
@@ -411,7 +407,6 @@ setParams(
   ~onAfterParamsSet=newParams => {
     // ...do whatever refetching based on the new params you'd like here.
   }
-  ()
 )
 ```
 
@@ -470,7 +465,7 @@ The router emits helpers to both check whether a route is active or not, as well
 ```rescript
 // Tells us whether this specific route is active or not. Every route exports one of this.
 // ~exact: Whether to check whether _exactly_ this route is active. `false` means subroutes of the route will also say it's active.
-let routeActive = Routes.Organization.Members.Route.useIsRouteActive(~exact=false, ())
+let routeActive = Routes.Organization.Members.Route.useIsRouteActive(~exact=false)
 ```
 
 #### Checking whether a route is active in a generic way (`<NavLink />`)
@@ -487,8 +482,7 @@ module NavLink = {
       // Every route has a `routePattern` you can use
       ~routePattern=Routes.Organization.Members.Route.routePattern,
       // Whether to check whether _exactly_ this route is active. `false` means subroutes of the route will also say it's active.
-      ~exact,
-      ()
+      ~exact
     )
 
     <RelayRouterLink
@@ -510,7 +504,6 @@ let routeActive = RelayRouterUtils.isRouteActive(
   ~pathname="/some/thing/123",
   ~routePattern="/some/thing/:id",
   ~exact=true,
-  ()
 )
 ```
 

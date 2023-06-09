@@ -60,12 +60,10 @@ module Process: {
 }
 
 module Glob: {
-  @deriving(abstract) @live
+  @live
   type opts = {
-    @optional
-    dot: bool,
-    @optional
-    cwd: string,
+    dot?: bool,
+    cwd?: string,
   }
 
   type glob = {sync: (array<string>, opts) => array<string>}

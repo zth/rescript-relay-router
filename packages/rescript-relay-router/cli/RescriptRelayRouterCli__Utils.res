@@ -133,11 +133,9 @@ module QueryParams = {
   }
 }
 
-let pathInRoutesFolder = (~config, ~fileName="", ()) =>
-  Path.join([config.routesFolderPath, fileName])
+let pathInRoutesFolder = (~config, ~fileName="") => Path.join([config.routesFolderPath, fileName])
 
-let pathInGeneratedFolder = (~config, ~fileName="", ()) =>
-  Path.join([config.generatedPath, fileName])
+let pathInGeneratedFolder = (~config, ~fileName="") => Path.join([config.generatedPath, fileName])
 
 let fromRendererFileName = rendererName =>
   rendererName->String.replaceString("_route_renderer.res", "")
@@ -219,7 +217,7 @@ let readRouteStructure = (config): (
     ~config,
     ~getRouteFileContents=fileName => {
       try {
-        Ok(Fs.readFileSync(pathInRoutesFolder(~config, ~fileName, ())))
+        Ok(Fs.readFileSync(pathInRoutesFolder(~config, ~fileName)))
       } catch {
       | Exn.Error(exn) => Error(exn)
       }

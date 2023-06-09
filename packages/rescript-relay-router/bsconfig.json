@@ -4,6 +4,7 @@
     "version": 4,
     "mode": "automatic"
   },
+  "uncurried": true,
   "version": "0.0.17",
   "sources": [
     {

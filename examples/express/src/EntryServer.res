@@ -62,7 +62,7 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
 
   // TODO: Fix the RelayEnv.makeServer types so the extra function here isn't needed.
   let environment = RelayEnv.makeServer(
-    ~onQuery=transformOutputStream->RelayRouter.PreloadInsertingStream.Node.onQuery,
+    ~onQuery=RelayRouter.PreloadInsertingStream.Node.onQuery(transformOutputStream, ...),
     ~preloadAsset,
   )
   let routerEnvironment = RelayRouter.RouterEnvironment.makeServerEnvironment(~initialUrl)

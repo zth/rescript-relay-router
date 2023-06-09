@@ -114,8 +114,8 @@ let runCallback = (cb: callback, timeout) => {
     )
     Some(() => cancelIdleCallback(id))
   } else {
-    let id = Js.Global.setTimeout(cb, 1)
-    Some(() => Js.Global.clearTimeout(id))
+    let id = setTimeout(cb, 1)
+    Some(() => clearTimeout(id))
   }
 }
 

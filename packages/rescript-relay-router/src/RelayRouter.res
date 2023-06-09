@@ -67,7 +67,7 @@ module Router = {
       routerEventListeners.contents->Belt.Array.forEach(cb => cb(event))
     }
 
-    let matchLocation = matchRoutes(routes)
+    let matchLocation = matchRoutes(routes, ...)
     let location = RelayRouter__History.getLocation(history)
     let initialQueryParams = QueryParams.parse(location.search)
     let initialMatches = matchLocation(location)->Belt.Option.getWithDefault([])
@@ -162,7 +162,7 @@ module Router = {
             ~location,
           )->Js.Promise.then_(
             assetsToPreload => {
-              assetsToPreload->Belt.Array.forEach(preloadAsset(~priority))
+              assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
               Js.Promise.resolve()
             },
             _,

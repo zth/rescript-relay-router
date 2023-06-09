@@ -1,0 +1,12 @@
+diff --git a/src/RescriptStdlib.res b/src/RescriptStdlib.res
+index 5f32a2c4e0d654279dc53cd5ce025dc670497efb..8e0d6f25f5e77544682a7fdc86cf3b375227e4db 100644
+--- a/src/RescriptStdlib.res
++++ b/src/RescriptStdlib.res
+@@ -56,7 +56,6 @@ external typeof: 'a => Stdlib__Type.t = "#typeof"
+ include Stdlib__Global
+ 
+ type t<'a> = Js.t<'a>
+-module Fn = Js.Fn
+ module MapperRt = Js.MapperRt
+ module Internal = Js.Internal
+ module Re = Stdlib__RegExp // needed for the %re sugar

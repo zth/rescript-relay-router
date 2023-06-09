@@ -35,7 +35,7 @@ let useRouterContext: unit => Types.routerContext
 
 module RouteRenderer: {
   @react.component @live
-  let make: (~renderPending: bool => React.element=?, unit) => React.element
+  let make: (~renderPending: bool => React.element=?) => React.element
 }
 
 @live

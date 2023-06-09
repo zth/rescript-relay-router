@@ -15,7 +15,7 @@ module Chokidar: {
     external onAdd: (t, @as(json`"add"`) _, string => unit) => t = "on"
 
     @send
-    external close: t => Js.Promise.t<unit> = "close"
+    external close: t => promise<unit> = "close"
   }
   @module("chokidar") @val
   external watcher: t = "default"

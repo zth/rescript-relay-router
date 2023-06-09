@@ -1,4 +1,4 @@
-@val external suspend: Js.Promise.t<'any> => unit = "throw"
+@val external suspend: promise<'any> => unit = "throw"
 
 exception Route_loading_failed(string)
 
@@ -28,7 +28,7 @@ module RouteRenderer = {
 
 // This holder makes it easy to suspend (throwing the promise) or synchronously
 // return the loaded thing once availabile.
-type suspenseEnabledHolder<'thing> = NotInitiated | Pending(Js.Promise.t<'thing>) | Loaded('thing)
+type suspenseEnabledHolder<'thing> = NotInitiated | Pending(promise<'thing>) | Loaded('thing)
 
 type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
 
@@ -47,17 +47,17 @@ type makePrepareProps = (
 ) => prepareProps
 
 let doLoadRouteRenderer = (
-  loadFn: unit => Js.Promise.t<RouteRenderer.t>,
+  loadFn: unit => promise<RouteRenderer.t>,
   ~routeName,
   ~loadedRouteRenderers,
 ) => {
   let promise = loadFn()
   loadedRouteRenderers->Belt.HashMap.String.set(routeName, Pending(promise))
 
-  promise->(Js.Promise.then_(routeRenderer => {
-      loadedRouteRenderers->Belt.HashMap.String.set(routeName, Loaded(routeRenderer))
-      Js.Promise.resolve()
-    }, _))
+  promise->Js.Promise.then_(routeRenderer => {
+    loadedRouteRenderers->Belt.HashMap.String.set(routeName, Loaded(routeRenderer))
+    Js.Promise.resolve()
+  }, _)
 }
 
 // This does a bunch of suspense/React gymnastics for kicking off code
@@ -82,20 +82,20 @@ let preloadCode = (
   }
 
   switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
-  | None | Some(NotInitiated) => loadRouteRenderer()->(Js.Promise.then_(() => {
-        switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
-        | Some(Loaded(routeRenderer)) => routeRenderer->apply->Js.Promise.resolve
-        | _ =>
-          raise(
-            Route_loading_failed(
-              "Invalid state after loading route renderer. Please report this error.",
-            ),
-          )
-        }
-      }, _))
-  | Some(Pending(promise)) => promise->(Js.Promise.then_(routeRenderer => {
-        routeRenderer->apply->Js.Promise.resolve
-      }, _))
+  | None | Some(NotInitiated) => loadRouteRenderer()->Js.Promise.then_(() => {
+      switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
+      | Some(Loaded(routeRenderer)) => routeRenderer->apply->Js.Promise.resolve
+      | _ =>
+        raise(
+          Route_loading_failed(
+            "Invalid state after loading route renderer. Please report this error.",
+          ),
+        )
+      }
+    }, _)
+  | Some(Pending(promise)) => promise->Js.Promise.then_(routeRenderer => {
+      routeRenderer->apply->Js.Promise.resolve
+    }, _)
   | Some(Loaded(routeRenderer)) =>
     Js.Promise.make((~resolve, ~reject as _) => {
       resolve(apply(routeRenderer))
@@ -122,7 +122,7 @@ type prepareAssets = {
     ) => string,
     ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
     ~routeName: string,
-    ~loadRouteRenderer: unit => Js.Promise.t<unit>,
+    ~loadRouteRenderer: unit => promise<unit>,
     ~intent: RelayRouter__Types.prepareIntent,
   ) => RelayRouter__Types.preparedRoute,
 }
@@ -286,22 +286,22 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
 
       switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
       | None | Some(NotInitiated) =>
-        let preparePromise = loadRouteRenderer()->(Js.Promise.then_(() => {
-            switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
-            | Some(Loaded(routeRenderer)) => doPrepare(routeRenderer)->Js.Promise.resolve
-            | _ =>
-              raise(
-                Route_loading_failed(
-                  "Route renderer not in loaded state even though it should be. This should be impossible, please report this error.",
-                ),
-              )
-            }
-          }, _))
+        let preparePromise = loadRouteRenderer()->Js.Promise.then_(() => {
+          switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
+          | Some(Loaded(routeRenderer)) => doPrepare(routeRenderer)->Js.Promise.resolve
+          | _ =>
+            raise(
+              Route_loading_failed(
+                "Route renderer not in loaded state even though it should be. This should be impossible, please report this error.",
+              ),
+            )
+          }
+        }, _)
         preparedRef.contents = Pending(preparePromise)
       | Some(Pending(promise)) =>
-        let preparePromise = promise->(Js.Promise.then_(routeRenderer => {
-            doPrepare(routeRenderer)->Js.Promise.resolve
-          }, _))
+        let preparePromise = promise->Js.Promise.then_(routeRenderer => {
+          doPrepare(routeRenderer)->Js.Promise.resolve
+        }, _)
         preparedRef.contents = Pending(preparePromise)
       | Some(Loaded(routeRenderer)) =>
         let _ = doPrepare(routeRenderer)

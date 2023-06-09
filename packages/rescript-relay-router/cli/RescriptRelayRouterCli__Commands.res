@@ -140,7 +140,7 @@ external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 ${routeNamesEntries
     ->Array.map(((routeName, _)) => {
       `
-@val external import__${routeName}: (@as(json\`"@rescriptModule/${routeName}_route_renderer"\`) _, unit) => Js.Promise.t<RouteRenderer.t> = "import"`
+@val external import__${routeName}: (@as(json\`"@rescriptModule/${routeName}_route_renderer"\`) _, unit) => promise<RouteRenderer.t> = "import"`
     })
     ->Array.joinWith("\n")}
 
@@ -166,7 +166,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
   Utils.pathInGeneratedFolder(
     ~config,
     ~fileName="RouteDeclarations.resi",
-  )->Fs.writeFileIfChanged(`let make: (~prepareDisposeTimeout: int=?, unit) => array<RelayRouter.Types.route>`)
+  )->Fs.writeFileIfChanged(`let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>`)
 
   if scaffoldAfter {
     scaffoldRouteRenderers(~deleteRemoved, ~config)

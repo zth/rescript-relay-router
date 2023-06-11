@@ -1,5 +1,15 @@
 # rescript-relay-router
 
+## 1.0.0
+
+### Major Changes
+
+- 20f90dd: Adapt to RescriptRelay v3
+
+### Patch Changes
+
+- 14afbd9: Get rid of trailing units.
+
 ## 0.2.0
 
 ### Minor Changes

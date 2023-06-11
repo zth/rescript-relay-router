@@ -41,12 +41,10 @@ let make = (~todo) => {
             ~variables={
               input: {
                 id: todo.id,
-                clientMutationId: None,
                 completed: !completed,
                 text: todo.text,
               },
             },
-            (),
           )
         }}>
         {React.string(completed ? "Uncomplete" : "Complete")}
@@ -61,8 +59,7 @@ let make = (~todo) => {
             ~onAfterParamsSet=_ => {
               startTransition(() => {
                 let _: RescriptRelay.Disposable.t = refetch(
-                  ~variables=TodoFragment.makeRefetchVariables(~showMore=Some(true), ()),
-                  (),
+                  ~variables=TodoFragment.makeRefetchVariables(~showMore=Some(true)),
                 )
               })
             },

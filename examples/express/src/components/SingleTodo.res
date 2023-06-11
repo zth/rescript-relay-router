@@ -13,7 +13,7 @@ let make = (~queryRef) => {
   let data = Query.usePreloaded(~queryRef)
 
   switch data.node {
-  | None => React.string("Oops, did not find todo!")
-  | Some(todo) => <SingleTodoDisplay todo=todo.fragmentRefs />
+  | Some(TodoItem({fragmentRefs})) => <SingleTodoDisplay todo=fragmentRefs />
+  | _ => React.string("Oops, did not find todo!")
   }
 }

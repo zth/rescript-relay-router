@@ -7,7 +7,6 @@ let renderer = Routes.Root.Todos.Single.Route.makeRenderer(
         id: todoId,
         showMore: showMore->Option.getWithDefault(false),
       },
-      (),
     )
   },
   ~render=({prepared}) => {

@@ -112,7 +112,6 @@ let subscribeToReplaySubject = (replaySubject, ~sink: RescriptRelay.Observable.s
       ~error=e => {
         sink.error(e)
       },
-      (),
     ),
   )
 
@@ -150,12 +149,11 @@ let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObserv
         // Subscribe and apply any precache data
         let subscription = replaySubject->subscribeToReplaySubject(~sink)
         // Subscribe with a new observer so we can clean up the replay subject after it finishes
-        let cleanupSubscription =
-          replaySubject->RelayReplaySubject.subscribe(
-            RescriptRelay.Observable.makeObserver(~complete=() => {
-              cleanupId(id)
-            }, ()),
-          )
+        let cleanupSubscription = replaySubject->RelayReplaySubject.subscribe(
+          RescriptRelay.Observable.makeObserver(~complete=() => {
+            cleanupId(id)
+          }),
+        )
 
         replaySubject->applyPreCacheData(~id)
         Some({
@@ -188,33 +186,32 @@ let makeServerFetchFunction = (
 
     // This subscription is fine to skip, because it'll be GC:ed on the server
     // as the environment is killed.
-    let _ =
-      observable->RescriptRelay.Observable.subscribe(
-        RescriptRelay.Observable.makeObserver(~next=payload => {
-          onQuery(
-            ~id=queryId,
-            ~response=Some(payload),
-            // TODO: This should also account for is_final, which is what Relay
-            // is actually using for checking whether chunks are final or not.
-            // The reason both exists is because isNext is what's proposed in
-            // the spec, so that's what most server implementations uses, but
-            // Relay is using is_final and haven't adapted to the spec yet
-            // because it's not quite finalized.
-            ~final=switch payload->Js.Json.decodeObject {
-            | Some(obj) =>
-              switch obj->Js.Dict.get("hasNext") {
-              | None => true
-              | Some(hasNext) =>
-                switch hasNext->Js.Json.decodeBoolean {
-                | Some(true) => false
-                | _ => true
-                }
-              }
+    let _ = observable->RescriptRelay.Observable.subscribe(
+      RescriptRelay.Observable.makeObserver(~next=payload => {
+        onQuery(
+          ~id=queryId,
+          ~response=Some(payload),
+          // TODO: This should also account for is_final, which is what Relay
+          // is actually using for checking whether chunks are final or not.
+          // The reason both exists is because isNext is what's proposed in
+          // the spec, so that's what most server implementations uses, but
+          // Relay is using is_final and haven't adapted to the spec yet
+          // because it's not quite finalized.
+          ~final=switch payload->Js.Json.decodeObject {
+          | Some(obj) =>
+            switch obj->Js.Dict.get("hasNext") {
             | None => true
-            }->Some,
-          )
-        }, ()),
-      )
+            | Some(hasNext) =>
+              switch hasNext->Js.Json.decodeBoolean {
+              | Some(true) => false
+              | _ => true
+              }
+            }
+          | None => true
+          }->Some,
+        )
+      }),
+    )
 
     observable
   }

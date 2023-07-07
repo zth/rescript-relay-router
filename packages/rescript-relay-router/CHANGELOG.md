@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.0.1
+
+### Patch Changes
+
+- fe2a3a7: Migrate from old hand-rolled stdlib to Core.
+
 ## 1.0.0
 
 ### Major Changes

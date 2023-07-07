@@ -29,7 +29,7 @@ module QueryParams = {
   let rec stringToQueryParam = str => {
     if str->String.startsWith("array<") {
       // Pull out the value of the array
-      let arrayValue = str->String.replaceString("array<", "")
+      let arrayValue = str->String.replace("array<", "")
       let arrayValue = arrayValue->String.slice(~start=0, ~end=String.length(arrayValue) - 1)
 
       switch stringToQueryParam(arrayValue) {
@@ -1030,8 +1030,8 @@ let emptyParentCtx = (~routesByName) => {
 }
 
 let readRouteStructure = (~config, ~getRouteFileContents): routeStructure => {
-  let routeFiles = Dict.empty()
-  let routesByName = Dict.empty()
+  let routeFiles = Dict.make()
+  let routesByName = Dict.make()
   let decodeErrors = []
 
   let {result, rawText} = "routes.json"->parseRouteFile(

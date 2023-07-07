@@ -12,7 +12,7 @@ let scaffoldRouteRenderers = (~deleteRemoved, ~config) => {
     {cwd: Utils.pathInRoutesFolder(~config)},
   )
 
-  let routeNamesWithRenderers = Dict.empty()
+  let routeNamesWithRenderers = Dict.make()
 
   existingRenderers->Array.forEach(rendererFileName => {
     routeNamesWithRenderers->Dict.set(Utils.fromRendererFileName(rendererFileName), true)
@@ -92,7 +92,7 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
       let routeName =
         fileName
         ->String.sliceToEnd(~start=String.length("Route__"))
-        ->String.replaceString("_route.res", "")
+        ->String.replace("_route.res", "")
 
       routeNamesDict->Dict.get(routeName)->Option.isNone
     | _ => false
@@ -235,8 +235,11 @@ let printRouteInfo = (~url, ~config) => {
 
     Console.log(
       str.contents ++
-      "\n" ++
-      strEnd.contents->String.split("\n")->Array.reverseInPlace->Array.joinWith("\n"),
+      "\n" ++ {
+        let contents = strEnd.contents->String.split("\n")
+        contents->Array.reverse
+        contents->Array.joinWith("\n")
+      },
     )
   }
 }

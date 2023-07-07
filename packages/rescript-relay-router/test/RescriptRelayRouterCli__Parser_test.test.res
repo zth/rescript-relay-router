@@ -6,7 +6,7 @@ module Bindings = RescriptRelayRouterCli__Bindings
 let makeMockParserCtx = (
   ~content,
   ~routeFileName="routes.json",
-  ~routeFiles=Dict.empty(),
+  ~routeFiles=Dict.make(),
 ): P.currentFileContext => {
   let lineLookup = Bindings.LinesAndColumns.make(content)
 
@@ -39,7 +39,7 @@ describe("Parsing", () => {
     }
 ]`
     let ctx = makeMockParserCtx(~content=mockContent)
-    let parentContext = P.emptyParentCtx(~routesByName=Dict.empty())
+    let parentContext = P.emptyParentCtx(~routesByName=Dict.make())
 
     let parsed =
       mockContent

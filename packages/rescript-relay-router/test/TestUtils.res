@@ -5,8 +5,8 @@ module U = RescriptRelayRouterCli__Utils
 
 let parseMockContent = mockContent => {
   let decodeErrors = []
-  let routeFiles = Dict.empty()
-  let routesByName = Dict.empty()
+  let routeFiles = Dict.make()
+  let routesByName = Dict.make()
 
   "routes.json"->P.parseRouteFile(
     ~config={

@@ -376,12 +376,12 @@ module CurrentContext: {
 }
 
 let start = (~mode, ~config: config) => {
-  let routeFilesCaches: Dict.t<string> = Dict.empty()
-  let routeRenderersCache: Dict.t<string> = Dict.empty()
+  let routeFilesCaches: Dict.t<string> = Dict.make()
+  let routeRenderersCache: Dict.t<string> = Dict.make()
 
   // Holds the module graph for ReScript modules
   let moduleDepsCache = {
-    cache: Dict.empty(),
+    cache: Dict.make(),
     compilerLastRebuilt: 0.,
   }
 
@@ -490,10 +490,9 @@ let start = (~mode, ~config: config) => {
     | Some({dependents}) =>
       dependents->Set.forEach(mName => {
         if isRouteRenderer(mName) {
-          let _: Set.t<_> =
-            foundRoutes->Set.add(
-              mName->String.slice(~start=0, ~end="_route_renderer"->String.length * -1),
-            )
+          foundRoutes->Set.add(
+            mName->String.slice(~start=0, ~end="_route_renderer"->String.length * -1),
+          )
         } else {
           findRoutesForFile(mName, ~moduleDepsCache, ~foundRoutes)
         }
@@ -730,11 +729,11 @@ let start = (~mode, ~config: config) => {
                                   "routes"
                                 } else {
                                   "route " ++
-                                  foundRoutes->Set.values->Array.fromIterator->Array.getUnsafe(0)
+                                  foundRoutes->Set.values->Iterator.toArray->Array.getUnsafe(0)
                                 }}`,
                               ~routes=foundRoutes
                               ->Set.values
-                              ->Array.fromIterator
+                              ->Iterator.toArray
                               ->Array.filterMap(routeName =>
                                 switch routeName->LspUtils.findRouteWithName(
                                   ~routeChildren=(
@@ -810,7 +809,7 @@ let start = (~mode, ~config: config) => {
                     let result =
                       foundRoutes
                       ->Set.values
-                      ->Array.fromIterator
+                      ->Iterator.toArray
                       ->Array.filterMap(routeName =>
                         switch routeName->LspUtils.findRouteWithName(
                           ~routeChildren=(ctx->CurrentContext.getCurrentRouteStructure).result,

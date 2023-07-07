@@ -137,8 +137,7 @@ let pathInRoutesFolder = (~config, ~fileName="") => Path.join([config.routesFold
 
 let pathInGeneratedFolder = (~config, ~fileName="") => Path.join([config.generatedPath, fileName])
 
-let fromRendererFileName = rendererName =>
-  rendererName->String.replaceString("_route_renderer.res", "")
+let fromRendererFileName = rendererName => rendererName->String.replace("_route_renderer.res", "")
 
 let toRendererFileName = rendererName => rendererName ++ "_route_renderer.res"
 
@@ -229,7 +228,7 @@ let readRouteStructure = (config): (
   }
 
   let printable = routeChildrenToPrintable(result)
-  let routeNames = Dict.empty()
+  let routeNames = Dict.make()
 
   let rec extractRoutes = (routes: array<printableRoute>) => {
     routes->Array.forEach(route => {
@@ -282,7 +281,12 @@ let rec printNestedRouteModules = (route: printableRoute, ~indentation): string 
     str->add(route->printNestedRouteModules(~indentation=indentation + 1))
   })
 
-  "\n" ++ str.contents ++ strEnd.contents->String.split("\n")->Array.reverse->Array.joinWith("\n")
+  "\n" ++
+  str.contents ++ {
+    let contents = strEnd.contents->String.split("\n")
+    contents->Array.reverse
+    contents->Array.joinWith("\n")
+  }
 }
 
 let queryParamToQueryParamDecoder = (param, ~key) => {

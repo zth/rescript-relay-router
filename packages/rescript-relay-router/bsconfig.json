@@ -33,11 +33,7 @@
     }
   ],
   "suffix": ".mjs",
-  "bs-dependencies": [
-    "@rescript/react",
-    "rescript-relay",
-    "@gabnor/rescript-stdlib"
-  ],
+  "bs-dependencies": ["@rescript/react", "rescript-relay", "@rescript/core"],
   "bs-dev-dependencies": ["rescript-vitest"],
-  "bsc-flags": ["-open RescriptStdlib"]
+  "bsc-flags": ["-open RescriptCore"]
 }

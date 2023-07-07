@@ -472,7 +472,7 @@ let documentLinks = (routeStructure: routeStructure, ~ctx: lspResolveContext): o
 }
 
 let diagnostics = (errors: array<decodeError>): array<(string, array<LspProtocol.diagnostic>)> => {
-  let diagnosticsPerFile = Dict.empty()
+  let diagnosticsPerFile = Dict.make()
 
   errors->Array.forEach(error => {
     let targetDiagnosticsArray = switch diagnosticsPerFile->Dict.get(error.routeFileName) {

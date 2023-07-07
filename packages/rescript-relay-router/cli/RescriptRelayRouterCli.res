@@ -9,7 +9,7 @@ module Commands = RescriptRelayRouterCli__Commands
 @val
 external argv: array<option<string>> = "process.argv"
 
-let args = argv->Array.sliceToEnd(~from=2)->Array.filterMap(arg => arg)
+let args = argv->Array.sliceToEnd(~start=2)->Array.filterMap(arg => arg)
 
 try {
   let _: Commands.cliResult = Commands.runCli(args)

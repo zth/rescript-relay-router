@@ -28,7 +28,7 @@ let readDeps = (~config: Utils.Config.t) => {
   open Bindings.ChildProcess.Spawn
 
   Promise.make((resolve, _) => {
-    let byModuleNames = Dict.empty()
+    let byModuleNames = Dict.make()
 
     let t = make(
       "find",
@@ -72,7 +72,7 @@ let readDeps = (~config: Utils.Config.t) => {
             | Some(existingEntry) =>
               dependsOnTheseModules->Array.forEach(
                 m => {
-                  let _: Set.t<_> = existingEntry.dependsOn->Set.add(m)
+                  existingEntry.dependsOn->Set.add(m)
                 },
               )
             }
@@ -86,8 +86,7 @@ let readDeps = (~config: Utils.Config.t) => {
                     m,
                     {dependents: [currentTargetModule]->Set.fromArray, dependsOn: Set.make()},
                   )
-                | Some(existingEntry) =>
-                  let _: Set.t<_> = existingEntry.dependents->Set.add(currentTargetModule)
+                | Some(existingEntry) => existingEntry.dependents->Set.add(currentTargetModule)
                 }
               },
             )

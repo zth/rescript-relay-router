@@ -25,8 +25,8 @@
     "@rescript/react",
     "rescript-relay",
     "rescript-relay-router",
-    "@gabnor/rescript-stdlib"
+    "@rescript/core"
   ],
-  "bsc-flags": ["-open RescriptStdlib"],
+  "bsc-flags": ["-open RescriptCore"],
   "pinned-dependencies": ["rescript-relay-router"]
 }

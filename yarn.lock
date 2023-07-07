@@ -524,20 +524,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gabnor/rescript-stdlib@npm:1.0.8":
-  version: 1.0.8
-  resolution: "@gabnor/rescript-stdlib@npm:1.0.8"
-  checksum: 43f4a9e3e5d18a89aee8b0286a3358c819bb5dd611bc09d89d1a5c24aad5edbb219fe08ba59f92fc85e14c52d235a4d878939f0ee9f0f63252ca3d30c6dced45
-  languageName: node
-  linkType: hard
-
-"@gabnor/rescript-stdlib@patch:@gabnor/rescript-stdlib@npm:1.0.8#.yarn/patches/@gabnor-rescript-stdlib-npm-1.0.8-da2b08ff40.patch::locator=rescript-relay-router-monorepo%40workspace%3A.":
-  version: 1.0.8
-  resolution: "@gabnor/rescript-stdlib@patch:@gabnor/rescript-stdlib@npm%3A1.0.8#.yarn/patches/@gabnor-rescript-stdlib-npm-1.0.8-da2b08ff40.patch::version=1.0.8&hash=2b861d&locator=rescript-relay-router-monorepo%40workspace%3A."
-  checksum: 2bb3624f12e0084cede21801767fd2f159a1132eff190f7eba7a737e875133076ca266f0ceafa8d0757cc9b4ff23b8eb6086189e625a6ebef1c7f90c52aa21f2
-  languageName: node
-  linkType: hard
-
 "@gar/promisify@npm:^1.1.3":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -664,8 +650,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rescript-relay-router-example/express@workspace:examples/express"
   dependencies:
-    "@gabnor/rescript-stdlib": 1.0.8
     "@remix-run/web-fetch": ^4.1.3
+    "@rescript/core": ^0.4.0
     "@rescript/react": 0.12.0-alpha.2
     "@vitejs/plugin-react-refresh": 1.3.3
     chalk: ^5.0.1
@@ -698,6 +684,15 @@ __metadata:
     vscode-jsonrpc: ^5.0.1
   languageName: unknown
   linkType: soft
+
+"@rescript/core@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@rescript/core@npm:0.4.0"
+  peerDependencies:
+    rescript: "*"
+  checksum: e7bc638bccd3b149034e0f29518eeab7c085c84739df1b6dd883aa71dc30484039b8e3ffb8a5dad8ad12c3706e20a80e27251a739f1a87c68f6a1758df0e27bb
+  languageName: node
+  linkType: hard
 
 "@rescript/react@npm:0.12.0-alpha.2":
   version: 0.12.0-alpha.2
@@ -5063,7 +5058,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rescript-relay-router@workspace:packages/rescript-relay-router"
   dependencies:
-    "@gabnor/rescript-stdlib": 1.0.8
+    "@rescript/core": ^0.4.0
     chalk: ^5.0.1
     chokidar: ^3.5.3
     cosmiconfig: ^7.0.1

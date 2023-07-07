@@ -55,7 +55,7 @@
     "vite-plugin-html": "3.2.0"
   },
   "dependencies": {
-    "@gabnor/rescript-stdlib": "1.0.8",
+    "@rescript/core": "^0.4.0",
     "history": "^5.2.0",
     "jsonc-parser": "^3.0.0",
     "node-fetch": "^3.2.0",

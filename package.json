@@ -24,7 +24,6 @@
     "@changesets/cli": "^2.23.1"
   },
   "resolutions": {
-    "rescript-vitest@0.3.0": "patch:rescript-vitest@npm:0.3.0#.yarn/patches/rescript-vitest-npm-0.3.0-c04ee2eea9.patch",
-    "@gabnor/rescript-stdlib@1.0.8": "patch:@gabnor/rescript-stdlib@npm:1.0.8#.yarn/patches/@gabnor-rescript-stdlib-npm-1.0.8-da2b08ff40.patch"
+    "rescript-vitest@0.3.0": "patch:rescript-vitest@npm:0.3.0#.yarn/patches/rescript-vitest-npm-0.3.0-c04ee2eea9.patch"
   }
 }

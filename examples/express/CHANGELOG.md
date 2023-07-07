@@ -1,5 +1,13 @@
 # @rescript-relay-router-example/express
 
+## 0.0.13
+
+### Patch Changes
+
+- fe2a3a7: Migrate from old hand-rolled stdlib to Core.
+- Updated dependencies [fe2a3a7]
+  - rescript-relay-router@1.0.1
+
 ## 0.0.12
 
 ### Patch Changes

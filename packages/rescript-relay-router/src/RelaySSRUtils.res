@@ -197,7 +197,7 @@ let makeServerFetchFunction = (
 
     // This subscription is fine to skip, because it'll be GC:ed on the server
     // as the environment is killed.
-    let _ = observable->Observable2.do(
+    let observable = observable->Observable2.do(
       RescriptRelay.Observable.makeObserver(~next=payload => {
         onQuery(
           ~id=queryId,

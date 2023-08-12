@@ -4,13 +4,17 @@ open RelayRouter__Internal__DeclarationsSupport
 external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
 
-@val external import__Root: (@as(json`"@rescriptModule/Root_route_renderer"`) _, unit) => promise<RouteRenderer.t> = "import"
+let import__Root: unit => promise<RouteRenderer.t> = () => 
+  Js.import(Root_route_renderer.renderer)->Obj.magic
 
-@val external import__Root__Todos: (@as(json`"@rescriptModule/Root__Todos_route_renderer"`) _, unit) => promise<RouteRenderer.t> = "import"
+let import__Root__Todos: unit => promise<RouteRenderer.t> = () => 
+  Js.import(Root__Todos_route_renderer.renderer)->Obj.magic
 
-@val external import__Root__Todos__ByStatus: (@as(json`"@rescriptModule/Root__Todos__ByStatus_route_renderer"`) _, unit) => promise<RouteRenderer.t> = "import"
+let import__Root__Todos__ByStatus: unit => promise<RouteRenderer.t> = () => 
+  Js.import(Root__Todos__ByStatus_route_renderer.renderer)->Obj.magic
 
-@val external import__Root__Todos__Single: (@as(json`"@rescriptModule/Root__Todos__Single_route_renderer"`) _, unit) => promise<RouteRenderer.t> = "import"
+let import__Root__Todos__Single: unit => promise<RouteRenderer.t> = () => 
+  Js.import(Root__Todos__Single_route_renderer.renderer)->Obj.magic
 
 let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.HashMap.String.make(
   ~hintSize=4,

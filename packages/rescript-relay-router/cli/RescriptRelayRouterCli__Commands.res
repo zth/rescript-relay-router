@@ -140,7 +140,8 @@ external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 ${routeNamesEntries
     ->Array.map(((routeName, _)) => {
       `
-@val external import__${routeName}: (@as(json\`"@rescriptModule/${routeName}_route_renderer"\`) _, unit) => promise<RouteRenderer.t> = "import"`
+let import__${routeName}: unit => promise<RouteRenderer.t> = () => 
+  Js.import(${routeName}_route_renderer.renderer)->Obj.magic`
     })
     ->Array.joinWith("\n")}
 

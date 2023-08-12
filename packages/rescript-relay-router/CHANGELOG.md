@@ -1,5 +1,12 @@
 # rescript-relay-router
 
+## 1.0.2
+
+### Patch Changes
+
+- aa53f8a: Use Vite 4.x
+- af032da: Use native dynamic import instead of Vite plugin hack"
+
 ## 1.0.1
 
 ### Patch Changes

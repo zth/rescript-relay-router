@@ -1,0 +1,1 @@
+let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>

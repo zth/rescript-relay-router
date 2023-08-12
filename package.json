@@ -22,5 +22,8 @@
   },
   "dependencies": {
     "@changesets/cli": "^2.23.1"
+  },
+  "resolutions": {
+    "@rescript/react@0.12.0-alpha.2": "patch:@rescript/react@npm:0.12.0-alpha.2#.yarn/patches/@rescript-react-npm-0.12.0-alpha.2-7eac267200.patch"
   }
 }

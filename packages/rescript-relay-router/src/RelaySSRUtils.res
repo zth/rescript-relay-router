@@ -63,8 +63,19 @@ external setStreamCompleteFn: (window, unit => unit) => unit = "__STREAM_COMPLET
 @module("react-dom/client")
 external hydrateRoot: (Dom.node, React.element) => unit = "hydrateRoot"
 
+module Observable2 = {
+  /**The type representing the observable.*/
+  include /* type t<'response> = RescriptRelay.Observable.t<'response>; */
+
+  RescriptRelay.Observable
+
+  @send
+  external do: (t<'t>, observer<'t>) => RescriptRelay.Observable.t<Js.Json.t> = "do"
+}
+
 let bootOnClient = (~render) => {
   let boot = () => {
+    Js.log("Booting")
     window
     ->unsafe_initialRelayData
     ->Belt.Option.getWithDefault([])
@@ -186,14 +197,14 @@ let makeServerFetchFunction = (
 
     // This subscription is fine to skip, because it'll be GC:ed on the server
     // as the environment is killed.
-    let _ = observable->RescriptRelay.Observable.subscribe(
+    let _ = observable->Observable2.do(
       RescriptRelay.Observable.makeObserver(~next=payload => {
         onQuery(
           ~id=queryId,
           ~response=Some(payload),
           // TODO: This should also account for is_final, which is what Relay
           // is actually using for checking whether chunks are final or not.
-          // The reason both exists is because isNext is what's proposed in
+          // The reason both exists is because hasNext is what's proposed in
           // the spec, so that's what most server implementations uses, but
           // Relay is using is_final and haven't adapted to the spec yet
           // because it's not quite finalized.

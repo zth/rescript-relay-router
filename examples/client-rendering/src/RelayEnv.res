@@ -18,5 +18,3 @@ let makeEnvironmentWithNetwork = (~network, ~missingFieldHandlers=?) =>
   )
 
 let environment = makeEnvironmentWithNetwork(~network)
-
-

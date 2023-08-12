@@ -63,7 +63,11 @@ external setStreamCompleteFn: (window, unit => unit) => unit = "__STREAM_COMPLET
 @module("react-dom/client")
 external hydrateRoot: (Dom.node, React.element) => unit = "hydrateRoot"
 
-@send external observableDo: (RescriptRelay.Observable.t<'t>, RescriptRelay.Observable.observer<'t>) => RescriptRelay.Observable.t<Js.Json.t> = "do"
+@send
+external observableDo: (
+  RescriptRelay.Observable.t<'t>,
+  RescriptRelay.Observable.observer<'t>,
+) => RescriptRelay.Observable.t<Js.Json.t> = "do"
 
 let bootOnClient = (~render) => {
   let boot = () => {

@@ -1,0 +1,13 @@
+diff --git a/src/RescriptReactErrorBoundary.res b/src/RescriptReactErrorBoundary.res
+index 7f7019ce429e6b0b12ccdd211779a2a0a67008f9..8dd7da1e2184d66595eebb5bbf383675753077ab 100644
+--- a/src/RescriptReactErrorBoundary.res
++++ b/src/RescriptReactErrorBoundary.res
+@@ -11,7 +11,7 @@ type params<'error> = {
+ }
+ 
+ %%raw(`
+-var React = require("react");
++import React from "react";
+ 
+ var ErrorBoundary = (function (Component) {
+   function ErrorBoundary(props) {

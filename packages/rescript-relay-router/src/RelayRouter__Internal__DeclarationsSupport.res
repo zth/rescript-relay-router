@@ -17,13 +17,11 @@ external unsafe_createRenderProps: (
 ) => renderProps = "Object.assign"
 
 module RouteRenderer = {
-  type routeRenderer = {
+  type t = {
     prepareCode: option<prepareProps => array<RelayRouter__Types.preloadAsset>>,
     prepare: prepareProps => prepared,
     render: renderProps => React.element,
   }
-
-  type t = {renderer: routeRenderer}
 }
 
 // This holder makes it easy to suspend (throwing the promise) or synchronously
@@ -75,7 +73,7 @@ let preloadCode = (
   let apply = (routeRenderer: RouteRenderer.t) => {
     let preparedProps = makePrepareProps(~environment, ~pathParams, ~queryParams, ~location)
 
-    switch routeRenderer.renderer.prepareCode {
+    switch routeRenderer.prepareCode {
     | Some(prepareCode) => prepareCode(preparedProps)
     | None => []
     }
@@ -272,13 +270,13 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
       let preparedRef: ref<suspenseEnabledHolder<prepared>> = ref(NotInitiated)
 
       let doPrepare = (routeRenderer: RouteRenderer.t) => {
-        switch routeRenderer.renderer.prepareCode {
+        switch routeRenderer.prepareCode {
         | Some(prepareCode) =>
           let _ = prepareCode(preparedProps)
         | None => ()
         }
 
-        let prepared = routeRenderer.renderer.prepare(preparedProps)
+        let prepared = routeRenderer.prepare(preparedProps)
         preparedRef.contents = Loaded(prepared)
 
         prepared
@@ -344,7 +342,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
           suspend(promise)
           React.null
         | (Some(Loaded(routeRenderer)), Loaded(prepared)) =>
-          routeRenderer.renderer.render(
+          routeRenderer.render(
             unsafe_createRenderProps(
               {"prepared": prepared},
               {"childRoutes": childRoutes},

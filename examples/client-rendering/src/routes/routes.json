@@ -1,0 +1,11 @@
+[
+  {
+    "path": "/",
+    "name": "Root",
+    "children": [
+      {
+        "include": "todoRoutes.json"
+      }
+    ]
+  }
+]

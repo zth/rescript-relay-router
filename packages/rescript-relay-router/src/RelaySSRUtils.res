@@ -63,6 +63,8 @@ external setStreamCompleteFn: (window, unit => unit) => unit = "__STREAM_COMPLET
 @module("react-dom/client")
 external hydrateRoot: (Dom.node, React.element) => unit = "hydrateRoot"
 
+@send external observableDo: (RescriptRelay.Observable.t<'t>, RescriptRelay.Observable.observer<'t>) => RescriptRelay.Observable.t<Js.Json.t> = "do"
+
 let bootOnClient = (~render) => {
   let boot = () => {
     window
@@ -186,7 +188,7 @@ let makeServerFetchFunction = (
 
     // This subscription is fine to skip, because it'll be GC:ed on the server
     // as the environment is killed.
-    let _ = observable->RescriptRelay.Observable.subscribe(
+    let observable = observable->observableDo(
       RescriptRelay.Observable.makeObserver(~next=payload => {
         onQuery(
           ~id=queryId,

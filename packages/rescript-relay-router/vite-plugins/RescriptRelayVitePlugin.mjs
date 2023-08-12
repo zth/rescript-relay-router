@@ -177,16 +177,6 @@ export let rescriptRelayVitePlugin = ({
         watcher.close();
       }
     },
-    async resolveId(id) {
-      if (id != null && id.startsWith("@rescriptModule/")) {
-        let moduleName = id.split("@rescriptModule/")[1];
-        let loc = await findGeneratedModule(moduleName);
-
-        if (loc != null) {
-          return { id: loc };
-        }
-      }
-    },
     // Transforms the magic object property's value `__$rescriptChunkName__` from `ModuleName` (without extension)
     // into the actual path for the compiled asset.
     async transform(code, id) {

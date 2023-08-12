@@ -34,6 +34,5 @@
   ],
   "suffix": ".mjs",
   "bs-dependencies": ["@rescript/react", "rescript-relay", "@rescript/core"],
-  "bs-dev-dependencies": ["rescript-vitest"],
   "bsc-flags": ["-open RescriptCore"]
 }

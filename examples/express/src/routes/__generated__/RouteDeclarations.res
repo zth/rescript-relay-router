@@ -3,19 +3,6 @@ open RelayRouter__Internal__DeclarationsSupport
 
 external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
-
-let import__Root: unit => promise<RouteRenderer.t> = () => 
-  Js.import(Root_route_renderer.renderer)->Obj.magic
-
-let import__Root__Todos: unit => promise<RouteRenderer.t> = () => 
-  Js.import(Root__Todos_route_renderer.renderer)->Obj.magic
-
-let import__Root__Todos__ByStatus: unit => promise<RouteRenderer.t> = () => 
-  Js.import(Root__Todos__ByStatus_route_renderer.renderer)->Obj.magic
-
-let import__Root__Todos__Single: unit => promise<RouteRenderer.t> = () => 
-  Js.import(Root__Todos__Single_route_renderer.renderer)->Obj.magic
-
 let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.HashMap.String.make(
   ~hintSize=4,
 )
@@ -26,7 +13,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
   [
       {
     let routeName = "Root"
-    let loadRouteRenderer = () => import__Root->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+    let loadRouteRenderer = () => Js.import(Root_route_renderer.renderer)->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
     let makePrepareProps = (. 
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: Js.Dict.t<string>,
@@ -95,7 +82,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       ),
       children: [    {
         let routeName = "Root__Todos"
-        let loadRouteRenderer = () => import__Root__Todos->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+        let loadRouteRenderer = () => Js.import(Root__Todos_route_renderer.renderer)->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
         let makePrepareProps = (. 
         ~environment: RescriptRelay.Environment.t,
         ~pathParams: Js.Dict.t<string>,
@@ -163,7 +150,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           ),
           children: [      {
               let routeName = "Root__Todos__ByStatus"
-              let loadRouteRenderer = () => import__Root__Todos__ByStatus->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+              let loadRouteRenderer = () => Js.import(Root__Todos__ByStatus_route_renderer.renderer)->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
               let makePrepareProps = (. 
               ~environment: RescriptRelay.Environment.t,
               ~pathParams: Js.Dict.t<string>,
@@ -233,7 +220,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             },
             {
               let routeName = "Root__Todos__Single"
-              let loadRouteRenderer = () => import__Root__Todos__Single->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+              let loadRouteRenderer = () => Js.import(Root__Todos__Single_route_renderer.renderer)->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
               let makePrepareProps = (. 
               ~environment: RescriptRelay.Environment.t,
               ~pathParams: Js.Dict.t<string>,

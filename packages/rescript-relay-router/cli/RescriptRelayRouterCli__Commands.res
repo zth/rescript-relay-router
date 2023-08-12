@@ -137,14 +137,6 @@ open RelayRouter__Internal__DeclarationsSupport
 
 external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
-${routeNamesEntries
-    ->Array.map(((routeName, _)) => {
-      `
-let import__${routeName}: unit => promise<RouteRenderer.t> = () => 
-  Js.import(${routeName}_route_renderer.renderer)->Obj.magic`
-    })
-    ->Array.joinWith("\n")}
-
 let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.HashMap.String.make(
   ~hintSize=${routeNamesEntries->Array.length->Int.toString},
 )

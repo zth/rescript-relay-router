@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.0.3
+
+### Patch Changes
+
+- 26d29f8: Fix the type of the generated loadFn in loadRouteRenderer
+
 ## 1.0.2
 
 ### Patch Changes

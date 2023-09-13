@@ -520,7 +520,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
 
   let str = `{
   let routeName = "${routeName}"
-  let loadRouteRenderer = () => Js.import(${routeName}_route_renderer.renderer)->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+  let loadRouteRenderer = () => (() => Js.import(${routeName}_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
   let makePrepareProps = ${route->getMakePrepareProps(~returnMode=ForInlinedRouteFn)}
 
   {

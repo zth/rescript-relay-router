@@ -2,33 +2,39 @@
 
 exception Route_loading_failed(string)
 
-type prepareProps
-type prepared
-type renderProps
+type prepareProps<'params> = {
+  environment: RescriptRelay.Environment.t,
+  location: RelayRouter.History.location,
+  params: 'params,
+}
 
-//  This works because the render props for a route is always the prepared props
-//  + prepared + childRoutes. If that changes, this will also need to change
-//  accordingly.
-@val
-external unsafe_createRenderProps: (
-  {"prepared": prepared},
-  {"childRoutes": React.element},
-  prepareProps,
-) => renderProps = "Object.assign"
+type renderProps<'params, 'prepared> = {
+  childRoutes: React.element,
+  prepared: 'prepared,
+  environment: RescriptRelay.Environment.t,
+  location: RelayRouter.History.location,
+  params: 'params,
+}
 
 module RouteRenderer = {
-  type t = {
-    prepareCode: option<prepareProps => array<RelayRouter__Types.preloadAsset>>,
-    prepare: prepareProps => prepared,
-    render: renderProps => React.element,
+  type t<'params, 'prepared> = {
+    prepare: prepareProps<'params> => 'prepared,
+    prepareCode?: prepareProps<'params> => array<RelayRouter.Types.preloadAsset>,
+    render: renderProps<'params, 'prepared> => React.element,
   }
 }
+
+@unboxed type rec routeRenderer = RouteRenderer(RouteRenderer.t<'params, 'prepared>): routeRenderer
+
+type opaquePrepareProps
+
+external unsafe_toPrepareProps: prepareProps<'a> => prepareProps<'b> = "%identity"
 
 // This holder makes it easy to suspend (throwing the promise) or synchronously
 // return the loaded thing once availabile.
 type suspenseEnabledHolder<'thing> = NotInitiated | Pending(promise<'thing>) | Loaded('thing)
 
-type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
+type loadedRouteRenderer = suspenseEnabledHolder<routeRenderer>
 
 // This holds meta data for a route that has been prepared.
 type preparedContainer = {
@@ -37,19 +43,19 @@ type preparedContainer = {
   mutable timeout: option<Js.Global.timeoutId>,
 }
 
-type makePrepareProps = (
+type makePrepareProps<'params> = (
   ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter__History.location,
-) => prepareProps
+) => prepareProps<'params>
 
 let doLoadRouteRenderer = (
-  loadFn: unit => promise<RouteRenderer.t>,
+  loadFn: unit => promise<RouteRenderer.t<'params, 'prepared>>,
   ~routeName,
-  ~loadedRouteRenderers,
+  ~loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer>,
 ) => {
-  let promise = loadFn()
+  let promise = loadFn()->Promise.thenResolve(p => RouteRenderer(p))
   loadedRouteRenderers->Belt.HashMap.String.set(routeName, Pending(promise))
 
   promise->(Js.Promise.then_(routeRenderer => {
@@ -58,10 +64,13 @@ let doLoadRouteRenderer = (
     }, _))
 }
 
+external opaqueRouteRenderer: RouteRenderer.t<'a, 'b> => RouteRenderer.t<'c, 'd> = "%identity"
+let unwrapRouteRenderer = (RouteRenderer(routeRenderer)) => opaqueRouteRenderer(routeRenderer)
+
 // This does a bunch of suspense/React gymnastics for kicking off code
 // preloading for a matched route..
 let preloadCode = (
-  ~loadedRouteRenderers,
+  ~loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer>,
   ~routeName,
   ~loadRouteRenderer,
   ~makePrepareProps,
@@ -70,10 +79,10 @@ let preloadCode = (
   ~queryParams,
   ~location,
 ) => {
-  let apply = (routeRenderer: RouteRenderer.t) => {
+  let apply = (routeRenderer: routeRenderer) => {
     let preparedProps = makePrepareProps(~environment, ~pathParams, ~queryParams, ~location)
 
-    switch routeRenderer.prepareCode {
+    switch unwrapRouteRenderer(routeRenderer).prepareCode {
     | Some(prepareCode) => prepareCode(preparedProps)
     | None => []
     }
@@ -101,7 +110,7 @@ let preloadCode = (
   }
 }
 
-type prepareAssets = {
+type prepareAssets<'params> = {
   getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
   prepareRoute: (
     ~environment: RescriptRelay.Environment.t,
@@ -113,7 +122,7 @@ type prepareAssets = {
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter__History.location,
-    ) => prepareProps,
+    ) => prepareProps<'params>,
     ~makeRouteKey: (
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
@@ -126,7 +135,10 @@ type prepareAssets = {
 }
 
 // Creates the assets needed for preparing routes.
-let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepareAssets => {
+let makePrepareAssets = (
+  ~loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer>,
+  ~prepareDisposeTimeout,
+): prepareAssets<'params> => {
   let preparedMap: Belt.HashMap.String.t<preparedContainer> = Belt.HashMap.String.make(~hintSize=3)
 
   let getPrepared = (~routeKey) => preparedMap->Belt.HashMap.String.get(routeKey)
@@ -226,7 +238,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter__History.location,
-    ) => prepareProps,
+    ) => prepareProps<'params>,
     ~makeRouteKey: (
       ~pathParams: Js.Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
@@ -267,9 +279,10 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     | (Some(_), Render)
     | // Same goes if we had no previous prepare, do a fresh instantiation.
     (None, _) =>
-      let preparedRef: ref<suspenseEnabledHolder<prepared>> = ref(NotInitiated)
+      let preparedRef: ref<suspenseEnabledHolder<'prepared>> = ref(NotInitiated)
 
-      let doPrepare = (routeRenderer: RouteRenderer.t) => {
+      let doPrepare = routeRenderer => {
+        let routeRenderer = unwrapRouteRenderer(routeRenderer)
         switch routeRenderer.prepareCode {
         | Some(prepareCode) =>
           let _ = prepareCode(preparedProps)
@@ -342,13 +355,14 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
           suspend(promise)
           React.null
         | (Some(Loaded(routeRenderer)), Loaded(prepared)) =>
-          routeRenderer.render(
-            unsafe_createRenderProps(
-              {"prepared": prepared},
-              {"childRoutes": childRoutes},
-              preparedProps,
-            ),
-          )
+          let routeRenderer = unwrapRouteRenderer(routeRenderer)
+          routeRenderer.render({
+            childRoutes,
+            prepared,
+            environment: preparedProps.environment,
+            location: preparedProps.location,
+            params: preparedProps.params,
+          })
         | _ =>
           Js.log("Warning: Invalid state")
           React.null

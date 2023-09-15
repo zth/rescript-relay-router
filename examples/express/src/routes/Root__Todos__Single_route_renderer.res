@@ -1,5 +1,5 @@
-let renderer = Routes.Root.Todos.Single.Route.makeRenderer(
-  ~prepare=({environment, showMore, todoId}) => {
+let renderer: Routes.Root.Todos.Single.Route.routeRenderer<'prepared> = {
+  prepare: ({environment, params: {showMore, todoId}}) => {
     SingleTodoQuery_graphql.load(
       ~environment,
       ~fetchPolicy=StoreOrNetwork,
@@ -9,7 +9,7 @@ let renderer = Routes.Root.Todos.Single.Route.makeRenderer(
       },
     )
   },
-  ~render=({prepared}) => {
+  render: ({prepared}) => {
     <SingleTodo queryRef=prepared />
   },
-)
+}

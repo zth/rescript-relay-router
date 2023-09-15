@@ -44,15 +44,14 @@ let scaffoldRouteRenderers = (~deleteRemoved, ~config) => {
 
       Fs.writeFileIfChanged(
         Utils.pathInRoutesFolder(~config, ~fileName=Utils.toRendererFileName(routeName)),
-        `let renderer = Routes.${route.name->Types.RouteName.getFullRouteAccessPath}.makeRenderer(
-  ~prepare=props => {
+        `let renderer: Routes.${route.name->Types.RouteName.getFullRouteAccessPath}.routeRenderer<'prepared> = {
+  prepare: props => {
     ()
   },
-  ~render=props => {
+  render: props => {
     React.null
   },
-  (),
-)`,
+}`,
       )
 
       Console.log("Added \"" ++ Utils.toRendererFileName(routeName) ++ "\"")
@@ -134,8 +133,6 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
   // Write the full route declarations file
   let fileContents = `
 open RelayRouter__Internal__DeclarationsSupport
-
-external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
 let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.HashMap.String.make(
   ~hintSize=${routeNamesEntries->Array.length->Int.toString},

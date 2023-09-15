@@ -1,8 +1,8 @@
-let renderer = Route__Root__Todos_route.makeRenderer(
-  ~prepare=({environment}) => {
+let renderer: Routes.Root.Todos.Route.routeRenderer<'prepared> = {
+  prepare: ({environment}) => {
     TodosListQuery_graphql.load(~environment, ~fetchPolicy=StoreOrNetwork, ~variables=())
   },
-  ~render=({prepared, childRoutes}) => {
+  render: ({prepared, childRoutes}) => {
     <TodosList queryRef=prepared> {childRoutes} </TodosList>
   },
-)
+}

@@ -4,7 +4,7 @@ module Query = %relay(`
   }
 `)
 
-@react.component @relay.deferredComponent
+@react.component
 let make = (~queryRef, ~children) => {
   let data = Query.usePreloaded(~queryRef)
 

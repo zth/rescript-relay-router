@@ -37,10 +37,10 @@
   },
   "bin": "cli/RescriptRelayRouterCli.mjs",
   "peerDependencies": {
-    "@rescript/react": "0.12.0-alpha.2",
+    "@rescript/react": ">=0.12.0-alpha.2",
     "react": ">=18.2.0",
-    "rescript-relay": "3.0.0-alpha.1",
-    "vite": "^4.4.9"
+    "rescript-relay": ">=3.0.0-alpha.1",
+    "vite": ">=4.4.9"
   },
   "dependencies": {
     "@rescript/core": "^0.5.0",

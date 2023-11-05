@@ -5741,10 +5741,10 @@ __metadata:
     vitest: ^0.21.1
     vscode-jsonrpc: ^5.0.1
   peerDependencies:
-    "@rescript/react": 0.12.0-alpha.2
+    "@rescript/react": ">=0.12.0-alpha.2"
     react: ">=18.2.0"
-    rescript-relay: 3.0.0-alpha.1
-    vite: ^4.4.9
+    rescript-relay: ">=3.0.0-alpha.1"
+    vite: ">=4.4.9"
   bin:
     rescript-relay-router: cli/RescriptRelayRouterCli.mjs
   languageName: unknown

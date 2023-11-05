@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.0.4
+
+### Patch Changes
+
+- cd28874: Fix peer dependencies.
+
 ## 1.0.3
 
 ### Patch Changes

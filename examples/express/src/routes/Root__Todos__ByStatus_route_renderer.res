@@ -1,8 +1,8 @@
-let renderer = Routes.Root.Todos.ByStatus.Route.makeRenderer(
-  ~prepare=_props => {
+let renderer: Routes.Root.Todos.ByStatus.Route.routeRenderer<'prepared> = {
+  prepare: _props => {
     ()
   },
-  ~render=_props => {
+  render: _props => {
     React.null
   },
-)
+}

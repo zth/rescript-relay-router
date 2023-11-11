@@ -328,8 +328,7 @@ let getRouteParamRecordFields = (route: printableRoute) => {
     ))
   })
 
-  let recordFields =
-    standardRecordFields->Array.concatMany([pathParamsRecordFields, queryParamsRecordFields])
+  let recordFields = Array.concat(pathParamsRecordFields, queryParamsRecordFields)
 
   {
     pathParamsRecordFields,
@@ -349,12 +348,17 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   let hasQueryParams = route.queryParams->Dict.keysToArray->Array.length > 0
   let params = route.params
 
-  let str = ref(`(. 
+  let str = ref(
+    `(. 
   ~environment: RescriptRelay.Environment.t,
   ~pathParams: Js.Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter.History.location,
-): prepareProps => {\n`)
+)${switch returnMode {
+      | ForInlinedRouteFn => ""
+      | ForDedicatedRouteFile => ": prepareProps"
+      }}  => {\n`,
+  )
 
   let propsToIgnore = [
     params->Array.length === 0 ? Some("pathParams") : None,
@@ -378,8 +382,8 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   str.contents =
     str.contents ++ "  {
     environment: environment,\n
-    location: location,\n"
-
+    location: location,\n
+    params: {\n"
   params->Array.forEach(param => {
     str.contents =
       str.contents ++
@@ -407,7 +411,7 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
     })
   }
 
-  str.contents = str.contents ++ "  }\n"
+  str.contents = str.contents ++ "  }\n}\n"
 
   if returnMode == ForInlinedRouteFn {
     str.contents = str.contents ++ `  prepareProps->unsafe_toPrepareProps\n`
@@ -455,7 +459,7 @@ ${queryParamsRecordFields
 }
 
 let getPrepareTypeDefinitions = (route: printableRoute) => {
-  let str = ref(`  @live\n  type prepareProps = {\n`)
+  let str = ref(`  @live\n  type params = {\n`)
 
   let {allRecordFields: recordFields} = getRouteParamRecordFields(route)
 
@@ -466,23 +470,7 @@ let getPrepareTypeDefinitions = (route: printableRoute) => {
   str.contents = str.contents ++ "  }\n\n"
 
   str.contents =
-    str.contents ++ `  @live\n  type renderProps<'prepared> = {
-    childRoutes: React.element,
-    prepared: 'prepared,\n`
-
-  recordFields->Array.forEach(((key, typ)) => {
-    str.contents = str.contents ++ `    ${key}: ${typ},\n`
-  })
-
-  str.contents = str.contents ++ "  }\n\n"
-
-  str.contents =
-    str.contents ++ `  @live\n  type renderers<'prepared> = {
-    prepare: prepareProps => 'prepared,
-    prepareCode: option<(. prepareProps) => array<RelayRouter.Types.preloadAsset>>,
-    render: renderProps<'prepared> => React.element,
-  }
-`
+    str.contents ++ "  @live\n  type prepareProps = RelayRouter__Internal__DeclarationsSupport.prepareProps<params>\n\n"
 
   str.contents =
     str.contents ++
@@ -501,12 +489,7 @@ let getPrepareAssets = () => {
   let str = ref("")
 
   str.contents =
-    str.contents ++ `@obj
-external makeRenderer: (
-  ~prepare: Internal.prepareProps => 'prepared,
-  ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
-  ~render: Internal.renderProps<'prepared> => React.element,
-) => Internal.renderers<'prepared> = ""`
+    str.contents ++ "  type routeRenderer<'prepared> = RelayRouter__Internal__DeclarationsSupport.RouteRenderer.t<Internal.params, 'prepared>\n"
 
   str.contents
 }
@@ -520,7 +503,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
 
   let str = `{
   let routeName = "${routeName}"
-  let loadRouteRenderer = () => (() => Js.import(${routeName}_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+  let loadRouteRenderer = () => (() => Js.import(${routeName}_route_renderer.renderer))->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
   let makePrepareProps = ${route->getMakePrepareProps(~returnMode=ForInlinedRouteFn)}
 
   {

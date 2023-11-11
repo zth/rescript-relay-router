@@ -1,8 +1,8 @@
-let renderer = Route__Root_route.makeRenderer(
-  ~prepare=({environment}) => {
+let renderer: Routes.Root.Route.routeRenderer<'prepared> = {
+  prepare: ({environment}) => {
     LayoutQuery_graphql.load(~environment, ~variables=(), ~fetchPolicy=StoreOrNetwork)
   },
-  ~render=props => {
+  render: props => {
     <Layout queryRef=props.prepared> {props.childRoutes} </Layout>
   },
-)
+}

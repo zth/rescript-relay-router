@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.1.0
+
+### Minor Changes
+
+- 94cf864: Expose any child route params to parent routes.
+
 ## 1.0.4
 
 ### Patch Changes

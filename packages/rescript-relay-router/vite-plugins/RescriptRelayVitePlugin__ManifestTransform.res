@@ -64,7 +64,7 @@ let loadViteManifest = path => {
 }
 
 let writeRouterManifest = (path, manifest: RelayRouter.Manifest.t) => {
-  manifest->RelayRouter.Manifest.stringifyWithSpace(_, 2)->writeFileSync(path, _, "utf-8")
+  manifest->RelayRouter.Manifest.stringifyWithSpace(_, 2)->(writeFileSync(path, _, "utf-8"))
 }
 
 let transformManifest = (inPath, outPath) => {

@@ -218,6 +218,7 @@ Now, let's look at what props each part of the route renderer receives:
 - `location` - the full location object, including pathname/search/hash etc.
 - Any path params. For a path like `/some/route/:thing/:otherThing`, `prepare` would receive: `thing: string, otherThing: string`.
 - Any query params. For a path like `/some/route/:thing?someParam=bool&anotherParam=array<string>`, `prepare` would receive `someParam: option<bool>, anotherParam: option<array<string>>`. More on query params later.
+- `childParams?` - _If_ the route's child routes has path params, they'll be available here.
 
 `prepareCode` will receive the same props as `prepare` above.
 
@@ -226,9 +227,13 @@ Now, let's look at what props each part of the route renderer receives:
 - `childRoutes: React.element` - if there are rendered child routes, its rendered content will be here.
 - `prepared` - whatever it is that `prepare` returns above.
 
-### Child routes and `RelayRouterUtils.childRouteHasContent`
+### Child routes + `RelayRouterUtils.childRouteHasContent`
 
-As you can see, any child route content is passed along as a prop `childRoutes`. Sometimes it's useful to know whether that child route content is actually rendered or not. For example, maybe you want to control whether a slideover or modal shows based on whether there's actual content to show in it. For that purpose, there's a helper called `RelayRouterUtils.childRouteHasContent`. Here's an example of using it:
+As you can see, both child route params and content is passed along to your parent route.
+
+The child route _content_ (that you render to show the actual route contents) is passed along as a prop `childRoutes`. The child route _params_ (any path params for child routes) are passed along as `childParams`, if there are any child params. This means that `childParams` will only exist if there are actual child params.
+
+Sometimes it's useful to know whether that child route content is actually rendered or not. For example, maybe you want to control whether a slideover or modal shows based on whether there's actual content to show in it. For that purpose, there's a helper called `RelayRouterUtils.childRouteHasContent`. Here's an example of using it:
 
 ```rescript
 <SlideOver open_={RelayRouterUtils.childRouteHasContent(childRoutes)} title=None>

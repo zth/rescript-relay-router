@@ -31,7 +31,7 @@ module Config: {
         {
           generatedPath: config
           ->Dict.get("generatedPath")
-          ->Option.getWithDefault(Path.join([routesFolderPath, "__generated__"]))
+          ->Option.getOr(Path.join([routesFolderPath, "__generated__"]))
           ->resolveFullPath,
           routesFolderPath,
           // TODO: This won't work for monorepo setups etc where the ReScript
@@ -196,7 +196,7 @@ and parsedToPrintable = (routeEntry: routeEntry): printableRoute => {
       PrintablePathParamWithMatchBranches(text, matchBranches)
     }
   ),
-  children: routeEntry.children->Option.getWithDefault([])->routeChildrenToPrintable,
+  children: routeEntry.children->Option.getOr([])->routeChildrenToPrintable,
   queryParams: routeEntry.queryParams
   ->Array.map(({name, queryParam: (_loc, queryParam)}) => (name.text, queryParam))
   ->Dict.fromArray,

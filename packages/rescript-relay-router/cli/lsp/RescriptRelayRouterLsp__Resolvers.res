@@ -139,7 +139,7 @@ module AstIterator = {
             }),
           )
         | (false, false) =>
-          switch routeEntry.children->Option.getWithDefault([])->findPosInRouteChildren(~ctx) {
+          switch routeEntry.children->Option.getOr([])->findPosInRouteChildren(~ctx) {
           | None =>
             setFoundContext(
               RouteEntry({
@@ -333,7 +333,7 @@ let codeLens = (routeStructure: routeStructure, ~ctx: lspResolveContext): option
         ),
       )
 
-      routeEntry.children->Option.getWithDefault([])->traverseRouteChildren(~ctx)
+      routeEntry.children->Option.getOr([])->traverseRouteChildren(~ctx)
     | _ => ()
     }
   }
@@ -439,7 +439,7 @@ let documentLinks = (routeStructure: routeStructure, ~ctx: lspResolveContext): o
         ~tooltip=`Open route renderer`,
       )
 
-      routeEntry.children->Option.getWithDefault([])->traverseRouteChildren(~ctx)
+      routeEntry.children->Option.getOr([])->traverseRouteChildren(~ctx)
 
     | Include(includeEntry) =>
       if ctx.routeFileNames->Array.includes(includeEntry.fileName.text) {

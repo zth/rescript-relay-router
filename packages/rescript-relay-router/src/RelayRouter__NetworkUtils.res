@@ -47,13 +47,17 @@ external meros: response => promise<parts> = "meros"
 let getChunks = (response: response, ~onNext, ~onError, ~onComplete): promise<unit> => {
   meros(response)->(Js.Promise.then_(parts => {
       if isAsyncIterable(parts) {
-        parts->decodeEachChunk(onNext, onError)->(Js.Promise.then_(() => {
+        parts
+        ->decodeEachChunk(onNext, onError)
+        ->(Js.Promise.then_(() => {
             onComplete()
             Js.Promise.resolve()
           }, _))
       } else {
         try {
-          parts->getPartsJson->(Js.Promise.then_(json => {
+          parts
+          ->getPartsJson
+          ->(Js.Promise.then_(json => {
               onNext(json)
               onComplete()
               Js.Promise.resolve()

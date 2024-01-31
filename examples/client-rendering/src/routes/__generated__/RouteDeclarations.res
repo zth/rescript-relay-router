@@ -20,12 +20,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter.History.location,
   ): prepareProps => {
-    ignore(pathParams)
     ignore(queryParams)
     let prepareProps: Route__Root_route.Internal.prepareProps =   {
       environment: environment,
   
       location: location,
+      childParams: Obj.magic(pathParams),
     }
     prepareProps->unsafe_toPrepareProps
   }
@@ -89,11 +89,11 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
         ~location: RelayRouter.History.location,
       ): prepareProps => {
-        ignore(pathParams)
         let prepareProps: Route__Root__Todos_route.Internal.prepareProps =   {
           environment: environment,
       
           location: location,
+          childParams: Obj.magic(pathParams),
           statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
         }
         prepareProps->unsafe_toPrepareProps
@@ -141,7 +141,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       
         "Root__Todos:"
       
-          ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Belt.Option.getWithDefault("")
+          ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
       }
       
       ,
@@ -207,8 +207,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             ): string => {
             
               "Root__Todos__ByStatus:"
-                ++ pathParams->Js.Dict.get("byStatus")->Belt.Option.getWithDefault("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Belt.Option.getWithDefault("")
+                ++ pathParams->Js.Dict.get("byStatus")->Option.getOr("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
             }
             
             ,
@@ -282,9 +282,9 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             ): string => {
             
               "Root__Todos__Single:"
-                ++ pathParams->Js.Dict.get("todoId")->Belt.Option.getWithDefault("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Belt.Option.getWithDefault("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.getWithDefault("")
+                ++ pathParams->Js.Dict.get("todoId")->Option.getOr("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Option.getOr("")
             }
             
             ,

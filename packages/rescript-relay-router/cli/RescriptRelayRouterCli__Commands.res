@@ -185,11 +185,11 @@ let printRouteInfo = (~url, ~config) => {
     ->Array.map(Utils.rawRouteToMatchable)
     ->Utils.matchRoutesCli({
       "pathname": urlObj->URL.getPathname,
-      "search": urlObj->URL.getSearch->Option.getWithDefault(""),
+      "search": urlObj->URL.getSearch->Option.getOr(""),
       "hash": urlObj->URL.getHash,
       "state": urlObj->URL.getState,
     })
-    ->Option.getWithDefault([])
+    ->Option.getOr([])
 
   switch matched->Array.length {
   | 0 => Console.log("URL did not match any routes.")

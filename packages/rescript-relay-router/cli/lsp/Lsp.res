@@ -453,7 +453,7 @@ let start = (~mode, ~config: config) => {
   let doRebuildDepsCacheIfNeeded = async () => {
     let config = getCurrentLspContext()->CurrentContext.getConfig
     let currentLastBuiltAt = moduleDepsCache.compilerLastRebuilt
-    let lastBuiltAt = DepsReader.getLastBuiltFromCompilerLog(~config)->Option.getWithDefault(0.)
+    let lastBuiltAt = DepsReader.getLastBuiltFromCompilerLog(~config)->Option.getOr(0.)
 
     if lastBuiltAt > currentLastBuiltAt {
       switch await DepsReader.readDeps(~config) {
@@ -858,11 +858,11 @@ let start = (~mode, ~config: config) => {
               routes
               ->Utils.matchRoutesCli({
                 "pathname": urlObj->Bindings.URL.getPathname,
-                "search": urlObj->Bindings.URL.getSearch->Option.getWithDefault(""),
+                "search": urlObj->Bindings.URL.getSearch->Option.getOr(""),
                 "hash": urlObj->Bindings.URL.getHash,
                 "state": urlObj->Bindings.URL.getState,
               })
-              ->Option.getWithDefault([])
+              ->Option.getOr([])
               ->Array.filterMap(matched => routesByName->Dict.get(matched.route.fullName))
               ->Array.map(routeEntry => {
                 LspProtocol.Command.sourceFilePath: Utils.pathInRoutesFolder(

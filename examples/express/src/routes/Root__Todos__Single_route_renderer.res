@@ -5,7 +5,7 @@ let renderer = Routes.Root.Todos.Single.Route.makeRenderer(
       ~fetchPolicy=StoreOrNetwork,
       ~variables={
         id: todoId,
-        showMore: showMore->Option.getWithDefault(false),
+        showMore: showMore->Option.getOr(false),
       },
     )
   },

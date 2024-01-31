@@ -338,6 +338,27 @@ let getRouteParamRecordFields = (route: printableRoute) => {
   }
 }
 
+let rec findChildrenPathParams = (route: printableRoute, ~pathParams=Dict.make()) => {
+  route.children->Array.forEach(child => {
+    child.params->Array.forEach(param => {
+      pathParams->Dict.set(
+        switch param {
+        | PrintableRegularPathParam(name)
+        | PrintablePathParamWithMatchBranches(name, _) => name
+        },
+        switch param {
+        | PrintableRegularPathParam(_) => "string"
+        | PrintablePathParamWithMatchBranches(_, values) =>
+          `[${values->Array.map(v => `#"${v}"`)->Array.joinWith(" | ")}]`
+        },
+      )
+    })
+    let _ = findChildrenPathParams(child, ~pathParams)
+  })
+
+  pathParams
+}
+
 // Controls whether the generated function is targeting the individual dedicated
 // route file, or the general route structure in the generated
 // RouteDeclarations.
@@ -348,6 +369,7 @@ type makePreparePropsReturnMode = ForInlinedRouteFn | ForDedicatedRouteFile
 let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   let hasQueryParams = route.queryParams->Dict.keysToArray->Array.length > 0
   let params = route.params
+  let childParams = findChildrenPathParams(route)->Dict.toArray
 
   let str = ref(`(. 
   ~environment: RescriptRelay.Environment.t,
@@ -357,7 +379,7 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
 ): prepareProps => {\n`)
 
   let propsToIgnore = [
-    params->Array.length === 0 ? Some("pathParams") : None,
+    params->Array.length === 0 && childParams->Array.length === 0 ? Some("pathParams") : None,
     hasQueryParams ? None : Some("queryParams"),
   ]
 
@@ -379,6 +401,10 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
     str.contents ++ "  {
     environment: environment,\n
     location: location,\n"
+
+  if childParams->Array.length > 0 {
+    str.contents = str.contents ++ "    childParams: Obj.magic(pathParams),\n"
+  }
 
   params->Array.forEach(param => {
     str.contents =
@@ -440,13 +466,13 @@ ${if pathParamsRecordFields->Array.length == 0 {
   "${route.name->RouteName.getFullRouteName}:"
 ${pathParamsRecordFields
     ->Array.map(((key, _)) =>
-      "    ++ pathParams->Js.Dict.get(\"" ++ key ++ "\")->Belt.Option.getWithDefault(\"\")"
+      "    ++ pathParams->Js.Dict.get(\"" ++ key ++ "\")->Option.getOr(\"\")"
     )
     ->Array.joinWith("\n")}
 ${queryParamsRecordFields
     ->Array.map(((key, _)) =>
       "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
-      key ++ "\")->Belt.Option.getWithDefault(\"\")"
+      key ++ "\")->Option.getOr(\"\")"
     )
     ->Array.joinWith("\n")}
 }
@@ -455,9 +481,23 @@ ${queryParamsRecordFields
 }
 
 let getPrepareTypeDefinitions = (route: printableRoute) => {
-  let str = ref(`  @live\n  type prepareProps = {\n`)
+  let str = ref("")
 
+  let childPathParams = findChildrenPathParams(route)->Dict.toArray
   let {allRecordFields: recordFields} = getRouteParamRecordFields(route)
+
+  switch childPathParams {
+  | [] => ()
+  | childPathParams =>
+    str := str.contents ++ "  @live\n  type childPathParams = {\n"
+    childPathParams->Array.forEach(((key, typ)) => {
+      str := str.contents ++ `    ${key}: option<${typ}>,\n`
+    })
+    str := str.contents ++ "  }\n\n"
+    recordFields->Array.push(("childParams", "childPathParams"))
+  }
+
+  str := str.contents ++ "  @live\n  type prepareProps = {\n"
 
   recordFields->Array.forEach(((key, typ)) => {
     str.contents = str.contents ++ `    ${key}: ${typ},\n`

@@ -55,7 +55,7 @@ module RouteName: {
     routeNamePath,
     loc,
   }
-  let getRouteName = t => t.routeNamePath->List.toArray->Array.pop->Option.getWithDefault("")
+  let getRouteName = t => t.routeNamePath->List.toArray->Array.pop->Option.getOr("")
   let getFullRouteName = t => t.routeNamePath->List.toArray->Array.joinWith("__")
   let getFullRouteAccessPath = t => t.routeNamePath->List.toArray->Array.joinWith(".") ++ ".Route"
   let getRouteRendererName = t => t->getFullRouteName ++ "_route_renderer"
@@ -80,7 +80,7 @@ module RoutePath: {
   }
 
   let make = (path, ~currentRoutePath) => {
-    let cleanPath = path->String.split("?")->Array.get(0)->Option.getWithDefault("")
+    let cleanPath = path->String.split("?")->Array.get(0)->Option.getOr("")
     {
       pathSegment: cleanPath,
       currentRoutePath: cleanPath

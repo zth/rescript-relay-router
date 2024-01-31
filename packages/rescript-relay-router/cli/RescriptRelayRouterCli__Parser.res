@@ -161,7 +161,7 @@ let dummyPos: range = {
 }
 
 module Path = {
-  let withoutQueryParams = path => path->String.split("?")->Array.get(0)->Option.getWithDefault("")
+  let withoutQueryParams = path => path->String.split("?")->Array.get(0)->Option.getOr("")
 
   type inContext = ParamName | MatchBranches
 
@@ -244,7 +244,7 @@ module Path = {
 
       switch (
         currentContext.contents,
-        pathWithoutQueryParams->String.get(charIdx)->Option.getWithDefault(""),
+        pathWithoutQueryParams->String.get(charIdx)->Option.getOr(""),
       ) {
       | (None, ":") =>
         currentContext :=
@@ -457,7 +457,7 @@ module Path = {
       let context = ref(None)
 
       for charIdx in 0 to queryParamsStr->String.length - 1 {
-        let char = queryParamsStr->String.get(charIdx)->Option.getWithDefault("")
+        let char = queryParamsStr->String.get(charIdx)->Option.getOr("")
 
         switch (context.contents, char) {
         | (Some(completedParamCtx), "&") =>
@@ -985,7 +985,7 @@ let rec parseRouteFile = (
         routeFileName,
         message: switch parseError.error
         ->JsoncParser.decodeParseErrorCode
-        ->Option.getWithDefault(InvalidSymbol) {
+        ->Option.getOr(InvalidSymbol) {
         | InvalidSymbol => "Invalid symbol."
         | InvalidNumberFormat => "Invalid number format."
         | PropertyNameExpected => "Expected property name."

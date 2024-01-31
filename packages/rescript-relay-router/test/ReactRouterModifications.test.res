@@ -14,7 +14,7 @@ describe("ReactRouter modifications", () => {
     // Should match via regexp
     mockRoute
     ->TestUtils.testMatchLocation("/o/test/member/online")
-    ->Option.getWithDefault([])
+    ->Option.getOr([])
     ->Array.length
     ->expect
     ->Expect.toBe(1)
@@ -22,7 +22,7 @@ describe("ReactRouter modifications", () => {
     // Is not in enumeration, should not match
     mockRoute
     ->TestUtils.testMatchLocation("/o/test/member/something")
-    ->Option.getWithDefault([])
+    ->Option.getOr([])
     ->Array.length
     ->expect
     ->Expect.toBe(0)

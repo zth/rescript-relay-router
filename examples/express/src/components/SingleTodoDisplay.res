@@ -26,7 +26,7 @@ let make = (~todo) => {
   let (todo, refetch) = TodoFragment.useRefetchable(todo)
   let (mutate, isMutating) = UpdateTodoItemMutation.use()
   let (isRefetching, startTransition) = ReactExperimental.useTransition()
-  let completed = todo.completed->Option.getWithDefault(false)
+  let completed = todo.completed->Option.getOr(false)
   let {setParams} = Routes.Root.Todos.Single.Route.useQueryParams()
   let isShowingMore = todo.isShowingMore->Option.isSome
 

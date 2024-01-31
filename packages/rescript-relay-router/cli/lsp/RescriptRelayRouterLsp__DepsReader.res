@@ -9,8 +9,7 @@ let getLastBuiltFromCompilerLog = (~config: Utils.Config.t): option<float> => {
     )->String.split(Bindings.osEOL)
 
   // The "Done" marker is on the second line from the bottom, if it exists.
-  let statusLine =
-    compilerLogConents[compilerLogConents->Array.length - 2]->Option.getWithDefault("")
+  let statusLine = compilerLogConents[compilerLogConents->Array.length - 2]->Option.getOr("")
 
   if statusLine->String.startsWith("#Done(") {
     statusLine

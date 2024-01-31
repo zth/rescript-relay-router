@@ -16,10 +16,10 @@ let preloadFromResponse = (part: Js.Json.t, ~preloadAsset: RelayRouter__Types.pr
         ->Option.map(images =>
           images
           ->Js.Json.decodeArray
-          ->Option.getWithDefault([])
+          ->Option.getOr([])
           ->Array.filterMap(item => item->Js.Json.decodeString)
         )
-        ->Option.getWithDefault([])
+        ->Option.getOr([])
         ->Array.forEach(imgUrl => {
           preloadAsset(~priority=RelayRouter.Types.Default, RelayRouter.Types.Image({url: imgUrl}))
         })
@@ -42,7 +42,7 @@ let makeFetchQuery = (~preloadAsset) =>
         "headers": Js.Dict.fromArray([("content-type", "application/json")]),
         "body": {"query": operation.text, "variables": variables}
         ->Js.Json.stringifyAny
-        ->Option.getWithDefault(""),
+        ->Option.getOr(""),
       },
     )
     ->Promise.thenResolve(r => {
@@ -84,7 +84,7 @@ let makeServerFetchQuery = (
         "headers": Js.Dict.fromArray([("content-type", "application/json")]),
         "body": {"query": operation.text, "variables": variables}
         ->Js.Json.stringifyAny
-        ->Option.getWithDefault(""),
+        ->Option.getOr(""),
       },
     )
     ->Promise.thenResolve(r => {

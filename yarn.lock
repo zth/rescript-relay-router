@@ -1111,8 +1111,8 @@ __metadata:
   resolution: "@rescript-relay-router-example/client-rendering@workspace:examples/client-rendering"
   dependencies:
     "@remix-run/web-fetch": ^4.1.3
-    "@rescript/core": ^0.5.0
-    "@rescript/react": 0.12.0-alpha.2
+    "@rescript/core": ^0.6.0
+    "@rescript/react": ^0.12.0
     "@vitejs/plugin-react-refresh": 1.3.6
     chalk: ^5.0.1
     chokidar: ^3.5.3
@@ -1129,10 +1129,10 @@ __metadata:
     npm-run-all: ^4.1.5
     react: ^18.2.0
     react-dom: ^18.2.0
-    react-relay: 15.0.0
-    relay-runtime: 15.0.0
-    rescript: 11.0.0-beta.4
-    rescript-relay: 3.0.0-alpha.1
+    react-relay: 16.0.0
+    relay-runtime: 16.0.0
+    rescript: 11.0.1
+    rescript-relay: 3.0.0-rc.3
     rescript-relay-router: "workspace:^"
     rollup: ^2
     rollup-plugin-visualizer: 5.5.0
@@ -1147,8 +1147,8 @@ __metadata:
   resolution: "@rescript-relay-router-example/express@workspace:examples/express"
   dependencies:
     "@remix-run/web-fetch": ^4.1.3
-    "@rescript/core": ^0.5.0
-    "@rescript/react": 0.12.0-alpha.2
+    "@rescript/core": ^0.6.0
+    "@rescript/react": ^0.12.0
     "@vitejs/plugin-react-refresh": 1.3.3
     chalk: ^5.0.1
     chokidar: ^3.5.3
@@ -1168,10 +1168,10 @@ __metadata:
     npm-run-all: ^4.1.5
     react: ^18.2.0
     react-dom: ^18.2.0
-    react-relay: 15.0.0
-    relay-runtime: 15.0.0
-    rescript: 11.0.0-beta.4
-    rescript-relay: 3.0.0-alpha.1
+    react-relay: 16.0.0
+    relay-runtime: 16.0.0
+    rescript: 11.0.1
+    rescript-relay: 3.0.0-rc.3
     rescript-relay-router: "workspace:^"
     rollup: ^2
     rollup-plugin-visualizer: 5.5.0
@@ -1181,32 +1181,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rescript/core@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "@rescript/core@npm:0.5.0"
+"@rescript/core@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@rescript/core@npm:0.6.0"
   peerDependencies:
     rescript: "*"
-  checksum: 832b91e65bd3215159dd4d424c09f02c18eec256c08483e804a426a97367933569fb224c50f04453ed4898eed9ab9d40395dd2d235064a9a5184003846c01ad9
+  checksum: 6891516b1111b9e56c1b6e1c9bda9c99eea1e4125bd57d914f7130a702ff3cb8effe4ad6dab98cf0186d50d71e2e232c12a45187e139e99a4e3be3265666e35f
   languageName: node
   linkType: hard
 
-"@rescript/react@npm:0.12.0-alpha.2":
-  version: 0.12.0-alpha.2
-  resolution: "@rescript/react@npm:0.12.0-alpha.2"
+"@rescript/react@npm:^0.12.0":
+  version: 0.12.0
+  resolution: "@rescript/react@npm:0.12.0"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 7baafec7866e6bf4c67aa46307692e73f34047c06c3869a72027568671127ba5875e5e87b67cb920c625a1ef9f68f6a16890cc376d477f08b76ce9a0d5550a70
-  languageName: node
-  linkType: hard
-
-"@rescript/react@patch:@rescript/react@npm:0.12.0-alpha.2#.yarn/patches/@rescript-react-npm-0.12.0-alpha.2-7eac267200.patch::locator=rescript-relay-router-monorepo%40workspace%3A.":
-  version: 0.12.0-alpha.2
-  resolution: "@rescript/react@patch:@rescript/react@npm%3A0.12.0-alpha.2#.yarn/patches/@rescript-react-npm-0.12.0-alpha.2-7eac267200.patch::version=0.12.0-alpha.2&hash=51e34b&locator=rescript-relay-router-monorepo%40workspace%3A."
-  peerDependencies:
-    react: ">=18.0.0"
-    react-dom: ">=18.0.0"
-  checksum: afe26315dd46b4ea5846f3330676439e4c9d0ed8ecfdb4f0ae4da00daea2f46708da3647ec453a17c38a9fc1fdf9a28c55ff6a461218a7d3b8d722062e2c94b1
+  checksum: 9be50bbb4b0f8ff8075ecb99b06812052dc25e7f4137dd18e0963b48ee89ddf377c1bd257a5eacbbda4bb77606bb724bd1f504250fb9cc786ea7027691d10483
   languageName: node
   linkType: hard
 
@@ -5547,18 +5537,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-relay@npm:15.0.0":
-  version: 15.0.0
-  resolution: "react-relay@npm:15.0.0"
+"react-relay@npm:16.0.0":
+  version: 16.0.0
+  resolution: "react-relay@npm:16.0.0"
   dependencies:
     "@babel/runtime": ^7.0.0
     fbjs: ^3.0.2
     invariant: ^2.2.4
     nullthrows: ^1.1.1
-    relay-runtime: 15.0.0
+    relay-runtime: 16.0.0
   peerDependencies:
     react: ^16.9.0 || ^17 || ^18
-  checksum: d318c3b153f193e1b93fb5d8501426f7a9eb2e013407cbfadc1cbc17e319d99dad9c145147c0cea194eeb6ffbb4fc6d41914ad69db0d589808d4484e4a6fd718
+  checksum: 6946b471e4bf97768f83b2f53926503acd45ac23bd21f4cdf59ce41d77e7834d9a92fffbe05ab5ad46ff01c102228a39de2f2515fefb243e5a8f14b603c33fc2
   languageName: node
   linkType: hard
 
@@ -5690,14 +5680,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"relay-runtime@npm:15.0.0":
-  version: 15.0.0
-  resolution: "relay-runtime@npm:15.0.0"
+"relay-runtime@npm:16.0.0":
+  version: 16.0.0
+  resolution: "relay-runtime@npm:16.0.0"
   dependencies:
     "@babel/runtime": ^7.0.0
     fbjs: ^3.0.2
     invariant: ^2.2.4
-  checksum: ccf41ac4778b54560ea35901076a00eaa60597a89c908f6fb7b15812b76aad6aa57bfe81fe5af159dd6aaf716eb46208ec6e77cf8357c479d288af6f5a04698d
+  checksum: 2769cb364db0d1106d777e676138c12ec0bfaee373f47d5569d72eb1bf49107dd07d02d5f3a196ce58a5becf01a4a5a8324a40059e9e923d18eb86b634e14207
   languageName: node
   linkType: hard
 
@@ -5727,7 +5717,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rescript-relay-router@workspace:packages/rescript-relay-router"
   dependencies:
-    "@rescript/core": ^0.5.0
+    "@rescript/core": ^0.6.0
     chalk: ^5.0.1
     chokidar: ^3.5.3
     cosmiconfig: ^7.0.1
@@ -5737,44 +5727,44 @@ __metadata:
     jsonc-parser: ^3.0.0
     lines-and-columns: ^2.0.3
     magic-string: ^0.26.2
-    rescript: 11.0.0-beta.4
+    rescript: ^11.0.1
     vitest: ^0.21.1
     vscode-jsonrpc: ^5.0.1
   peerDependencies:
-    "@rescript/react": ">=0.12.0-alpha.2"
+    "@rescript/react": ">=0.12.0"
     react: ">=18.2.0"
-    rescript-relay: ">=3.0.0-alpha.1"
+    rescript-relay: ">=3.0.0-rc.3"
     vite: ">=4.4.9"
   bin:
     rescript-relay-router: cli/RescriptRelayRouterCli.mjs
   languageName: unknown
   linkType: soft
 
-"rescript-relay@npm:3.0.0-alpha.1":
-  version: 3.0.0-alpha.1
-  resolution: "rescript-relay@npm:3.0.0-alpha.1"
+"rescript-relay@npm:3.0.0-rc.3":
+  version: 3.0.0-rc.3
+  resolution: "rescript-relay@npm:3.0.0-rc.3"
   dependencies:
     detect-libc: ^2.0.1
   peerDependencies:
-    "@rescript/react": "*"
-    react-relay: ">=15.0.0"
+    "@rescript/react": ^0.12.0
+    react-relay: ">=16.0.0"
     relay-runtime: "*"
-    rescript: "*"
+    rescript: ^11.0.0
   bin:
     rescript-relay-cli: cli/cli.js
     rescript-relay-compiler: compiler.js
-  checksum: fe19618bd7ed6168a4fa1624efce6f72216c3981cf67fb631172b2845aabd06fdeff660fd25fcf36a199a25e9112da2940a283cd284f01ccb59d86c3c22479c2
+  checksum: e16d191982b4d9dbbec6ff8a6bf46cfebb7316afa30fb4cc2110316b24338aafa3fd2dfad8e1ef63b8d20ef1492910ea80d2599575825ab58352c162c94db845
   languageName: node
   linkType: hard
 
-"rescript@npm:11.0.0-beta.4":
-  version: 11.0.0-beta.4
-  resolution: "rescript@npm:11.0.0-beta.4"
+"rescript@npm:11.0.1, rescript@npm:^11.0.1":
+  version: 11.0.1
+  resolution: "rescript@npm:11.0.1"
   bin:
     bsc: bsc
     bstracing: lib/bstracing
     rescript: rescript
-  checksum: cf55a1dd8970595c07d8919341123cbb7f7b278b23153597da00a128d189f4ab54b86a6bd7d88089ee35122389d02a1ae69de74d81f1bc187e06ae6a444356ef
+  checksum: 0a9b3399bdcfc62bc0068fba5421e54ccb1b627642e094b9d342c08f139b0bf4ee5e9e3072f38703dffe5e2399ed283140fdd9ec9bcdc3807912f23b3f658350
   languageName: node
   linkType: hard
 

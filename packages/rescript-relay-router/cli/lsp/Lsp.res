@@ -363,8 +363,12 @@ module CurrentContext: {
   @module("url")
   external fileURLToPath: string => string = "fileURLToPath"
 
-  let isValidRouteFile = (t, fileUri) => {
-    let fileUri = fileUri->fileURLToPath
+  let isValidRouteFile = (t, maybeFileUri) => {
+    let fileUri = if maybeFileUri->String.startsWith("file://") {
+      maybeFileUri->fileURLToPath
+    } else {
+      maybeFileUri
+    }
     let fileName = fileUri->Bindings.Path.basename
     fileUri == Utils.pathInRoutesFolder(~config=t.config, ~fileName)
   }

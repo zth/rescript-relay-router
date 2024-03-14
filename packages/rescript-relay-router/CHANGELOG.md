@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.1.1
+
+### Patch Changes
+
+- 9f77cef: Prevent crash in LSP when getting unexpected file scheme less file.
+
 ## 1.1.0
 
 ### Minor Changes

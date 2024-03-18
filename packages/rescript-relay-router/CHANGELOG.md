@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.2.0
+
+### Minor Changes
+
+- bffb310: allow shallow navigation with useRouter
+
 ## 1.1.1
 
 ### Patch Changes

@@ -1,9 +1,10 @@
 @live
 let childRouteHasContent: React.element => bool
 
+@live
 type routerHelpers = {
-  push: string => unit,
-  replace: string => unit,
+  push: (string, ~shallow: bool=?) => unit,
+  replace: (string, ~shallow: bool=?) => unit,
   preload: RelayRouter__Types.preloadFn,
   preloadCode: RelayRouter__Types.preloadCodeFn,
 }

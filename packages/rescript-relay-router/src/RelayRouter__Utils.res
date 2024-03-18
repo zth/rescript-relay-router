@@ -2,8 +2,8 @@ let childRouteHasContent = childRoute => childRoute != React.null
 
 @live
 type routerHelpers = {
-  push: string => unit,
-  replace: string => unit,
+  push: (string, ~shallow: bool=?) => unit,
+  replace: (string, ~shallow: bool=?) => unit,
   preload: RelayRouter__Types.preloadFn,
   preloadCode: RelayRouter__Types.preloadCodeFn,
 }
@@ -16,12 +16,19 @@ let useRouter = (): routerHelpers => {
     preloadCode,
     postRouterEvent,
     get,
+    markNextNavigationAsShallow,
   } = RelayRouter__Context.useRouterContext()
-  let push = React.useCallback2(path => {
+  let push = React.useCallback2((path, ~shallow=false) => {
+    if shallow {
+      markNextNavigationAsShallow()
+    }
     postRouterEvent(OnBeforeNavigation({currentLocation: get().location}))
     history->RelayRouter__History.push(path)
   }, (history, postRouterEvent))
-  let replace = React.useCallback2(path => {
+  let replace = React.useCallback2((path, ~shallow=false) => {
+    if shallow {
+      markNextNavigationAsShallow()
+    }
     postRouterEvent(OnBeforeNavigation({currentLocation: get().location}))
     history->RelayRouter__History.replace(path)
   }, (history, postRouterEvent))

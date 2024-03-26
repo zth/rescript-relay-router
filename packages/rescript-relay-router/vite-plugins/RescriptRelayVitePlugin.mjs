@@ -307,7 +307,7 @@ export let rescriptRelayVitePlugin = ({
       const manifestName =
         typeof config.build.manifest === "string"
           ? config.build.manifest
-          : "manifest.json";
+          : ".vite/manifest.json";
       const inPath = path.join(cwd, config.build.outDir, manifestName);
       const outPath = path.join(cwd, config.build.outDir, ROUTER_MANIFEST_NAME);
 

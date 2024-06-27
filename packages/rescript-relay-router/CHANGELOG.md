@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.3.0
+
+### Minor Changes
+
+- 3c87155: Add `usePathParams` hook
+
 ## 1.2.1
 
 ### Patch Changes

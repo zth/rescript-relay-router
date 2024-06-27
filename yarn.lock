@@ -5727,7 +5727,7 @@ __metadata:
     jsonc-parser: ^3.0.0
     lines-and-columns: ^2.0.3
     magic-string: ^0.26.2
-    rescript: ^11.1.2
+    rescript: 11.0.1
     vitest: ^0.21.1
     vscode-jsonrpc: ^5.0.1
   peerDependencies:
@@ -5765,17 +5765,6 @@ __metadata:
     bstracing: lib/bstracing
     rescript: rescript
   checksum: 0a9b3399bdcfc62bc0068fba5421e54ccb1b627642e094b9d342c08f139b0bf4ee5e9e3072f38703dffe5e2399ed283140fdd9ec9bcdc3807912f23b3f658350
-  languageName: node
-  linkType: hard
-
-"rescript@npm:^11.1.2":
-  version: 11.1.2
-  resolution: "rescript@npm:11.1.2"
-  bin:
-    bsc: bsc
-    bstracing: lib/bstracing
-    rescript: rescript
-  checksum: 4043c126faaa33f6b301c56b08ed1ef3f01c26b7efb3660a5e617f0113f35c615e91a195b8f8a2ff5d5d4da031c43058c3d31891e601b5fcc963aa78636034c7
   languageName: node
   linkType: hard
 

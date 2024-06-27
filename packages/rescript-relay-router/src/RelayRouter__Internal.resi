@@ -16,7 +16,7 @@ type setQueryParamsFn = setQueryParamsFnConfig => unit
 
 let useSetQueryParams: unit => setQueryParamsFn
 
-type pathMatch
+type pathMatch = {params: Js.Dict.t<string>}
 
 @module("./vendor/react-router.js") @return(nullable)
 external matchPath: (string, string) => option<pathMatch> = "matchPath"

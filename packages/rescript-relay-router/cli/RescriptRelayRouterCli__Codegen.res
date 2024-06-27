@@ -176,7 +176,7 @@ type pathParam_${Utils.printablePathParamToParamName(p)} = ${Utils.printablePath
   str.contents
 }
 
-let getQueryParamAssets = (route: printableRoute) => {
+let getQueryParamTypeDefinition = (route: printableRoute) => {
   let queryParamEntries = route.queryParams->Dict.toArray
 
   if queryParamEntries->Array.length > 0 {
@@ -188,6 +188,18 @@ let getQueryParamAssets = (route: printableRoute) => {
     })
 
     str.contents = str.contents ++ "\n}\n\n"
+    str.contents
+  } else {
+    ""
+  }
+}
+
+let getQueryParamAssets = (route: printableRoute) => {
+  let queryParamEntries = route.queryParams->Dict.toArray
+
+  if queryParamEntries->Array.length > 0 {
+    let str = ref("")
+
     str.contents =
       str.contents ++
       `@live\nlet parseQueryParams = (search: string): queryParams => {
@@ -201,16 +213,6 @@ let getQueryParamAssets = (route: printableRoute) => {
         })
         ->Array.joinWith("")}
   }
-}
-
-@live
-let makeQueryParams = (${queryParamEntries
-        ->Array.map(((key, queryParam)) => {
-          `\n  ~${key}: option<${queryParam->Utils.QueryParams.toTypeStr}>=?, `
-        })
-        ->Array.joinWith("")}\n  ()\n) => {${queryParamEntries
-        ->Array.map(((key, _queryParam)) => `\n  ${key}: ${key},`)
-        ->Array.joinWith("")}
 }
 
 @live
@@ -293,15 +295,17 @@ let useQueryParams = (): useQueryParamsReturn => {
   }
 }
 
+type recordField = Spread(string) | KeyValue(string, string)
+
 let standardRecordFields = [
-  ("environment", "RescriptRelay.Environment.t"),
-  ("location", "RelayRouter.History.location"),
+  KeyValue("environment", "RescriptRelay.Environment.t"),
+  KeyValue("location", "RelayRouter.History.location"),
 ]
 
 type routeParamFields = {
   pathParamsRecordFields: array<(string, string)>,
   queryParamsRecordFields: array<(string, string)>,
-  allRecordFields: array<(string, string)>,
+  allRecordFields: array<recordField>,
 }
 
 let getRouteParamRecordFields = (route: printableRoute) => {
@@ -328,8 +332,15 @@ let getRouteParamRecordFields = (route: printableRoute) => {
     ))
   })
 
-  let recordFields =
-    standardRecordFields->Array.concatMany([pathParamsRecordFields, queryParamsRecordFields])
+  let recordFields = standardRecordFields->Array.copy
+
+  if route.params->Array.length > 0 {
+    recordFields->Array.push(Spread("pathParams"))
+  }
+
+  if route.queryParams->Dict.keysToArray->Array.length > 0 {
+    recordFields->Array.push(Spread("queryParams"))
+  }
 
   {
     pathParamsRecordFields,
@@ -480,6 +491,43 @@ ${queryParamsRecordFields
 `
 }
 
+let getPathParamsTypeDefinition = (route: printableRoute) => {
+  let str = ref("")
+
+  switch route.params {
+  | [] => ()
+  | pathParams =>
+    str := str.contents ++ "@live\ntype pathParams = {\n"
+    pathParams->Array.forEach(p => {
+      str :=
+        str.contents ++
+        `  ${Utils.printablePathParamToParamName(p)}: ${Utils.printablePathParamToTypeStr(p)},\n`
+    })
+    str := str.contents ++ "}\n\n"
+  }
+
+  str.contents
+}
+
+let getUsePathParamsHook = (route: printableRoute) => {
+  let str = ref("")
+
+  switch route.params {
+  | [] => ()
+  | _ =>
+    str :=
+      str.contents ++ `@live\nlet usePathParams = (): option<pathParams> => {
+  let {pathname} = RelayRouter.Utils.useLocation()
+  switch RelayRouter.Internal.matchPath(routePattern, pathname) {
+  | Some({params}) => Some(Obj.magic(params))
+  | None => None
+  }
+}`
+  }
+
+  str.contents
+}
+
 let getPrepareTypeDefinitions = (route: printableRoute) => {
   let str = ref("")
 
@@ -494,13 +542,18 @@ let getPrepareTypeDefinitions = (route: printableRoute) => {
       str := str.contents ++ `    ${key}: option<${typ}>,\n`
     })
     str := str.contents ++ "  }\n\n"
-    recordFields->Array.push(("childParams", "childPathParams"))
+    recordFields->Array.push(KeyValue("childParams", "childPathParams"))
   }
 
   str := str.contents ++ "  @live\n  type prepareProps = {\n"
 
-  recordFields->Array.forEach(((key, typ)) => {
-    str.contents = str.contents ++ `    ${key}: ${typ},\n`
+  recordFields->Array.forEach(field => {
+    str.contents =
+      str.contents ++
+      switch field {
+      | KeyValue(key, typ) => `    ${key}: ${typ},\n`
+      | Spread(recordName) => `    ...${recordName},\n`
+      }
   })
 
   str.contents = str.contents ++ "  }\n\n"
@@ -510,8 +563,13 @@ let getPrepareTypeDefinitions = (route: printableRoute) => {
     childRoutes: React.element,
     prepared: 'prepared,\n`
 
-  recordFields->Array.forEach(((key, typ)) => {
-    str.contents = str.contents ++ `    ${key}: ${typ},\n`
+  recordFields->Array.forEach(field => {
+    str.contents =
+      str.contents ++
+      switch field {
+      | KeyValue(key, typ) => `    ${key}: ${typ},\n`
+      | Spread(recordName) => `    ...${recordName},\n`
+      }
   })
 
   str.contents = str.contents ++ "  }\n\n"

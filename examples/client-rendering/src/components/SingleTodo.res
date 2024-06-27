@@ -12,6 +12,9 @@ module Query = %relay(`
 let make = (~queryRef) => {
   let data = Query.usePreloaded(~queryRef)
 
+  let params = Routes.Root.Todos.Single.Route.usePathParams()
+  Console.log(params)
+
   switch data.node {
   | Some(TodoItem({fragmentRefs})) => <SingleTodoDisplay todo=fragmentRefs />
   | _ => React.string("Oops, did not find todo!")

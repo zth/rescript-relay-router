@@ -1,5 +1,12 @@
 # rescript-relay-router
 
+## 1.2.1
+
+### Patch Changes
+
+- 64ac795: bsconfig.json -> rescript.json
+- dd6e9ca: Fix inference when using ReScript >=11.1.2
+
 ## 1.2.0
 
 ### Minor Changes

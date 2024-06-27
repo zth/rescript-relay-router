@@ -441,6 +441,17 @@ This would do 2 things:
 - This route will only match if `memberStatus` is one of the values in the provided list (`active`, `inactive` or `deleted`).
 - The type of `memberStatus` will be a polyvariant `[#active | #inactive | #deleted]`.
 
+### Accessing path params via a hook
+
+You can access the path params for a route via the `usePathParams` hook. It'll return the path params if you're currently on that route.
+
+```rescript
+switch Routes.Organization.Members.Route.usePathParams() {
+| Some({slug}) => Console.log("Organization slug: " ++ slug)
+| None => Console.log("Woops, not on the expected route.")
+}
+```
+
 ## Advanced
 
 Here's a few more advanced things you can utilize the router for.

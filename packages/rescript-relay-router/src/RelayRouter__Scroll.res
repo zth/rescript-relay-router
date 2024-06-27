@@ -57,10 +57,14 @@ module TargetScrollElement = {
           switch targetElementRef {
           | None => None
           | Some(targetElementRef) =>
-            Some({
-              id,
-              targetElementRef,
-            })
+            Some(
+              (
+                {
+                  id,
+                  targetElementRef,
+                }: context
+              ),
+            )
           }
         , (id, targetElementRef))}> {children} </ContextProvider>
     }

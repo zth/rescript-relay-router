@@ -56,7 +56,7 @@
     "vscode-jsonrpc": "^5.0.1"
   },
   "devDependencies": {
-    "rescript": "^11.0.1",
+    "rescript": "^11.1.2",
     "vitest": "^0.21.1"
   }
 }

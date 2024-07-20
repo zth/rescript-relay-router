@@ -39,7 +39,7 @@
   "peerDependencies": {
     "@rescript/react": ">=0.12.0",
     "react": ">=18.2.0",
-    "rescript-relay": ">=3.0.0-rc.3",
+    "rescript-relay": ">=3.0.0",
     "vite": ">=4.4.9"
   },
   "dependencies": {
@@ -56,7 +56,7 @@
     "vscode-jsonrpc": "^5.0.1"
   },
   "devDependencies": {
-    "rescript": "11.0.1",
+    "rescript": "11.1.2",
     "vitest": "^0.21.1"
   }
 }

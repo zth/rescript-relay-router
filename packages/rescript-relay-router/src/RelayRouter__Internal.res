@@ -22,7 +22,7 @@ type setQueryParamsFn = setQueryParamsFnConfig => unit
 let useSetQueryParams = () => {
   let router = RelayRouter__Context.useRouterContext()
 
-  let setQueryParamsFn: setQueryParamsFn = React.useCallback1(
+  let setQueryParamsFn: setQueryParamsFn = React.useCallback(
     ({applyQueryParams, currentSearch, navigationMode_, removeNotControlledParams, shallow}) => {
       open RelayRouter__Bindings
 

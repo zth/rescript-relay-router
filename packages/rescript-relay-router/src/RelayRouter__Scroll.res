@@ -53,7 +53,7 @@ module TargetScrollElement = {
   module Provider = {
     @react.component
     let make = (~id, ~targetElementRef=?, ~children) => {
-      <ContextProvider value={React.useMemo2(() =>
+      <ContextProvider value={React.useMemo(() =>
           switch targetElementRef {
           | None => None
           | Some(targetElementRef) =>
@@ -104,14 +104,14 @@ module ScrollRestoration = {
     let location = RelayRouter__Utils.useLocation()
     let router = RelayRouter__Context.useRouterContext()
     let targetEl = TargetScrollElement.useTargetElement()
-    let (id, targetElement) = React.useMemo1(() =>
+    let (id, targetElement) = React.useMemo(() =>
       switch targetEl {
       | None => ("window", Window(window))
       | Some({targetElementRef, id}) => (id, Element(targetElementRef))
       }
     , [targetEl])
 
-    let setScrollPosition = React.useCallback3(() => {
+    let setScrollPosition = React.useCallback(() => {
       switch targetElement->getElement {
       | None => ()
       | Some(targetElement) =>
@@ -122,7 +122,7 @@ module ScrollRestoration = {
       }
     }, (location, targetElement, id))
 
-    let persistScrollPositions = React.useCallback3(priority => {
+    let persistScrollPositions = React.useCallback(priority => {
       switch targetElement->getElement {
       | None => ()
       | Some(targetElement) =>
@@ -139,12 +139,12 @@ module ScrollRestoration = {
       }
     }, (location, targetElement, id))
 
-    let onBeforeUnload = React.useCallback2(() => {
+    let onBeforeUnload = React.useCallback(() => {
       setScrollPosition()
       persistScrollPositions(High)
     }, (setScrollPosition, persistScrollPositions))
 
-    React.useEffect1(() => {
+    React.useEffect(() => {
       addBeforeUnloadListener(onBeforeUnload)
 
       Some(
@@ -155,7 +155,7 @@ module ScrollRestoration = {
     }, [onBeforeUnload])
 
     // Ensure new positions are persisted
-    React.useEffect5(() => {
+    React.useEffect(() => {
       let unsub = router.subscribeToEvent(event => {
         switch event {
         | OnBeforeNavigation(_) =>

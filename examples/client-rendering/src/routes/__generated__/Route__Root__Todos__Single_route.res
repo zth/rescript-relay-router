@@ -102,7 +102,7 @@ type useQueryParamsReturn = {
 let useQueryParams = (): useQueryParamsReturn => {
   let internalSetQueryParams = RelayRouter__Internal.useSetQueryParams()
   let {search} = RelayRouter.Utils.useLocation()
-  let currentQueryParams = React.useMemo1(() => {
+  let currentQueryParams = React.useMemo(() => {
     search->parseQueryParams
   }, [search])
 
@@ -131,7 +131,7 @@ let useQueryParams = (): useQueryParamsReturn => {
 
   {
     queryParams: currentQueryParams,
-    setParams: React.useMemo2(
+    setParams: React.useMemo(
       () => setParams,
       (search, currentQueryParams),
     ),
@@ -164,7 +164,7 @@ let makeLinkFromQueryParams = (~todoId: string, queryParams: queryParams) => {
 @live
 let useMakeLinkWithPreservedPath = () => {
   let location = RelayRouter.Utils.useLocation()
-  React.useMemo1(() => {
+  React.useMemo(() => {
     (makeNewQueryParams: queryParams => queryParams) => {
       let newQueryParams = location.search->parseQueryParams->makeNewQueryParams
       open RelayRouter.Bindings
@@ -184,7 +184,7 @@ let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.locatio
 @live
 let useIsRouteActive = (~exact=false) => {
   let location = RelayRouter.Utils.useLocation()
-  React.useMemo2(() => location->isRouteActive(~exact), (location, exact))
+  React.useMemo(() => location->isRouteActive(~exact), (location, exact))
 }
 
 @live

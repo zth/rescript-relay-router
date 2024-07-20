@@ -18,14 +18,14 @@ let useRouter = (): routerHelpers => {
     get,
     markNextNavigationAsShallow,
   } = RelayRouter__Context.useRouterContext()
-  let push = React.useCallback2((path, ~shallow=false) => {
+  let push = React.useCallback((path, ~shallow=false) => {
     if shallow {
       markNextNavigationAsShallow()
     }
     postRouterEvent(OnBeforeNavigation({currentLocation: get().location}))
     history->RelayRouter__History.push(path)
   }, (history, postRouterEvent))
-  let replace = React.useCallback2((path, ~shallow=false) => {
+  let replace = React.useCallback((path, ~shallow=false) => {
     if shallow {
       markNextNavigationAsShallow()
     }
@@ -47,7 +47,7 @@ let useLocation = () => {
     router.history->RelayRouter__History.getLocation
   )
 
-  React.useEffect1(() => {
+  React.useEffect(() => {
     let unsub = router.history->RelayRouter__History.listen(({location}) => {
       setLocation(_ => location)
     })
@@ -68,7 +68,7 @@ let isRouteActive = (~pathname, ~routePattern, ~exact=false) => {
 let useIsRouteActive = (~href, ~routePattern, ~exact=false) => {
   let {pathname} = useLocation()
 
-  React.useMemo4(
+  React.useMemo(
     () => isRouteActive(~pathname, ~routePattern, ~exact),
     (pathname, href, routePattern, exact),
   )

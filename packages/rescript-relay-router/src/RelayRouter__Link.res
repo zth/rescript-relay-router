@@ -52,12 +52,12 @@ let make = (
 ) => {
   let linkElement = React.useRef(Js.Nullable.null)
   let hasPreloaded = React.useRef(false)
-  let (_, startTransition) = ReactExperimental.useTransition()
+  let (_, startTransition) = React.useTransition()
   let router = RelayRouter__Context.useRouterContext()
   let {history} = router
   let targetElementRef = TargetScrollElement.useTargetElement()
 
-  let changeRoute = React.useCallback4(e =>
+  let changeRoute = React.useCallback(e =>
     startTransition(() => {
       router.postRouterEvent(OnBeforeNavigation({currentLocation: router.get().location}))
       open ReactEvent.Mouse
@@ -73,26 +73,26 @@ let make = (
     })
   , (to_, history, router.postRouterEvent, startTransition))
 
-  let doPreloadDataAndCode = React.useCallback3(
+  let doPreloadDataAndCode = React.useCallback(
     overridePriority =>
       to_->router.preload(~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority)),
     (to_, router.preload, preloadPriority),
   )
-  let doPreloadCode = React.useCallback3(
+  let doPreloadCode = React.useCallback(
     overridePriority =>
       to_->router.preloadCode(
         ~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority),
       ),
     (to_, router.preloadCode, preloadPriority),
   )
-  let onIntent = React.useCallback4(overridePriority =>
+  let onIntent = React.useCallback(overridePriority =>
     switch (preloadData, preloadCode) {
     | (OnIntent, _) => doPreloadDataAndCode(overridePriority)
     | (_, OnIntent) => doPreloadCode(overridePriority)
     | _ => ()
     }
   , (preloadData, preloadCode, doPreloadCode, doPreloadDataAndCode))
-  let onRender = React.useCallback4(overridePriority =>
+  let onRender = React.useCallback(overridePriority =>
     switch (preloadData, preloadCode) {
     | (OnRender, _) => doPreloadDataAndCode(overridePriority)
     | (_, OnRender) => doPreloadCode(overridePriority)
@@ -101,7 +101,7 @@ let make = (
   , (preloadData, preloadCode, doPreloadCode, doPreloadDataAndCode))
 
   // Preload on render if wanted
-  React.useEffect1(() => {
+  React.useEffect(() => {
     onRender(None)
     None
   }, [onRender])
@@ -112,7 +112,7 @@ let make = (
   }
 
   // Sets up an intersection observer for the link if wanted
-  React.useEffect4(() => {
+  React.useEffect(() => {
     switch (linkElement.current->Js.Nullable.toOption, preloadData, preloadCode) {
     | (Some(linkElement), OnInView, _) | (Some(linkElement), _, OnInView) =>
       let observer = IntersectionObserver.make(

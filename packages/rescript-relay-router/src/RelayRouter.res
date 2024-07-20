@@ -160,14 +160,12 @@ module Router = {
             ~pathParams=match.params,
             ~queryParams,
             ~location,
-          )->(
-            Js.Promise.then_(
-              assetsToPreload => {
-                assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
-                Js.Promise.resolve()
-              },
-              _,
-            )
+          )->Js.Promise.then_(
+            assetsToPreload => {
+              assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
+              Js.Promise.resolve()
+            },
+            _,
           )
         }, ~priority)
       })
@@ -251,11 +249,11 @@ module RouteRenderer = {
   @react.component
   let make = (~renderPending=?) => {
     let router = useRouterContext()
-    let (isPending, startTransition) = ReactExperimental.useTransition()
+    let (isPending, startTransition) = React.useTransition()
     let (routeEntry, setRouteEntry) = React.useState(() => router.get())
 
     if !RelaySSRUtils.ssr {
-      React.useLayoutEffect1(() => {
+      React.useLayoutEffect(() => {
         if !isPending {
           router.postRouterEvent(RestoreScroll(routeEntry.location))
         }
@@ -263,7 +261,7 @@ module RouteRenderer = {
       }, [isPending])
     }
 
-    React.useEffect2(() => {
+    React.useEffect(() => {
       let dispose = router.subscribe(nextRoute => {
         startTransition(() => setRouteEntry(_ => nextRoute))
       })

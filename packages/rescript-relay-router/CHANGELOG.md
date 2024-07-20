@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.4.0
+
+### Minor Changes
+
+- 2e65a37: RescriptRelay 3.0.0, ReScript 11.1.x
+
 ## 1.3.0
 
 ### Minor Changes

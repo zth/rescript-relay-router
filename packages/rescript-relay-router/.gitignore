@@ -19,4 +19,4 @@ stats.html
 
 # Commit our Vite plugins written in plain JavaScript.
 !vite-plugins/**/*.mjs
-!test/RescriptRelayVitePlugin.test.mjs
+!test/RescriptRelayServerVitePlugin.test.mjs

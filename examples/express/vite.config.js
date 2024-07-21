@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import reactRefresh from "@vitejs/plugin-react-refresh";
 import { visualizer } from "rollup-plugin-visualizer";
-import { rescriptRelayVitePlugin } from "rescript-relay-router/RescriptRelayVitePlugin.mjs";
+import { rescriptRelayVitePlugin } from "rescript-relay-router/server";
 import { virtualIndex } from "rescript-relay-router/VirtualIndex.mjs";
 
 export default defineConfig({
@@ -23,7 +23,7 @@ export default defineConfig({
       // Work around the fact that rescript-relay is not yet an ESM module
       // which messes up imports on NodeJs.
       "rescript-relay",
-    ]
+    ],
   },
   build: {
     sourcemap: true,

@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.4.1
+
+### Patch Changes
+
+- 3e32028: Move server stuff into its own Vite plugin since its not complete and currently not under development.
+
 ## 1.4.0
 
 ### Minor Changes

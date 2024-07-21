@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { rescriptRelayVitePlugin } from "../vite-plugins/RescriptRelayVitePlugin.mjs";
+import { rescriptRelayVitePlugin } from "../vite-plugins/RescriptRelayServerVitePlugin.mjs";
 
 describe("RescriptRelayVitePlugin", () => {
   test("replaces modulenames in __$rescriptChunkName__ object properties", async () => {

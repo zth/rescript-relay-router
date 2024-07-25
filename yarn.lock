@@ -1112,7 +1112,7 @@ __metadata:
   dependencies:
     "@remix-run/web-fetch": ^4.1.3
     "@rescript/core": ^1.5.2
-    "@rescript/react": 0.12.2
+    "@rescript/react": 0.13.0
     "@vitejs/plugin-react-refresh": 1.3.6
     chalk: ^5.0.1
     chokidar: ^3.5.3
@@ -1148,7 +1148,7 @@ __metadata:
   dependencies:
     "@remix-run/web-fetch": ^4.1.3
     "@rescript/core": ^1.5.2
-    "@rescript/react": 0.12.2
+    "@rescript/react": 0.13.0
     "@vitejs/plugin-react-refresh": 1.3.3
     chalk: ^5.0.1
     chokidar: ^3.5.3
@@ -1190,13 +1190,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rescript/react@npm:0.12.2":
-  version: 0.12.2
-  resolution: "@rescript/react@npm:0.12.2"
+"@rescript/react@npm:0.13.0":
+  version: 0.13.0
+  resolution: "@rescript/react@npm:0.13.0"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: dfef80e1d8be014bf15c6f5131c4e1c2a2aa44b04858efe77286f4c5b9e9c6b7df4e374ab893dddb28f606bbb328c32b8fdc15f9e9ed4bab0df23164a3a4b1aa
+  checksum: f25bab54836a821c5e97a1fd153ee57c669771e7167fb3acf5e6d7b804e10df8799b3759c1b6df9c20a420955554c75d12ff1ffd9dfdd4e0272191642f9c5e65
   languageName: node
   linkType: hard
 
@@ -5731,7 +5731,7 @@ __metadata:
     vitest: ^0.21.1
     vscode-jsonrpc: ^5.0.1
   peerDependencies:
-    "@rescript/react": ">=0.12.0"
+    "@rescript/react": ">=0.13.0"
     react: ">=18.2.0"
     rescript-relay: ">=3.0.0"
     vite: ">=4.4.9"

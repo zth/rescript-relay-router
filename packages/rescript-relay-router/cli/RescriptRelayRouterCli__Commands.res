@@ -151,7 +151,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
   [
     ${routes
     ->Array.map(route => Codegen.getRouteDefinition(route, ~indentation=1))
-    ->Array.joinWith(",\n")}
+    ->Array.join(",\n")}
   ]
 }`
 
@@ -217,7 +217,7 @@ let printRouteInfo = (~url, ~config) => {
           ->Array.map(((key, value)) => {
             ` ${key}="${value}"`
           })
-          ->Array.joinWith("")}>`
+          ->Array.join("")}>`
 
       if index + 1 !== matchCount {
         strEnd.contents =
@@ -235,7 +235,7 @@ let printRouteInfo = (~url, ~config) => {
       "\n" ++ {
         let contents = strEnd.contents->String.split("\n")
         contents->Array.reverse
-        contents->Array.joinWith("\n")
+        contents->Array.join("\n")
       },
     )
   }

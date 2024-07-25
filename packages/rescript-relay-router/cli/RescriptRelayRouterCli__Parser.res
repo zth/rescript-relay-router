@@ -7,7 +7,7 @@ open RescriptRelayRouterCli__Types
 type parserContext = {
   routeFileNames: array<string>,
   routeFiles: Dict.t<loadedRouteFile>,
-  getRouteFileContents: string => Result.t<string, Exn.t>,
+  getRouteFileContents: string => result<string, Exn.t>,
 }
 
 type currentFileContext = {
@@ -185,7 +185,7 @@ module Path = {
     let startCharIdx = loc.start.column + 1
 
     let addParamIfNotAlreadyPresent = (~currentCtx, ~paramLoc) => {
-      switch parentContext.seenPathParams->List.getBy(param => {
+      switch parentContext.seenPathParams->List.find(param => {
         let textNode = switch param.seenAtPosition {
         | PathParam(textNode) => textNode
         | PathParamWithMatchBranches(textNode, _) => textNode

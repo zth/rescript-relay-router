@@ -55,7 +55,7 @@
     "vite-plugin-html": "3.2.0"
   },
   "dependencies": {
-    "@rescript/core": "^0.6.0",
+    "@rescript/core": "^1.5.2",
     "history": "^5.2.0",
     "jsonc-parser": "^3.0.0",
     "node-fetch": "^3.2.0",

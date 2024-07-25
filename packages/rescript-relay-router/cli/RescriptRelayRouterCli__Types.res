@@ -56,8 +56,8 @@ module RouteName: {
     loc,
   }
   let getRouteName = t => t.routeNamePath->List.toArray->Array.pop->Option.getOr("")
-  let getFullRouteName = t => t.routeNamePath->List.toArray->Array.joinWith("__")
-  let getFullRouteAccessPath = t => t.routeNamePath->List.toArray->Array.joinWith(".") ++ ".Route"
+  let getFullRouteName = t => t.routeNamePath->List.toArray->Array.join("__")
+  let getFullRouteAccessPath = t => t.routeNamePath->List.toArray->Array.join(".") ++ ".Route"
   let getRouteRendererName = t => t->getFullRouteName ++ "_route_renderer"
   let getRouteRendererFileName = t => t->getRouteRendererName ++ ".res"
   let toGeneratedRouteModuleName = t => "Route__" ++ t->getFullRouteName ++ "_route"
@@ -93,8 +93,7 @@ module RoutePath: {
   }
 
   let getPathSegment = t => t.pathSegment
-  let getFullRoutePath = t =>
-    "/" ++ t.currentRoutePath->List.reverse->List.toArray->Array.joinWith("/")
+  let getFullRoutePath = t => "/" ++ t.currentRoutePath->List.reverse->List.toArray->Array.join("/")
 
   let toPattern = t =>
     "/" ++
@@ -107,7 +106,7 @@ module RoutePath: {
       }
     )
     ->List.toArray
-    ->Array.joinWith("/")
+    ->Array.join("/")
   let empty = () => {
     pathSegment: "",
     currentRoutePath: list{},

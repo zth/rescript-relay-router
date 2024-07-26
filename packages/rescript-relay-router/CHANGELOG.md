@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.4.2
+
+### Patch Changes
+
+- 9bcfcfc: fix code preloading
+
 ## 1.4.1
 
 ### Patch Changes

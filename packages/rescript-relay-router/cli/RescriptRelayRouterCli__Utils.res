@@ -145,7 +145,7 @@ let printablePathParamToTypeStr = p =>
   switch p {
   | PrintableRegularPathParam(_) => "string"
   | PrintablePathParamWithMatchBranches(_, matchBranches) =>
-    `[${matchBranches->Array.map(b => `#${b}`)->Array.joinWith(" | ")}]`
+    `[${matchBranches->Array.map(b => `#${b}`)->Array.join(" | ")}]`
   }
 
 let printablePathParamToParamName = p =>
@@ -285,7 +285,7 @@ let rec printNestedRouteModules = (route: printableRoute, ~indentation): string 
   str.contents ++ {
     let contents = strEnd.contents->String.split("\n")
     contents->Array.reverse
-    contents->Array.joinWith("\n")
+    contents->Array.join("\n")
   }
 }
 

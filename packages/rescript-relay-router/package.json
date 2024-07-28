@@ -38,13 +38,13 @@
   },
   "bin": "cli/RescriptRelayRouterCli.mjs",
   "peerDependencies": {
-    "@rescript/react": ">=0.12.0",
+    "@rescript/react": ">=0.13.0",
     "react": ">=18.2.0",
     "rescript-relay": ">=3.0.0",
     "vite": ">=4.4.9"
   },
   "dependencies": {
-    "@rescript/core": "^0.6.0",
+    "@rescript/core": "^1.5.2",
     "chalk": "^5.0.1",
     "chokidar": "^3.5.3",
     "cosmiconfig": "^7.0.1",

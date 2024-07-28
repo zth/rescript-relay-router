@@ -334,7 +334,7 @@ module CurrentContext: {
   type t
   let make: (
     ~config: config,
-    ~getRouteFileContents: string => Result.t<string, Exn.t>,
+    ~getRouteFileContents: string => result<string, Exn.t>,
     ~routeRenderersCache: Dict.t<string>,
   ) => t
   let isValidRouteFile: (t, string) => bool

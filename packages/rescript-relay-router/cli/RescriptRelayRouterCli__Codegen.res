@@ -94,7 +94,7 @@ let routePattern = "${route.path->RoutePath.toPattern}"
     ->Array.map(paramName =>
       `("${paramName}", (${paramName} :> string)->Js.Global.encodeURIComponent)`
     )
-    ->Array.joinWith(",")}])`
+    ->Array.join(",")}])`
 
   if hasQueryParams {
     `  open RelayRouter.Bindings\n  let queryParams = QueryParams.make()`->addToStr
@@ -211,7 +211,7 @@ let getQueryParamAssets = (route: printableRoute) => {
               ~key,
             )}`
         })
-        ->Array.joinWith("")}
+        ->Array.join("")}
   }
 }
 
@@ -235,7 +235,7 @@ let applyQueryParams = (
               )}))`
           }
         })
-        ->Array.joinWith("")}
+        ->Array.join("")}
 }
 
 @live
@@ -360,7 +360,7 @@ let rec findChildrenPathParams = (route: printableRoute, ~pathParams=Dict.make()
         switch param {
         | PrintableRegularPathParam(_) => "string"
         | PrintablePathParamWithMatchBranches(_, values) =>
-          `[${values->Array.map(v => `#"${v}"`)->Array.joinWith(" | ")}]`
+          `[${values->Array.map(v => `#"${v}"`)->Array.join(" | ")}]`
         },
       )
     })
@@ -479,13 +479,13 @@ ${pathParamsRecordFields
     ->Array.map(((key, _)) =>
       "    ++ pathParams->Js.Dict.get(\"" ++ key ++ "\")->Option.getOr(\"\")"
     )
-    ->Array.joinWith("\n")}
+    ->Array.join("\n")}
 ${queryParamsRecordFields
     ->Array.map(((key, _)) =>
       "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
       key ++ "\")->Option.getOr(\"\")"
     )
-    ->Array.joinWith("\n")}
+    ->Array.join("\n")}
 }
 
 `
@@ -590,7 +590,7 @@ let getPrepareTypeDefinitions = (route: printableRoute) => {
     // Proper indentation
     ->String.split("\n")
     ->Array.mapWithIndex((l, index) => index === 0 ? l : "  " ++ l)
-    ->Array.joinWith("\n") ++ "\n\n"
+    ->Array.join("\n") ++ "\n\n"
 
   str.contents
 }
@@ -661,14 +661,14 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
     ),
     children: [${route.children
     ->Array.map(r => getRouteDefinition(r, ~indentation=indentation + 1))
-    ->Array.joinWith(",\n")}],
+    ->Array.join(",\n")}],
   }
 }`
 
   str
   ->String.split("\n")
   ->Array.map(line => line->addIndentation(indentation))
-  ->Array.joinWith("\n")
+  ->Array.join("\n")
 }
 
 let getIsRouteActiveFn = () => {
@@ -702,7 +702,7 @@ let getActiveSubRouteFn = (route: RescriptRelayRouterCli__Types.printableRoute) 
   } else {
     let subRouteType = `[${elgibleChildren
       ->Array.map(routeNameAsPolyvariant)
-      ->Array.joinWith(" | ")}]`
+      ->Array.join(" | ")}]`
     `
 @live
 type subRoute = ${subRouteType}
@@ -727,7 +727,7 @@ let getActiveSubRoute = (location: RelayRouter.History.location): option<${subRo
 
         str.contents
       })
-      ->Array.joinWith("")}else {
+      ->Array.join("")}else {
     None
   }
 }

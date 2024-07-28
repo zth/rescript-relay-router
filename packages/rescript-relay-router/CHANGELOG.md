@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.4.3
+
+### Patch Changes
+
+- e69c95c: Remove trailing unit from template of generated code
+
 ## 1.4.2
 
 ### Patch Changes

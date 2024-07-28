@@ -50,8 +50,7 @@ let scaffoldRouteRenderers = (~deleteRemoved, ~config) => {
   },
   ~render=props => {
     React.null
-  },
-  (),
+  }
 )`,
       )
 

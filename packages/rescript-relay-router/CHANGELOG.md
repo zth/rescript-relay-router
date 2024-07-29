@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.4.4
+
+### Patch Changes
+
+- 9f80695: update Core to 1.5.2 and rescript-react to 0.13.0 to remove the need for manual patches
+
 ## 1.4.3
 
 ### Patch Changes

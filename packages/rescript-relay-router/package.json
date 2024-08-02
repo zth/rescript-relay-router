@@ -44,7 +44,7 @@
     "vite": ">=4.4.9"
   },
   "dependencies": {
-    "@rescript/core": "^1.5.2",
+    "@rescript/core": "1.5.2",
     "chalk": "^5.0.1",
     "chokidar": "^3.5.3",
     "cosmiconfig": "^7.0.1",
@@ -57,7 +57,7 @@
     "vscode-jsonrpc": "^5.0.1"
   },
   "devDependencies": {
-    "rescript": "11.1.2",
+    "rescript": "11.1.3",
     "vitest": "^0.21.1"
   }
 }

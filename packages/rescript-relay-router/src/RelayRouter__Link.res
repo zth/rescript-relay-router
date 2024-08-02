@@ -52,10 +52,10 @@ let make = (
 ) => {
   let linkElement = React.useRef(Js.Nullable.null)
   let hasPreloaded = React.useRef(false)
-  let (_, startTransition) = React.useTransition()
   let router = RelayRouter__Context.useRouterContext()
   let {history} = router
   let targetElementRef = TargetScrollElement.useTargetElement()
+  let startTransition = RelayRouter__Internal.RouterTransitionContext.use()
 
   let changeRoute = React.useCallback(e =>
     startTransition(() => {

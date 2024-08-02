@@ -137,3 +137,15 @@ let runAtPriority = (cb, ~priority) => {
     None
   }
 }
+
+module RouterTransitionContext = {
+  type transitionFn = (unit => unit) => unit
+
+  let context = React.createContext(_cb => ())
+
+  module Provider = {
+    let make = React.Context.provider(context)
+  }
+
+  let use = (): transitionFn => React.useContext(context)
+}

@@ -160,14 +160,12 @@ module Router = {
             ~pathParams=match.params,
             ~queryParams,
             ~location,
-          )->(
-            Js.Promise.then_(
-              assetsToPreload => {
-                assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
-                Js.Promise.resolve()
-              },
-              _,
-            )
+          )->Js.Promise.then_(
+            assetsToPreload => {
+              assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
+              Js.Promise.resolve()
+            },
+            _,
           )
         }, ~priority)
       })
@@ -280,13 +278,13 @@ module RouteRenderer = {
       </RouteComponent>
     })
 
-    <>
+    <RelayRouter__Internal.RouterTransitionContext.Provider value=startTransition>
       {switch renderPending {
       | Some(renderPending) => renderPending(isPending)
       | None => React.null
       }}
       {renderedContent.contents}
-    </>
+    </RelayRouter__Internal.RouterTransitionContext.Provider>
   }
 }
 

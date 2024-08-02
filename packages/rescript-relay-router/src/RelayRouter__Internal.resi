@@ -31,3 +31,13 @@ let runAtPriority: (
   RelayRouter__Types.callback,
   ~priority: RelayRouter__Types.preloadPriority,
 ) => option<unit => unit>
+
+module RouterTransitionContext: {
+  type transitionFn = (unit => unit) => unit
+  let context: React.Context.t<transitionFn>
+  let use: unit => transitionFn
+
+  module Provider: {
+    let make: React.component<React.Context.props<transitionFn>>
+  }
+}

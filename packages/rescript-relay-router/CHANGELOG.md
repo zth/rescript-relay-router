@@ -1,5 +1,15 @@
 # rescript-relay-router
 
+## 1.5.0
+
+### Minor Changes
+
+- d9b63d3: Upgrade package dependencies.
+
+### Patch Changes
+
+- 7ade36e: Make sure links also reuse the same main router transition
+
 ## 1.4.4
 
 ### Patch Changes

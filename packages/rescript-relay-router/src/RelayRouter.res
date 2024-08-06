@@ -160,12 +160,14 @@ module Router = {
             ~pathParams=match.params,
             ~queryParams,
             ~location,
-          )->Js.Promise.then_(
-            assetsToPreload => {
-              assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
-              Js.Promise.resolve()
-            },
-            _,
+          )->(
+            Js.Promise.then_(
+              assetsToPreload => {
+                assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
+                Js.Promise.resolve()
+              },
+              _,
+            )
           )
         }, ~priority)
       })

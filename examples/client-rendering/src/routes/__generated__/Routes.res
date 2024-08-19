@@ -24,6 +24,11 @@ module Root = {
 
       }
     }
+    /** [See route renderer](./Root__Todos__ByStatusDecodedExtra_route_renderer.res)*/
+    module ByStatusDecodedExtra = {
+      module Route = Route__Root__Todos__ByStatusDecodedExtra_route
+
+    }
     /** [See route renderer](./Root__Todos__Single_route_renderer.res)*/
     module Single = {
       module Route = Route__Root__Todos__Single_route

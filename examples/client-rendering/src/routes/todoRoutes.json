@@ -19,6 +19,10 @@
         ]
       },
       {
+        "path": "extra/:byStatusDecoded:TodoStatusPathParam.t",
+        "name": "ByStatusDecodedExtra",
+      },
+      {
         "path": ":todoId?showMore=bool",
         "name": "Single",
         "children": []

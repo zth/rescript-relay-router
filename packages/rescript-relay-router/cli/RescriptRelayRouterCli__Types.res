@@ -86,6 +86,18 @@ module RoutePath: {
     currentRoutePath: list<string>,
   }
 
+  let cleanPathParamTypeAnnotations = p =>
+    if p->String.includesFrom(":", 1) {
+      ":" ++
+      p
+      ->String.sliceToEnd(~start=1)
+      ->String.split(":")
+      ->Array.get(0)
+      ->Option.getOr("")
+    } else {
+      p
+    }
+
   let make = (path, ~currentRoutePath) => {
     let cleanPath = path->String.split("?")->Array.get(0)->Option.getOr("")
     {
@@ -96,23 +108,16 @@ module RoutePath: {
       ->List.reverse
       ->List.concat(currentRoutePath.currentRoutePath)
       ->List.filter(urlPart => urlPart != "")
-      ->List.map(p => {
-        // Handle path params with explicit type annotations
-        if p->String.includesFrom(":", 1) {
-          ":" ++
-          p
-          ->String.sliceToEnd(~start=1)
-          ->String.split(":")
-          ->Array.get(0)
-          ->Option.getOr("")
-        } else {
-          p
-        }
-      }),
+      ->List.map(p => cleanPathParamTypeAnnotations(p)),
     }
   }
 
-  let getPathSegment = t => t.pathSegment
+  let getPathSegment = t =>
+    t.pathSegment
+    ->String.split("/")
+    ->Array.map(p => cleanPathParamTypeAnnotations(p))
+    ->Array.join("/")
+
   let getFullRoutePath = t => "/" ++ t.currentRoutePath->List.reverse->List.toArray->Array.join("/")
 
   let toPattern = t =>

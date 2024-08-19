@@ -1,5 +1,15 @@
 # rescript-relay-router
 
+## 1.6.0
+
+### Minor Changes
+
+- 06b041a: Allow mapping path params to type coercable from string.
+
+### Patch Changes
+
+- 41607a6: Allow hyphens in polyvariant match branches.
+
 ## 1.5.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.6.1
+
+### Patch Changes
+
+- f23f920: Fix clean needed to remove path param type annotations in route patterns emitted.
+
 ## 1.6.0
 
 ### Minor Changes

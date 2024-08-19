@@ -267,7 +267,7 @@ function compilePath(path, caseSensitive = false, end = true) {
       .replace(/\/*\*?$/, "") // Ignore trailing / and /*, we'll handle it below
       .replace(/^\/*/, "/") // Make sure it has a leading /
       .replace(/[\\.*+^$?{}[\]]/g, "\\$&") // Escape special regex chars
-      .replace(/:([\w(|)]+)/g, (_, paramName) => {
+      .replace(/:([\w(|)-]+)/g, (_, paramName) => {
         // Check if this is a regexp param. If so, special treatment.
         if (paramName.endsWith(")")) {
           let [pname, regexp] = paramName.slice(0, -1).split("(");

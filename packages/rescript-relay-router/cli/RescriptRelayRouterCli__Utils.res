@@ -146,7 +146,7 @@ let printablePathParamToTypeStr = p =>
   | PrintableRegularPathParam({?pathToCustomModuleWithTypeT}) =>
     pathToCustomModuleWithTypeT->Option.getOr("string")
   | PrintablePathParamWithMatchBranches({matchArms}) =>
-    `[${matchArms->Array.map(b => `#${b}`)->Array.join(" | ")}]`
+    `[${matchArms->Array.map(b => `#"${b}"`)->Array.join(" | ")}]`
   }
 
 let printablePathParamToParamName = p =>

@@ -387,12 +387,12 @@ module Path = {
             )
           }
         | _ =>
-          switch %re(`/[A-Za-z0-9_]/`)->RegExp.test(char) {
+          switch %re(`/[A-Za-z0-9_\-]/`)->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
               ~loc=charLoc,
-              ~message=`"${char}" is not a valid character in a path match branch. Path match branches can contain letters, digits, and underscores.`,
+              ~message=`"${char}" is not a valid character in a path match branch. Path match branches can contain letters, digits, underscores and hyphens.`,
             )
           }
         }

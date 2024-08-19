@@ -168,7 +168,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             }
             
               {
-                path: ":byStatus(completed|notCompleted)",
+                path: ":byStatus(completed|not-completed)",
                 name: routeName,
                 chunk: "Root__Todos__ByStatus_route_renderer",
                 loadRouteRenderer,

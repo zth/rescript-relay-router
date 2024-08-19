@@ -4,7 +4,7 @@
     "name": "Todos",
     "children": [
       {
-        "path": ":byStatus(completed|notCompleted)",
+        "path": ":byStatus(completed|not-completed)",
         "name": "ByStatus",
         "children": []
       },

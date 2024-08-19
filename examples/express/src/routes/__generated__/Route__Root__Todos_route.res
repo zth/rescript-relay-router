@@ -7,7 +7,7 @@ type queryParams = {
 module Internal = {
   @live
   type childPathParams = {
-    byStatus: option<[#completed | #notCompleted]>,
+    byStatus: option<[#"completed" | #"notCompleted"]>,
     todoId: option<string>,
   }
 

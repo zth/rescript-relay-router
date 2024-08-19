@@ -7,7 +7,7 @@ type queryParams = {
 module Internal = {
   @live
   type childPathParams = {
-    byStatus: option<[#completed | #notCompleted]>,
+    byStatus: option<[#"completed" | #"not-completed"]>,
     byStatusDecoded: option<TodoStatusPathParam.t>,
     todoId: option<string>,
   }
@@ -176,7 +176,7 @@ type subRoute = [#ByStatus | #ByStatusDecoded | #Single]
 @live
 let getActiveSubRoute = (location: RelayRouter.History.location): option<[#ByStatus | #ByStatusDecoded | #Single]> => {
   let {pathname} = location
-  if RelayRouter.Internal.matchPath("/todos/:byStatus(completed|notCompleted)", pathname)->Belt.Option.isSome {
+  if RelayRouter.Internal.matchPath("/todos/:byStatus(completed|not-completed)", pathname)->Belt.Option.isSome {
       Some(#ByStatus)
     } else if RelayRouter.Internal.matchPath("/todos/:byStatusDecoded", pathname)->Belt.Option.isSome {
       Some(#ByStatusDecoded)

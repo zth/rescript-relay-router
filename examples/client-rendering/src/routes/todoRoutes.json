@@ -9,6 +9,16 @@
         "children": []
       },
       {
+        "path": ":byStatusDecoded:TodoStatusPathParam.t",
+        "name": "ByStatusDecoded",
+        "children": [
+          {
+            "path": "", 
+            "name": "Child"
+          }
+        ]
+      },
+      {
         "path": ":todoId?showMore=bool",
         "name": "Single",
         "children": []

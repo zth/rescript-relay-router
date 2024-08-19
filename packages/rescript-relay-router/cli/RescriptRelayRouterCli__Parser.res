@@ -163,7 +163,7 @@ let dummyPos: range = {
 module Path = {
   let withoutQueryParams = path => path->String.split("?")->Array.get(0)->Option.getOr("")
 
-  type inContext = ParamName | MatchBranches
+  type inContext = ParamName | ParamCustomType | MatchBranches
 
   @live
   type findingPathParamsContext = {
@@ -171,6 +171,7 @@ module Path = {
     endChar: option<int>,
     paramName: string,
     inContext: inContext,
+    currentParamCustomType: string,
     currentMatchParam: string,
     matchBranches: array<string>,
   }
@@ -187,8 +188,8 @@ module Path = {
     let addParamIfNotAlreadyPresent = (~currentCtx, ~paramLoc) => {
       switch parentContext.seenPathParams->List.find(param => {
         let textNode = switch param.seenAtPosition {
-        | PathParam(textNode) => textNode
-        | PathParamWithMatchBranches(textNode, _) => textNode
+        | PathParam({text}) => text
+        | PathParamWithMatchBranches({text}) => text
         }
         textNode.text == currentCtx.paramName
       }) {
@@ -208,9 +209,14 @@ module Path = {
         }
         foundPathParams->Array.push(
           if currentCtx.matchBranches->Array.length > 0 {
-            PathParamWithMatchBranches(textNode, currentCtx.matchBranches)
+            PathParamWithMatchBranches({text: textNode, matchArms: currentCtx.matchBranches})
+          } else if currentCtx.currentParamCustomType->String.length > 0 {
+            PathParam({
+              text: textNode,
+              pathToCustomModuleWithTypeT: currentCtx.currentParamCustomType,
+            })
           } else {
-            PathParam(textNode)
+            PathParam({text: textNode})
           },
         )
       | Some(alreadySeenPathParam) =>
@@ -254,6 +260,7 @@ module Path = {
             endChar: None,
             inContext: ParamName,
             currentMatchParam: "",
+            currentParamCustomType: "",
             matchBranches: [],
           })
       | (Some(currentCtx), "/") =>
@@ -301,6 +308,13 @@ module Path = {
             ...currentCtx,
             inContext: MatchBranches,
           })
+      | (Some({inContext: ParamName, paramName} as currentCtx), ":")
+        if paramName->String.length > 0 =>
+        currentContext :=
+          Some({
+            ...currentCtx,
+            inContext: ParamCustomType,
+          })
       | (Some({inContext: ParamName} as currentCtx), char) =>
         currentContext :=
           Some({
@@ -324,7 +338,34 @@ module Path = {
           | false =>
             ctx.addDecodeError(
               ~loc=charLoc,
-              ~message=`"${char}" is not a valid character in a path parameter. Path parameters can contain letters, digits, and underscores.`,
+              ~message=`"${char}" is not a valid character in a path parameter. Path parameters can contain letters, digits, dots and underscores.`,
+            )
+          }
+        }
+      | (Some({inContext: ParamCustomType} as currentCtx), char) =>
+        currentContext :=
+          Some({
+            ...currentCtx,
+            currentParamCustomType: currentCtx.currentParamCustomType ++ char,
+          })
+
+        switch currentCtx.paramName->String.length {
+        | 0 =>
+          switch %re(`/[A-Z]/`)->RegExp.test(char) {
+          | true => ()
+          | false =>
+            ctx.addDecodeError(
+              ~loc=charLoc,
+              ~message=`Path parameter type references must refer to a module, and therefore must start with an uppercase letter.`,
+            )
+          }
+        | _ =>
+          switch %re(`/[A-Za-z0-9_\.]/`)->RegExp.test(char) {
+          | true => ()
+          | false =>
+            ctx.addDecodeError(
+              ~loc=charLoc,
+              ~message=`"${char}" is not a valid character in a path parameter. Path parameters can contain letters, digits, dots and underscores.`,
             )
           }
         }
@@ -362,6 +403,22 @@ module Path = {
     // If there's an open context when there's no more chars, it means the param goes to the end of the line.
     switch currentContext.contents {
     | None => ()
+    | Some({currentParamCustomType, startChar})
+      if currentParamCustomType->String.length > 0 &&
+        !(currentParamCustomType->String.endsWith(".t")) =>
+      ctx.addDecodeError(
+        ~loc={
+          start: {
+            line: lineNum,
+            column: startChar,
+          },
+          end_: {
+            line: lineNum,
+            column: startCharIdx + pathWithoutQueryParams->String.length,
+          },
+        },
+        ~message=`Custom path parameters type annotations must refer to a type t in a module, hence end with ".t".`,
+      )
     | Some(currentCtx) =>
       let paramLoc = {
         start: {

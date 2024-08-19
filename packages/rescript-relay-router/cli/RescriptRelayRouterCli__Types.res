@@ -34,10 +34,17 @@ type queryParamNode = {
   queryParam: (range, queryParam),
 }
 
-type pathParam = PathParam(textNode) | PathParamWithMatchBranches(textNode, array<string>)
+type pathParam =
+  | PathParam({text: textNode, pathToCustomModuleWithTypeT?: string})
+  | PathParamWithMatchBranches({
+      text: textNode,
+      /** The paths to match for this route. */
+      matchArms: array<string>,
+    })
 
 type printablePathParam =
-  PrintableRegularPathParam(string) | PrintablePathParamWithMatchBranches(string, array<string>)
+  | PrintableRegularPathParam({text: string, pathToCustomModuleWithTypeT?: string})
+  | PrintablePathParamWithMatchBranches({text: string, matchArms: array<string>})
 
 module RouteName: {
   type t
@@ -88,7 +95,20 @@ module RoutePath: {
       ->List.fromArray
       ->List.reverse
       ->List.concat(currentRoutePath.currentRoutePath)
-      ->List.filter(urlPart => urlPart != ""),
+      ->List.filter(urlPart => urlPart != "")
+      ->List.map(p => {
+        // Handle path params with explicit type annotations
+        if p->String.includesFrom(":", 1) {
+          ":" ++
+          p
+          ->String.sliceToEnd(~start=1)
+          ->String.split(":")
+          ->Array.get(0)
+          ->Option.getOr("")
+        } else {
+          p
+        }
+      }),
     }
   }
 

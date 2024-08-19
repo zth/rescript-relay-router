@@ -143,15 +143,16 @@ let toRendererFileName = rendererName => rendererName ++ "_route_renderer.res"
 
 let printablePathParamToTypeStr = p =>
   switch p {
-  | PrintableRegularPathParam(_) => "string"
-  | PrintablePathParamWithMatchBranches(_, matchBranches) =>
-    `[${matchBranches->Array.map(b => `#${b}`)->Array.join(" | ")}]`
+  | PrintableRegularPathParam({?pathToCustomModuleWithTypeT}) =>
+    pathToCustomModuleWithTypeT->Option.getOr("string")
+  | PrintablePathParamWithMatchBranches({matchArms}) =>
+    `[${matchArms->Array.map(b => `#${b}`)->Array.join(" | ")}]`
   }
 
 let printablePathParamToParamName = p =>
   switch p {
-  | PrintableRegularPathParam(name) => name
-  | PrintablePathParamWithMatchBranches(name, _) => name
+  | PrintableRegularPathParam({text}) => text
+  | PrintablePathParamWithMatchBranches({text}) => text
   }
 
 let rec rawRouteToMatchable = (route: printableRoute): routeForCliMatching => {
@@ -191,9 +192,10 @@ and parsedToPrintable = (routeEntry: routeEntry): printableRoute => {
   path: routeEntry.routePath,
   params: routeEntry.pathParams->Array.map(p =>
     switch p {
-    | PathParam({text}) => PrintableRegularPathParam(text)
-    | PathParamWithMatchBranches({text}, matchBranches) =>
-      PrintablePathParamWithMatchBranches(text, matchBranches)
+    | PathParam({text, ?pathToCustomModuleWithTypeT}) =>
+      PrintableRegularPathParam({text: text.text, ?pathToCustomModuleWithTypeT})
+    | PathParamWithMatchBranches({text, matchArms}) =>
+      PrintablePathParamWithMatchBranches({text: text.text, matchArms})
     }
   ),
   children: routeEntry.children->Option.getOr([])->routeChildrenToPrintable,
@@ -268,6 +270,9 @@ let rec printNestedRouteModules = (route: printableRoute, ~indentation): string 
   let moduleName = route.name->RouteName.getRouteName
   let str = ref("")
   let strEnd = ref("")
+
+  str->printIndentation(indentation)
+  str->add(`/** [See route renderer](./${route.name->RouteName.getRouteRendererFileName})*/\n`)
 
   str->printIndentation(indentation)
   str->add(`module ${moduleName} = {\n`)

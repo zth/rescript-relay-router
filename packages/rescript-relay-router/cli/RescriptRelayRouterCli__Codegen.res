@@ -308,6 +308,31 @@ type routeParamFields = {
   allRecordFields: array<recordField>,
 }
 
+let getRecordStructureToDecodePathParams = (p: printableRoute, ~paramName="params") => {
+  let str = ref("")
+
+  switch p.params {
+  | [] => str.contents
+  | _ =>
+    p.params->Array.forEach(p => {
+      str :=
+        str.contents ++
+        `    ${Utils.printablePathParamToParamName(
+            p,
+          )}: ${paramName}->Js.Dict.unsafeGet("${Utils.printablePathParamToParamName(
+            p,
+          )}")${switch p {
+          | PrintableRegularPathParam({text, pathToCustomModuleWithTypeT}) =>
+            `->((${text}RawAsString: string) => (${text}RawAsString :> ${pathToCustomModuleWithTypeT}))`
+          | PrintablePathParamWithMatchBranches(_) => `->Obj.magic`
+          | _ => ""
+          }},\n`
+    })
+
+    str.contents
+  }
+}
+
 let getRouteParamRecordFields = (route: printableRoute) => {
   let pathParamsRecordFields = []
   let queryParamsRecordFields = []
@@ -354,14 +379,10 @@ let rec findChildrenPathParams = (route: printableRoute, ~pathParams=Dict.make()
     child.params->Array.forEach(param => {
       pathParams->Dict.set(
         switch param {
-        | PrintableRegularPathParam(name)
-        | PrintablePathParamWithMatchBranches(name, _) => name
+        | PrintableRegularPathParam({text})
+        | PrintablePathParamWithMatchBranches({text}) => text
         },
-        switch param {
-        | PrintableRegularPathParam(_) => "string"
-        | PrintablePathParamWithMatchBranches(_, values) =>
-          `[${values->Array.map(v => `#"${v}"`)->Array.join(" | ")}]`
-        },
+        param,
       )
     })
     let _ = findChildrenPathParams(child, ~pathParams)
@@ -417,18 +438,8 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
     str.contents = str.contents ++ "    childParams: Obj.magic(pathParams),\n"
   }
 
-  params->Array.forEach(param => {
-    str.contents =
-      str.contents ++
-      `    ${Param(Utils.printablePathParamToParamName(param))
-        ->SafeParam.makeSafeParamName(~params)
-        ->SafeParam.getSafeKey}: pathParams->Js.Dict.unsafeGet("${Utils.printablePathParamToParamName(
-          param,
-        )}")${switch param {
-        | PrintablePathParamWithMatchBranches(_) => "->Obj.magic"
-        | _ => ""
-        }},\n`
-  })
+  str.contents =
+    str.contents ++ getRecordStructureToDecodePathParams(route, ~paramName="pathParams")
 
   if hasQueryParams {
     route.queryParams
@@ -539,7 +550,7 @@ let getPrepareTypeDefinitions = (route: printableRoute) => {
   | childPathParams =>
     str := str.contents ++ "  @live\n  type childPathParams = {\n"
     childPathParams->Array.forEach(((key, typ)) => {
-      str := str.contents ++ `    ${key}: option<${typ}>,\n`
+      str := str.contents ++ `    ${key}: option<${typ->Utils.printablePathParamToTypeStr}>,\n`
     })
     str := str.contents ++ "  }\n\n"
     recordFields->Array.push(KeyValue("childParams", "childPathParams"))

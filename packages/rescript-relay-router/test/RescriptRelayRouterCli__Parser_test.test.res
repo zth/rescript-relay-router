@@ -61,8 +61,9 @@ describe("Parsing", () => {
         pathParamsParent->Array.map(
           p =>
             switch p {
-            | PathParam({text}) => text
-            | PathParamWithMatchBranches({text}, _) => text
+            | PathParam({text})
+            | PathParamWithMatchBranches({text}) =>
+              text.text
             },
         ),
       )->Expect.toEqual(["slug"])
@@ -71,8 +72,9 @@ describe("Parsing", () => {
         pathParamsChild->Array.map(
           p =>
             switch p {
-            | PathParam({text}) => text
-            | PathParamWithMatchBranches({text}, _) => text
+            | PathParam({text})
+            | PathParamWithMatchBranches({text}) =>
+              text.text
             },
         ),
       )->Expect.toEqual(["memberId", "slug"])

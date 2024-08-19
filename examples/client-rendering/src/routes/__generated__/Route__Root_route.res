@@ -3,7 +3,8 @@
 module Internal = {
   @live
   type childPathParams = {
-    byStatus: option<[#"completed" | #"notCompleted"]>,
+    byStatus: option<[#completed | #notCompleted]>,
+    byStatusDecoded: option<TodoStatusPathParam.t>,
     todoId: option<string>,
   }
 

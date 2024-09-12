@@ -78,9 +78,7 @@ describe("Query params", () => {
 
     expect(
       CustomModule({moduleName: "SomeModule", required: true})->toParser(~variableName="propName"),
-    )->Expect.toBe(
-      "propName->Js.Global.decodeURIComponent->SomeModule.parse->Belt.Option.getWithDefault(SomeModule.defaultValue)",
-    )
+    )->Expect.toBe("propName->Js.Global.decodeURIComponent->SomeModule.parse")
 
     /* Arrays */
     expect(Array(String)->toParser(~variableName="propName"))->Expect.toBe(
@@ -108,7 +106,7 @@ describe("Query params", () => {
         ~variableName="propName",
       ),
     )->Expect.toBe(
-      "propName->Belt.Array.map(value => value->Js.Global.decodeURIComponent->SomeModule.parse->Belt.Option.getWithDefault(SomeModule.defaultValue))",
+      "propName->Belt.Array.map(value => value->Js.Global.decodeURIComponent->SomeModule.parse)",
     )
   })
 })

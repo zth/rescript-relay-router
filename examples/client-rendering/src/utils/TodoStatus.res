@@ -7,6 +7,8 @@ let parse = str =>
   | _ => None
   }
 
+let defaultValue = NotCompleted
+
 let serialize = t =>
   switch t {
   | Completed => "completed"

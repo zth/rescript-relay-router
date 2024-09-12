@@ -43,6 +43,13 @@ module QueryParams = {
       | "float" => Ok(Float)
       | "bool" => Ok(Boolean)
       | maybeCustomModule =>
+        let required = maybeCustomModule->String.endsWith("!")
+        let maybeCustomModule = if required {
+          maybeCustomModule->String.replace("!", "")
+        } else {
+          maybeCustomModule
+        }
+
         let firstChar = maybeCustomModule->String.charAt(0)
         let correctEnding = maybeCustomModule->String.endsWith(".t")
 
@@ -58,6 +65,7 @@ module QueryParams = {
                   ~start=0,
                   ~end=String.length(maybeCustomModule) - 2,
                 ),
+                required,
               }),
             )
           | _ => Error()

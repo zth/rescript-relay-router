@@ -27,7 +27,12 @@ type parentRouteLoc = {
 }
 
 type rec queryParam =
-  Array(queryParam) | String | Boolean | Int | Float | CustomModule({moduleName: string})
+  | Array(queryParam)
+  | String
+  | Boolean
+  | Int
+  | Float
+  | CustomModule({moduleName: string, required: bool})
 
 type queryParamNode = {
   name: textNode,

@@ -7,6 +7,7 @@ type pathParams = {
 
 type queryParams = {
   statuses: option<array<TodoStatus.t>>,
+  statusWithDefault: TodoStatus.t,
 }
 
 module Internal = {
@@ -47,6 +48,7 @@ module Internal = {
       location: location,
       byStatus: pathParams->Js.Dict.unsafeGet("byStatus")->Obj.magic,
       statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
+      statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Belt.Option.flatMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)->Belt.Option.getWithDefault(TodoStatus.defaultValue),
     }
   }
 
@@ -58,6 +60,8 @@ let parseQueryParams = (search: string): queryParams => {
   let queryParams = QueryParams.parse(search)
   {
     statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
+
+    statusWithDefault: queryParams->QueryParams.getParamByKey("statusWithDefault")->Belt.Option.flatMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)->Belt.Option.getWithDefault(TodoStatus.defaultValue),
 
   }
 }
@@ -71,6 +75,7 @@ let applyQueryParams = (
 
   
   queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Belt.Option.map(statuses => statuses->Belt.Array.map(statuses => statuses->TodoStatus.serialize->Js.Global.encodeURIComponent)))
+  queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=newParams.statusWithDefault->TodoStatus.serialize->Js.Global.encodeURIComponent)
 }
 
 @live
@@ -129,18 +134,20 @@ let useQueryParams = (): useQueryParamsReturn => {
 let routePattern = "/todos/:byStatus(completed|not-completed)"
 
 @live
-let makeLink = (~byStatus: [#"completed" | #"not-completed"], ~statuses: option<array<TodoStatus.t>>=?) => {
+let makeLink = (~byStatus: [#"completed" | #"not-completed"], ~statuses: option<array<TodoStatus.t>>=?, ~statusWithDefault: TodoStatus.t=TodoStatus.defaultValue) => {
   open RelayRouter.Bindings
   let queryParams = QueryParams.make()
   switch statuses {
     | None => ()
     | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Belt.Array.map(value => value->TodoStatus.serialize->Js.Global.encodeURIComponent))
   }
+
+  queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=statusWithDefault->TodoStatus.serialize->Js.Global.encodeURIComponent)
   RelayRouter.Bindings.generatePath(routePattern, Js.Dict.fromArray([("byStatus", (byStatus :> string)->Js.Global.encodeURIComponent)])) ++ queryParams->QueryParams.toString
 }
 @live
 let makeLinkFromQueryParams = (~byStatus: [#"completed" | #"not-completed"], queryParams: queryParams) => {
-  makeLink(~byStatus, ~statuses=?queryParams.statuses, )
+  makeLink(~byStatus, ~statuses=?queryParams.statuses, ~statusWithDefault=queryParams.statusWithDefault, )
 }
 
 @live

@@ -57,11 +57,7 @@ let getRouteMakerAndAssets = (route: printableRoute) => {
 
     labeledArguments->Array.push((
       key->SafeParam.getSafeKey,
-      switch paramType {
-      | CustomModule({required: true, moduleName}) =>
-        `${Utils.QueryParams.toTypeStr(paramType)}=${moduleName}.defaultValue`
-      | _ => `option<${Utils.QueryParams.toTypeStr(paramType)}>=?`
-      },
+      `option<${Utils.QueryParams.toTypeStr(paramType)}>=?`,
     ))
 
     queryParamSerializers->Array.push((
@@ -104,22 +100,16 @@ let routePattern = "${route.path->RoutePath.toPattern}"
     `  open RelayRouter.Bindings\n  let queryParams = QueryParams.make()`->addToStr
 
     queryParamSerializers->Array.forEach(((key, serializer, paramType)) => {
-      let needsUnwrapping = Utils.queryParamIsOptional(paramType)
-
       let serializerStr = `queryParams->QueryParams.${switch paramType {
         | Array(_) => "setParamArray"
         | _ => "setParam"
         }}(~key="${key->SafeParam.getOriginalKey}", ~value=${serializer})`
 
-      if needsUnwrapping {
-        `
+      `
   switch ${key->SafeParam.getSafeKey} {
     | None => ()
     | Some(${key->SafeParam.getSafeKey}) => ${serializerStr}
   }\n`->addToStr
-      } else {
-        `\n  ${serializerStr}\n`->addToStr
-      }
     })
   }
 

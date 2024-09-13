@@ -136,7 +136,7 @@ let useQueryParams = (): useQueryParamsReturn => {
 let routePattern = "/todos"
 
 @live
-let makeLink = (~statuses: option<array<TodoStatus.t>>=?, ~statusWithDefault: TodoStatus.t=TodoStatus.defaultValue) => {
+let makeLink = (~statuses: option<array<TodoStatus.t>>=?, ~statusWithDefault: option<TodoStatus.t>=?) => {
   open RelayRouter.Bindings
   let queryParams = QueryParams.make()
   switch statuses {
@@ -144,7 +144,10 @@ let makeLink = (~statuses: option<array<TodoStatus.t>>=?, ~statusWithDefault: To
     | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Belt.Array.map(value => value->TodoStatus.serialize->Js.Global.encodeURIComponent))
   }
 
-  queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=statusWithDefault->TodoStatus.serialize->Js.Global.encodeURIComponent)
+  switch statusWithDefault {
+    | None => ()
+    | Some(statusWithDefault) => queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=statusWithDefault->TodoStatus.serialize->Js.Global.encodeURIComponent)
+  }
   RelayRouter.Bindings.generatePath(routePattern, Js.Dict.fromArray([])) ++ queryParams->QueryParams.toString
 }
 @live

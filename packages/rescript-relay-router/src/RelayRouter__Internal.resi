@@ -6,10 +6,25 @@ type setQueryParamsFn<'queryParams> = (
   ~shallow: bool=?,
 ) => unit
 
+type parseQueryParamsFn<'queryParams> = string => 'queryParams
+type applyQueryParamsFn<'queryParams> = (
+  RelayRouter__Bindings.QueryParams.t,
+  ~newParams: 'queryParams,
+) => unit
+
 let useSetQueryParams: (
-  ~parseQueryParams: string => 'queryParams,
-  ~applyQueryParams: (RelayRouter__Bindings.QueryParams.t, ~newParams: 'queryParams) => unit,
+  ~parseQueryParams: parseQueryParamsFn<'queryParams>,
+  ~applyQueryParams: applyQueryParamsFn<'queryParams>,
 ) => setQueryParamsFn<'queryParams>
+
+type makeNewQueryParamsMakerFn<'queryParams> = 'queryParams => 'queryParams
+
+type makeNewQueryParamsFn<'queryParams> = makeNewQueryParamsMakerFn<'queryParams> => string
+
+let useMakeLinkWithPreservedPath: (
+  ~parseQueryParams: parseQueryParamsFn<'queryParams>,
+  ~applyQueryParams: applyQueryParamsFn<'queryParams>,
+) => makeNewQueryParamsFn<'queryParams>
 
 type pathMatch = {params: Js.Dict.t<string>}
 

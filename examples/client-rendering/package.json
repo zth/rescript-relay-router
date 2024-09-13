@@ -1,6 +1,6 @@
 {
   "name": "@rescript-relay-router-example/client-rendering",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "private": true,
   "engines": {
     "node": ">=16"

@@ -1,5 +1,12 @@
 # @rescript-relay-router-example/express
 
+## 0.0.30
+
+### Patch Changes
+
+- Updated dependencies [60ee186]
+  - rescript-relay-router@1.7.0
+
 ## 0.0.29
 
 ### Patch Changes

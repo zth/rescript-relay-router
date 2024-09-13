@@ -390,8 +390,52 @@ All query parameters can also be defined as `array<param>`. So, for example: `so
 More notes:
 
 - The router will automatically take care of encoding and decoding values so it can be put in the URL.
-- All query parameters will always be typed as `option`. This is a safety measure as there's no way to force a query parameter to always be set in the URL.
 - A change in query params only will _not_ trigger a full route re-render (meaning the route renderers gets updated query params). With Relay, you're encouraged to refetch only the data you need to refetch as query params change, not the full route query if you can avoid it.
+
+### Query parameters with default values
+
+While there's no way to guarantee that a query param always has a value in the URL, you can set default values for query params so that the value _you_ interact with in the code will always exist. This can be quite convenient at times.
+
+Currently, this is only possible to do with custom modules. Here's a full example to illustrate how it's done:
+
+```json
+[
+  {
+    "name": "Organization",
+    "path": "/organization/:slug?displayMode=DisplayMode.t!&expandDetails=bool",
+    "children": [
+      { "name": "Dashboard", "path": "" },
+      { "name": "Members", "path": "members?first=int&after=string" }
+    ]
+  }
+]
+```
+
+- Notice the `!` after `displayMode=DisplayMode.t`. This means that this particular query parameter will always have a value. But, where's the default value defined? The router expects you to have a `defaultValue` value inside of `DisplayMode`, so it can point to `DisplayMode.defaultValue` as needed. Here's an example:
+
+```rescript
+// DisplayMode.res
+type t = Full | Partial
+
+let parse = (str): option<t> => {
+  switch str {
+  | "full" => Some(Full)
+  | "partial" => Some(Partial)
+  | _ => None
+  }
+}
+
+let serialize = (t: t) => {
+  switch t {
+  | Full => "full"
+  | Partial => "partial"
+  }
+}
+
+let defaultValue = Full
+```
+
+There, anytime `displayMode` is not set in the URL, you'll get the `defaultValue` of `Full` instead.
 
 ### Accessing and setting query parameters
 

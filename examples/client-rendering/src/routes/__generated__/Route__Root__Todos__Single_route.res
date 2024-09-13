@@ -7,6 +7,7 @@ type pathParams = {
 
 type queryParams = {
   statuses: option<array<TodoStatus.t>>,
+  statusWithDefault: TodoStatus.t,
   showMore: option<bool>,
 }
 
@@ -48,6 +49,7 @@ module Internal = {
       location: location,
       todoId: pathParams->Js.Dict.unsafeGet("todoId"),
       statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
+      statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Belt.Option.flatMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)->Belt.Option.getWithDefault(TodoStatus.defaultValue),
       showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.flatMap(value => switch value {
         | "true" => Some(true)
         | "false" => Some(false)
@@ -64,6 +66,8 @@ let parseQueryParams = (search: string): queryParams => {
   let queryParams = QueryParams.parse(search)
   {
     statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
+
+    statusWithDefault: queryParams->QueryParams.getParamByKey("statusWithDefault")->Belt.Option.flatMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)->Belt.Option.getWithDefault(TodoStatus.defaultValue),
 
     showMore: queryParams->QueryParams.getParamByKey("showMore")->Belt.Option.flatMap(value => switch value {
       | "true" => Some(true)
@@ -83,6 +87,7 @@ let applyQueryParams = (
 
   
   queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Belt.Option.map(statuses => statuses->Belt.Array.map(statuses => statuses->TodoStatus.serialize->Js.Global.encodeURIComponent)))
+  queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=newParams.statusWithDefault->TodoStatus.serialize->Js.Global.encodeURIComponent)
   queryParams->QueryParams.setParamOpt(~key="showMore", ~value=newParams.showMore->Belt.Option.map(showMore => string_of_bool(showMore)))
 }
 
@@ -142,12 +147,17 @@ let useQueryParams = (): useQueryParamsReturn => {
 let routePattern = "/todos/:todoId"
 
 @live
-let makeLink = (~todoId: string, ~statuses: option<array<TodoStatus.t>>=?, ~showMore: option<bool>=?) => {
+let makeLink = (~todoId: string, ~statuses: option<array<TodoStatus.t>>=?, ~statusWithDefault: option<TodoStatus.t>=?, ~showMore: option<bool>=?) => {
   open RelayRouter.Bindings
   let queryParams = QueryParams.make()
   switch statuses {
     | None => ()
     | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Belt.Array.map(value => value->TodoStatus.serialize->Js.Global.encodeURIComponent))
+  }
+
+  switch statusWithDefault {
+    | None => ()
+    | Some(statusWithDefault) => queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=statusWithDefault->TodoStatus.serialize->Js.Global.encodeURIComponent)
   }
 
   switch showMore {
@@ -158,7 +168,7 @@ let makeLink = (~todoId: string, ~statuses: option<array<TodoStatus.t>>=?, ~show
 }
 @live
 let makeLinkFromQueryParams = (~todoId: string, queryParams: queryParams) => {
-  makeLink(~todoId, ~statuses=?queryParams.statuses, ~showMore=?queryParams.showMore, )
+  makeLink(~todoId, ~statuses=?queryParams.statuses, ~statusWithDefault=queryParams.statusWithDefault, ~showMore=?queryParams.showMore, )
 }
 
 @live

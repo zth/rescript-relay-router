@@ -100,13 +100,15 @@ let routePattern = "${route.path->RoutePath.toPattern}"
     `  open RelayRouter.Bindings\n  let queryParams = QueryParams.make()`->addToStr
 
     queryParamSerializers->Array.forEach(((key, serializer, paramType)) => {
+      let serializerStr = `queryParams->QueryParams.${switch paramType {
+        | Array(_) => "setParamArray"
+        | _ => "setParam"
+        }}(~key="${key->SafeParam.getOriginalKey}", ~value=${serializer})`
+
       `
   switch ${key->SafeParam.getSafeKey} {
     | None => ()
-    | Some(${key->SafeParam.getSafeKey}) => queryParams->QueryParams.${switch paramType {
-        | Array(_) => "setParamArray"
-        | _ => "setParam"
-        }}(~key="${key->SafeParam.getOriginalKey}", ~value=${serializer})
+    | Some(${key->SafeParam.getSafeKey}) => ${serializerStr}
   }\n`->addToStr
     })
   }
@@ -136,9 +138,11 @@ let makeLinkFromQueryParams = (`->addToStr
     })
 
     route.queryParams
-    ->Dict.keysToArray
-    ->Array.forEach(queryParamName => {
-      `~${queryParamName}=?queryParams.${queryParamName}, `->addToStr
+    ->Dict.toArray
+    ->Array.forEach(((queryParamName, queryParam)) => {
+      `~${queryParamName}=${Utils.queryParamIsOptional(queryParam)
+          ? "?"
+          : ""}queryParams.${queryParamName}, `->addToStr
     })
 
     `)
@@ -183,8 +187,18 @@ let getQueryParamTypeDefinition = (route: printableRoute) => {
     let str = ref("type queryParams = {")
 
     queryParamEntries->Array.forEach(((key, queryParam)) => {
+      let isOptional = Utils.queryParamIsOptional(queryParam)
       str.contents =
-        str.contents ++ `\n  ${key}: option<${queryParam->Utils.QueryParams.toTypeStr}>,`
+        str.contents ++
+        `\n  ${key}: ${if isOptional {
+            "option<"
+          } else {
+            ""
+          }}${queryParam->Utils.QueryParams.toTypeStr}${if isOptional {
+            ">"
+          } else {
+            ""
+          }},`
     })
 
     str.contents = str.contents ++ "\n}\n\n"
@@ -229,6 +243,10 @@ let applyQueryParams = (
             `\n  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Belt.Option.map(${key} => ${key}->Belt.Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
                 ~variableName=key,
               )})))`
+          | CustomModule({required: true}) =>
+            `\n  queryParams->QueryParams.setParam(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
+                ~variableName=`newParams.${key}`,
+              )})`
           | queryParam =>
             `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Belt.Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
                 ~variableName=key,

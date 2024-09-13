@@ -300,6 +300,10 @@ let queryParamToQueryParamDecoder = (param, ~key) => {
     `getArrayParamByKey("${key}")->Belt.Option.map(value => value->Belt.Array.keepMap(value => ${param->QueryParams.toParser(
         ~variableName="value",
       )})),\n`
+  | CustomModule({required: true, moduleName}) =>
+    `getParamByKey("${key}")->Belt.Option.flatMap(value => ${param->QueryParams.toParser(
+        ~variableName="value",
+      )})->Belt.Option.getWithDefault(${moduleName}.defaultValue),\n`
   | param =>
     `getParamByKey("${key}")->Belt.Option.flatMap(value => ${param->QueryParams.toParser(
         ~variableName="value",
@@ -312,4 +316,11 @@ let maybePluralize = (text, ~count) =>
     ""
   } else {
     "s"
+  }
+
+let rec queryParamIsOptional = (qp: queryParam) =>
+  switch qp {
+  | CustomModule({required: true}) => false
+  | Array(inner) => queryParamIsOptional(inner)
+  | _ => true
   }

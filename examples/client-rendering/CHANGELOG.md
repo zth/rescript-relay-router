@@ -1,5 +1,13 @@
 # @rescript-relay-router-example/client-rendering
 
+## 0.0.31
+
+### Patch Changes
+
+- Updated dependencies [561844b]
+- Updated dependencies [2d4f46c]
+  - rescript-relay-router@1.7.1
+
 ## 0.0.30
 
 ### Patch Changes

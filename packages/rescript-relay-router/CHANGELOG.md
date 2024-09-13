@@ -1,5 +1,12 @@
 # rescript-relay-router
 
+## 1.7.1
+
+### Patch Changes
+
+- 561844b: Ensure query params are always fresh when updated. Removes stale closure problems, reduces generated code size, and make query param setter fns stable.
+- 2d4f46c: Optimize useMakeLinkWithPreservedPath
+
 ## 1.7.0
 
 ### Minor Changes

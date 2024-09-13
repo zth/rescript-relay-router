@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.7.0
+
+### Minor Changes
+
+- 60ee186: Experimental support for query param default values.
+
 ## 1.6.1
 
 ### Patch Changes

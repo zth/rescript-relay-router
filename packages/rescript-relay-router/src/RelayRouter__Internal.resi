@@ -1,20 +1,15 @@
-let setQueryParams: (
-  RelayRouter__Bindings.QueryParams.t,
-  RelayRouter__Types.setQueryParamsMode,
-  RelayRouter__History.t,
+type setQueryParamsFn<'queryParams> = (
+  ~setter: 'queryParams => 'queryParams,
+  ~onAfterParamsSet: 'queryParams => unit=?,
+  ~navigationMode_: RelayRouter__Types.setQueryParamsMode=?,
+  ~removeNotControlledParams: bool=?,
+  ~shallow: bool=?,
 ) => unit
 
-type setQueryParamsFnConfig = {
-  applyQueryParams: RelayRouter__Bindings.QueryParams.t => unit,
-  currentSearch: string,
-  navigationMode_: RelayRouter__Types.setQueryParamsMode,
-  removeNotControlledParams: bool,
-  shallow: bool,
-}
-
-type setQueryParamsFn = setQueryParamsFnConfig => unit
-
-let useSetQueryParams: unit => setQueryParamsFn
+let useSetQueryParams: (
+  ~parseQueryParams: string => 'queryParams,
+  ~applyQueryParams: (RelayRouter__Bindings.QueryParams.t, ~newParams: 'queryParams) => unit,
+) => setQueryParamsFn<'queryParams>
 
 type pathMatch = {params: Js.Dict.t<string>}
 

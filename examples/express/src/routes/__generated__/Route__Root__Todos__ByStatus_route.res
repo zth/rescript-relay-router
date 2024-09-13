@@ -87,41 +87,14 @@ type useQueryParamsReturn = {
 
 @live
 let useQueryParams = (): useQueryParamsReturn => {
-  let internalSetQueryParams = RelayRouter__Internal.useSetQueryParams()
   let {search} = RelayRouter.Utils.useLocation()
   let currentQueryParams = React.useMemo(() => {
     search->parseQueryParams
   }, [search])
 
-  let setParams = (
-    ~setter,
-    ~onAfterParamsSet=?,
-    ~navigationMode_=RelayRouter.Types.Push,
-    ~removeNotControlledParams=true,
-    ~shallow=true,
-  ) => {
-    let newParams = setter(currentQueryParams)
-
-    switch onAfterParamsSet {
-    | None => ()
-    | Some(onAfterParamsSet) => onAfterParamsSet(newParams)
-    }
-
-    internalSetQueryParams({
-      applyQueryParams: applyQueryParams(~newParams, ...),
-      currentSearch: search,
-      navigationMode_: navigationMode_,
-      removeNotControlledParams: removeNotControlledParams,
-      shallow: shallow,
-    })
-  }
-
   {
     queryParams: currentQueryParams,
-    setParams: React.useMemo(
-      () => setParams,
-      (search, currentQueryParams),
-    ),
+    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams, ~applyQueryParams),
   }
 }
 

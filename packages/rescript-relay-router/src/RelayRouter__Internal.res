@@ -1,28 +1,28 @@
 open RelayRouter__Types
 
-let setQueryParams = (queryParams, mode, history) => {
-  open RelayRouter__Bindings
-
-  switch mode {
-  | Push => history->RelayRouter__History.push(queryParams->QueryParams.toString)
-  | Replace => history->RelayRouter__History.replace(queryParams->QueryParams.toString)
-  }
-}
-
-type setQueryParamsFnConfig = {
+type rawSetQueryParamsFnConfig = {
   applyQueryParams: RelayRouter__Bindings.QueryParams.t => unit,
   currentSearch: string,
-  navigationMode_: RelayRouter__Types.setQueryParamsMode,
+  navigationMode_: setQueryParamsMode,
   removeNotControlledParams: bool,
   shallow: bool,
 }
 
-type setQueryParamsFn = setQueryParamsFnConfig => unit
+type setQueryParamsFn<'queryParams> = (
+  ~setter: 'queryParams => 'queryParams,
+  ~onAfterParamsSet: 'queryParams => unit=?,
+  ~navigationMode_: setQueryParamsMode=?,
+  ~removeNotControlledParams: bool=?,
+  ~shallow: bool=?,
+) => unit
 
-let useSetQueryParams = () => {
+let useSetQueryParams = (
+  ~parseQueryParams: string => 'queryParams,
+  ~applyQueryParams: (RelayRouter__Bindings.QueryParams.t, ~newParams: 'queryParams) => unit,
+): setQueryParamsFn<'queryParams> => {
   let router = RelayRouter__Context.useRouterContext()
 
-  let setQueryParamsFn: setQueryParamsFn = React.useCallback(
+  let setQueryParamsFn = React.useCallback3(
     ({applyQueryParams, currentSearch, navigationMode_, removeNotControlledParams, shallow}) => {
       open RelayRouter__Bindings
 
@@ -43,10 +43,36 @@ let useSetQueryParams = () => {
       | Replace => router.history->RelayRouter__History.replace(queryParams->QueryParams.toString)
       }
     },
-    [router],
+    (router, parseQueryParams, applyQueryParams),
   )
 
-  setQueryParamsFn
+  React.useMemo3(() => {
+    let fn: setQueryParamsFn<'queryParams> = (
+      ~setter,
+      ~onAfterParamsSet=?,
+      ~navigationMode_=Push,
+      ~removeNotControlledParams=true,
+      ~shallow=true,
+    ) => {
+      let {search} = router.history->RelayRouter__History.getLocation
+      let newParams = setter(search->parseQueryParams)
+
+      switch onAfterParamsSet {
+      | None => ()
+      | Some(onAfterParamsSet) => onAfterParamsSet(newParams)
+      }
+
+      setQueryParamsFn({
+        applyQueryParams: applyQueryParams(~newParams, ...),
+        currentSearch: search,
+        navigationMode_,
+        removeNotControlledParams,
+        shallow,
+      })
+    }
+
+    fn
+  }, (parseQueryParams, applyQueryParams, router))
 }
 
 type pathMatch = {params: Js.Dict.t<string>}

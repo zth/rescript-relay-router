@@ -148,6 +148,17 @@ Route names must:
 
 Any routes put in another route's `children` is _nested_. In the example above, this means that the `Organization` route controls rendering of all of its child routes. This enables nested layouts, where layouts can stay rendered and untouched as URL changes in ways that does not affect them.
 
+To create a "catch all" route, use the `*`, character as the route path. Typically used for the "not found" route. Example:
+
+```json
+[
+  {
+    "name": "NotFound",
+    "path": "*"
+  }
+]
+```
+
 > The router uses the matching logic from [`react-router`](https://reactrouter.com/docs/en/v6) under the hood.
 
 ### Route renderers

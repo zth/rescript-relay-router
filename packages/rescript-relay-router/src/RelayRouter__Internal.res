@@ -116,30 +116,29 @@ external matchPathWithOptions: ({"path": string, "end": bool}, string) => option
   "matchPath"
 
 // This will extract all dispose functions from anything you feed it.
-let extractDisposables = %raw(`function extractDisposables_(s, disposables = []) {
-  if (s == null) {
+let extractDisposables = %raw(`function extractDisposables_(s, disposables = [], seen = new Set()) {
+  if (s == null || seen.has(s)) {
     return disposables;
   }
+  
+  seen.add(s);
 
   if (Array.isArray(s)) {
     s.forEach(function (o) {
-      extractDisposables_(o, disposables);
+      extractDisposables_(o, disposables, seen);
     });
     return disposables;
-  } 
+  }
 
   if (typeof s === "object") {
-    if ( 
-      s.hasOwnProperty("dispose") && 
-      typeof s.dispose === "function"
-    ) {
+    if (s.hasOwnProperty("dispose") && typeof s.dispose === "function") {
       disposables.push(s.dispose);
     }
 
     Object.keys(s).forEach(function (key) {
       var o = s[key];
-      extractDisposables_(o, disposables);
-    })
+      extractDisposables_(o, disposables, seen);
+    });
   }
 
   return disposables;

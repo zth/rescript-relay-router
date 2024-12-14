@@ -1,6 +1,6 @@
 {
   "name": "@rescript-relay-router-example/express",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "private": true,
   "engines": {
     "node": ">=16"

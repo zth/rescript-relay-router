@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 1.7.2
+
+### Patch Changes
+
+- dd572e9: Fix issue with latest Relay version where a maximum callstack would happen.
+
 ## 1.7.1
 
 ### Patch Changes

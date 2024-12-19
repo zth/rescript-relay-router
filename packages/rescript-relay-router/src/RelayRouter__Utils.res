@@ -65,11 +65,11 @@ let isRouteActive = (~pathname, ~routePattern, ~exact=false) => {
   )->Belt.Option.isSome
 }
 
-let useIsRouteActive = (~href, ~routePattern, ~exact=false) => {
+let useIsRouteActive = (~routePattern, ~exact=false) => {
   let {pathname} = useLocation()
 
   React.useMemo(
     () => isRouteActive(~pathname, ~routePattern, ~exact),
-    (pathname, href, routePattern, exact),
+    (pathname, routePattern, exact),
   )
 }

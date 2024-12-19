@@ -323,7 +323,7 @@ A few notes on preloading:
 
 If your only scrolling area is the document itself, you can enable scroll restoration via the router (if you don't prefer the browser's built in scroll restoration) by simply rendering `<RelayRouterScroll.ScrollRestoration />` inside of your app, close to the router provider.
 
-> Remember to turn off the built in browser scroll restoration if you do this: `` %%raw(`window.history.scrollRestoration = "manual"`) ``
+> Remember to turn off the built in browser scroll restoration if you do this: ``%%raw(`window.history.scrollRestoration = "manual"`)``
 
 If you have scrolling content areas that isn't scrolling on the main document itself, you'll need to tell the router about it so it can correctly help you with scroll restoration, and look at the intersection of the correct elements when detecting if links are in view yet. You tell the router about your scrolling areas this way:
 
@@ -548,7 +548,6 @@ module NavLink = {
   @react.component
   let make = (~href, ~routePattern, ~exact=false) => {
     let isRouteActive = RelayRouterUtils.useIsRouteActive(
-      ~href=linkHref,
       // Every route has a `routePattern` you can use
       ~routePattern=Routes.Organization.Members.Route.routePattern,
       // Whether to check whether _exactly_ this route is active. `false` means subroutes of the route will also say it's active.

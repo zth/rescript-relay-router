@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 2.0.0
+
+### Major Changes
+
+- 104c199: remove the unused `href` parameter from `RelayRouter.Utils.useIsRouteActive`
+
 ## 1.7.2
 
 ### Patch Changes

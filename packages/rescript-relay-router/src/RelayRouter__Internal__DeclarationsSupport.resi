@@ -23,13 +23,13 @@ type makePrepareProps = (
 
 let doLoadRouteRenderer: (
   unit => promise<RouteRenderer.t>,
-  ~routeName: Belt.HashMap.String.key,
-  ~loadedRouteRenderers: Belt.HashMap.String.t<suspenseEnabledHolder<RouteRenderer.t>>,
+  ~routeName: string,
+  ~loadedRouteRenderers: Map.t<string, suspenseEnabledHolder<RouteRenderer.t>>,
 ) => promise<unit>
 
 let preloadCode: (
-  ~loadedRouteRenderers: Belt.HashMap.String.t<suspenseEnabledHolder<RouteRenderer.t>>,
-  ~routeName: Belt.HashMap.String.key,
+  ~loadedRouteRenderers: Map.t<string, suspenseEnabledHolder<RouteRenderer.t>>,
+  ~routeName: string,
   ~loadRouteRenderer: unit => promise<unit>,
   ~makePrepareProps: makePrepareProps,
   ~environment: RescriptRelay.Environment.t,
@@ -39,7 +39,7 @@ let preloadCode: (
 ) => promise<array<RelayRouter__Types.preloadAsset>>
 
 type prepareAssets = {
-  getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
+  getPrepared: (~routeKey: string) => option<preparedContainer>,
   prepareRoute: (
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: Dict.t<string>,
@@ -55,7 +55,7 @@ type prepareAssets = {
       ~pathParams: Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ) => string,
-    ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
+    ~getPrepared: (~routeKey: string) => option<preparedContainer>,
     ~routeName: string,
     ~loadRouteRenderer: unit => promise<unit>,
     ~intent: RelayRouter__Types.prepareIntent,
@@ -63,6 +63,6 @@ type prepareAssets = {
 }
 
 let makePrepareAssets: (
-  ~loadedRouteRenderers: Belt.HashMap.String.t<suspenseEnabledHolder<RouteRenderer.t>>,
+  ~loadedRouteRenderers: Map.t<string, suspenseEnabledHolder<RouteRenderer.t>>,
   ~prepareDisposeTimeout: int,
 ) => prepareAssets

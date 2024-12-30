@@ -3,9 +3,7 @@ open RelayRouter__Internal__DeclarationsSupport
 
 external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
-let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.HashMap.String.make(
-  ~hintSize=7,
-)
+let loadedRouteRenderers: Map.t<string, loadedRouteRenderer> = Map.make()
 
 let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
   let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)

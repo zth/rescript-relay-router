@@ -132,17 +132,13 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
     )
   })
 
-  let routeNamesEntries = routeNamesDict->Dict.toArray
-
   // Write the full route declarations file
   let fileContents = `
 open RelayRouter__Internal__DeclarationsSupport
 
 external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
-let loadedRouteRenderers: Belt.HashMap.String.t<loadedRouteRenderer> = Belt.HashMap.String.make(
-  ~hintSize=${routeNamesEntries->Array.length->Int.toString},
-)
+let loadedRouteRenderers: Map.t<string, loadedRouteRenderer> = Map.make()
 
 let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
   let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)

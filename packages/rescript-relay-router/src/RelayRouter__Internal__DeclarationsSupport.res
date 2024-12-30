@@ -50,10 +50,10 @@ let doLoadRouteRenderer = (
   ~loadedRouteRenderers,
 ) => {
   let promise = loadFn()
-  loadedRouteRenderers->Belt.HashMap.String.set(routeName, Pending(promise))
+  loadedRouteRenderers->Map.set(routeName, Pending(promise))
 
   promise->Promise.then(routeRenderer => {
-    loadedRouteRenderers->Belt.HashMap.String.set(routeName, Loaded(routeRenderer))
+    loadedRouteRenderers->Map.set(routeName, Loaded(routeRenderer))
     Promise.resolve()
   })
 }
@@ -79,10 +79,10 @@ let preloadCode = (
     }
   }
 
-  switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
+  switch loadedRouteRenderers->Map.get(routeName) {
   | None | Some(NotInitiated) =>
     loadRouteRenderer()->Promise.then(() => {
-      switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
+      switch loadedRouteRenderers->Map.get(routeName) {
       | Some(Loaded(routeRenderer)) => routeRenderer->apply->Promise.resolve
       | _ =>
         raise(
@@ -104,7 +104,7 @@ let preloadCode = (
 }
 
 type prepareAssets = {
-  getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
+  getPrepared: (~routeKey: string) => option<preparedContainer>,
   prepareRoute: (
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: Dict.t<string>,
@@ -120,7 +120,7 @@ type prepareAssets = {
       ~pathParams: Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ) => string,
-    ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
+    ~getPrepared: (~routeKey: string) => option<preparedContainer>,
     ~routeName: string,
     ~loadRouteRenderer: unit => promise<unit>,
     ~intent: RelayRouter__Types.prepareIntent,
@@ -129,9 +129,9 @@ type prepareAssets = {
 
 // Creates the assets needed for preparing routes.
 let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepareAssets => {
-  let preparedMap: Belt.HashMap.String.t<preparedContainer> = Belt.HashMap.String.make(~hintSize=3)
+  let preparedMap: Map.t<string, preparedContainer> = Map.make()
 
-  let getPrepared = (~routeKey) => preparedMap->Belt.HashMap.String.get(routeKey)
+  let getPrepared = (~routeKey) => preparedMap->Map.get(routeKey)
 
   let disposeOfPrepared = (~routeKey) => {
     switch getPrepared(~routeKey) {
@@ -150,7 +150,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
   let expirePrepared = (~routeKey) => {
     disposeOfPrepared(~routeKey)
     clearTimeout(~routeKey)
-    preparedMap->Belt.HashMap.String.remove(routeKey)
+    preparedMap->Map.delete(routeKey)->ignore
   }
 
   let setTimeout = (~routeKey) => {
@@ -205,7 +205,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
     switch preparedRecord {
     | None => ()
     | Some(preparedRecord) =>
-      preparedMap->Belt.HashMap.String.set(routeKey, preparedRecord)
+      preparedMap->Map.set(routeKey, preparedRecord)
 
       // We set a clean up timeout for the prepared assets if this is a
       // previously unprepared route, and we're intending this as a preload
@@ -233,7 +233,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
       ~pathParams: Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ) => string,
-    ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
+    ~getPrepared: (~routeKey: string) => option<preparedContainer>,
     ~routeName: string,
     ~loadRouteRenderer,
     ~intent: RelayRouter__Types.prepareIntent,
@@ -284,10 +284,10 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
         prepared
       }
 
-      switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
+      switch loadedRouteRenderers->Map.get(routeName) {
       | None | Some(NotInitiated) =>
         let preparePromise = loadRouteRenderer()->Promise.then(() => {
-          switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
+          switch loadedRouteRenderers->Map.get(routeName) {
           | Some(Loaded(routeRenderer)) => doPrepare(routeRenderer)->Promise.resolve
           | _ =>
             raise(
@@ -334,7 +334,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
           )
         }, [subscribeToEvent])
 
-        switch (loadedRouteRenderers->Belt.HashMap.String.get(routeName), preparedRef.contents) {
+        switch (loadedRouteRenderers->Map.get(routeName), preparedRef.contents) {
         | (_, NotInitiated) =>
           Console.log(
             "Warning: Tried to render route with prepared not initiated. This should not happen, prepare should be called prior to any rendering.",

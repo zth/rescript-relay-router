@@ -25,7 +25,7 @@ let prepareMatches = (
   ~queryParams: Bindings.QueryParams.t,
   ~location: RelayRouter__History.location,
 ): array<preparedMatch> => {
-  matches->Js.Array2.map(match => {
+  matches->Array.map(match => {
     let {render, routeKey} = match.route.prepare(
       ~pathParams=match.params,
       ~environment,
@@ -48,10 +48,7 @@ module RouterEnvironment = {
 }
 
 module Router = {
-  let dictDelete: (
-    Js.Dict.t<'any>,
-    string,
-  ) => unit = %raw(`function(dict, key) { delete dict[key] }`)
+  let dictDelete: (Dict.t<'any>, string) => unit = %raw(`function(dict, key) { delete dict[key] }`)
 
   @val
   external origin: string = "window.location.origin"
@@ -64,16 +61,16 @@ module Router = {
   ) => {
     let routerEventListeners = ref([])
     let postRouterEvent = event => {
-      routerEventListeners.contents->Belt.Array.forEach(cb => cb(event))
+      routerEventListeners.contents->Array.forEach(cb => cb(event))
     }
 
     let matchLocation = matchRoutes(routes, ...)
     let location = RelayRouter__History.getLocation(history)
     let initialQueryParams = QueryParams.parse(location.search)
-    let initialMatches = matchLocation(location)->Belt.Option.getWithDefault([])
+    let initialMatches = matchLocation(location)->Option.getOr([])
 
     // Preload initially matched route renderers asap, we know we'll need them.
-    initialMatches->Belt.Array.forEach(({route}) => {
+    initialMatches->Array.forEach(({route}) => {
       Types.Component({
         chunk: route.chunk,
         load: () => route.loadRouteRenderer()->ignore,
@@ -89,7 +86,7 @@ module Router = {
     })
 
     let nextId = ref(0)
-    let subscribers = Js.Dict.empty()
+    let subscribers = Dict.make()
     let nextNavigationIsShallow = ref(false)
 
     let cleanup = history->RelayRouter__History.listen(({location}) => {
@@ -106,7 +103,7 @@ module Router = {
 
         let currentMatches = currentEntry.contents.preparedMatches
 
-        let matches = matchLocation(location)->Belt.Option.getWithDefault([])
+        let matches = matchLocation(location)->Option.getOr([])
         let preparedMatches = matches->prepareMatches(~environment, ~queryParams, ~location)
         currentEntry.contents = {
           location,
@@ -114,38 +111,38 @@ module Router = {
         }
 
         // Notify anyone interested about routes that will now unmount.
-        currentMatches->Belt.Array.forEach(({routeKey}) => {
+        currentMatches->Array.forEach(({routeKey}) => {
           if (
             preparedMatches
-            ->Belt.Array.getBy(match => match.routeKey === routeKey)
-            ->Belt.Option.isNone
+            ->Array.find(match => match.routeKey === routeKey)
+            ->Option.isNone
           ) {
             postRouterEvent(OnRouteWillUnmount({routeKey: routeKey}))
           }
         })
 
         subscribers
-        ->Js.Dict.values
-        ->Belt.Array.forEach(subscriber => subscriber(currentEntry.contents))
+        ->Dict.valuesToArray
+        ->Array.forEach(subscriber => subscriber(currentEntry.contents))
       }
     })
 
     let runOnEachRouteMatch = (preloadUrl, cb) => {
       let fullUrl = origin ++ preloadUrl
       let url = URL.make(fullUrl)
-      let queryParams = url->URL.getSearch->Belt.Option.getWithDefault("")->QueryParams.parse
+      let queryParams = url->URL.getSearch->Option.getOr("")->QueryParams.parse
 
       let location = {
         RelayRouter__History.pathname: url->URL.getPathname,
-        search: url->URL.getSearch->Belt.Option.getWithDefault(""),
+        search: url->URL.getSearch->Option.getOr(""),
         hash: url->URL.getHash,
         state: url->URL.getState,
         key: "-",
       }
 
       matchLocation(location)
-      ->Belt.Option.getWithDefault([])
-      ->Belt.Array.forEach(match => {
+      ->Option.getOr([])
+      ->Array.forEach(match => {
         cb(~match, ~queryParams, ~location)
       })
     }
@@ -160,14 +157,11 @@ module Router = {
             ~pathParams=match.params,
             ~queryParams,
             ~location,
-          )->(
-            Js.Promise.then_(
-              assetsToPreload => {
-                assetsToPreload->Belt.Array.forEach(a => a->preloadAsset(~priority))
-                Js.Promise.resolve()
-              },
-              _,
-            )
+          )->Promise.then(
+            assetsToPreload => {
+              assetsToPreload->Array.forEach(a => a->preloadAsset(~priority))
+              Promise.resolve()
+            },
           )
         }, ~priority)
       })
@@ -195,10 +189,10 @@ module Router = {
     let subscribe = cb => {
       nextId.contents = nextId.contents + 1
       let id = nextId.contents
-      subscribers->Js.Dict.set(Belt.Int.toString(id), cb)
+      subscribers->Dict.set(Int.toString(id), cb)
 
       () => {
-        subscribers->dictDelete(Belt.Int.toString(id))
+        subscribers->dictDelete(Int.toString(id))
       }
     }
 
@@ -222,11 +216,11 @@ module Router = {
         subscribe,
         history,
         subscribeToEvent: callback => {
-          let _ = routerEventListeners.contents->Js.Array2.push(callback)
+          let _ = routerEventListeners.contents->Array.push(callback)
 
           () => {
             routerEventListeners.contents =
-              routerEventListeners.contents->Belt.Array.keep(cb => cb !== callback)
+              routerEventListeners.contents->Array.filter(cb => cb !== callback)
           }
         },
         postRouterEvent,
@@ -271,10 +265,10 @@ module RouteRenderer = {
       Some(dispose)
     }, (router, startTransition))
 
-    let reversedItems = routeEntry.preparedMatches->Js.Array2.copy->Js.Array2.reverseInPlace
+    let reversedItems = routeEntry.preparedMatches->Array.toReversed
     let renderedContent = ref(React.null)
 
-    reversedItems->Js.Array2.forEach(({render}) => {
+    reversedItems->Array.forEach(({render}) => {
       renderedContent.contents = <RouteComponent render>
         {renderedContent.contents}
       </RouteComponent>
@@ -298,6 +292,6 @@ let useRegisterPreloadedAsset = asset => {
       asset->preloadAsset(~priority=Default)
     }
   } catch {
-  | Js.Exn.Error(_) => ()
+  | Exn.Error(_) => ()
   }
 }

@@ -37,7 +37,7 @@ module Internal = {
   @live
   let makePrepareProps = (. 
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Js.Dict.t<string>,
+    ~pathParams: Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter.History.location,
   ): prepareProps => {
@@ -45,8 +45,8 @@ module Internal = {
       environment: environment,
   
       location: location,
-      byStatus: pathParams->Js.Dict.unsafeGet("byStatus")->Obj.magic,
-      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
+      byStatus: pathParams->Dict.getUnsafe("byStatus")->Obj.magic,
+      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
     }
   }
 
@@ -57,7 +57,7 @@ let parseQueryParams = (search: string): queryParams => {
   open RelayRouter.Bindings
   let queryParams = QueryParams.parse(search)
   {
-    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
+    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
 
   }
 }
@@ -70,7 +70,7 @@ let applyQueryParams = (
   open RelayRouter__Bindings
 
   
-  queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Belt.Option.map(statuses => statuses->Belt.Array.map(statuses => statuses->TodoStatus.serialize->Js.Global.encodeURIComponent)))
+  queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize->encodeURIComponent)))
 }
 
 @live
@@ -107,9 +107,9 @@ let makeLink = (~byStatus: [#"completed" | #"notCompleted"], ~statuses: option<a
   let queryParams = QueryParams.make()
   switch statuses {
     | None => ()
-    | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Belt.Array.map(value => value->TodoStatus.serialize->Js.Global.encodeURIComponent))
+    | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Array.map(value => value->TodoStatus.serialize->encodeURIComponent))
   }
-  RelayRouter.Bindings.generatePath(routePattern, Js.Dict.fromArray([("byStatus", (byStatus :> string)->Js.Global.encodeURIComponent)])) ++ queryParams->QueryParams.toString
+  RelayRouter.Bindings.generatePath(routePattern, Dict.fromArray([("byStatus", (byStatus :> string)->encodeURIComponent)])) ++ queryParams->QueryParams.toString
 }
 @live
 let makeLinkFromQueryParams = (~byStatus: [#"completed" | #"notCompleted"], queryParams: queryParams) => {
@@ -125,7 +125,7 @@ type pathParam_byStatus = [#"completed" | #"notCompleted"]
 
 @live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
-  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
+  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Option.isSome
 }
 
 @live

@@ -1,19 +1,19 @@
 module QueryParams = {
-  type t = Js.Dict.t<array<string>>
+  type t = Dict.t<array<string>>
 
-  let make = () => Js.Dict.empty()
+  let make = () => Dict.make()
 
-  let deleteParam = (dict, key) => Js.Dict.unsafeDeleteKey(Obj.magic(dict), key)
+  let deleteParam = (dict, key) => Dict.delete(Obj.magic(dict), key)
 
-  let setParam = (dict, ~key, ~value) => dict->Js.Dict.set(key, [value])
+  let setParam = (dict, ~key, ~value) => dict->Dict.set(key, [value])
   let setParamOpt = (dict, ~key, ~value) =>
     switch value {
-    | Some(value) => dict->Js.Dict.set(key, [value])
+    | Some(value) => dict->Dict.set(key, [value])
     | None => dict->deleteParam(key)
     }
 
   let setParamInt = (dict, ~key, ~value) =>
-    dict->setParamOpt(~key, ~value=value->Belt.Option.map(v => Belt.Int.toString(v)))
+    dict->setParamOpt(~key, ~value=value->Option.map(v => Int.toString(v)))
 
   let setParamBool = (dict, ~key, ~value) =>
     dict->setParamOpt(
@@ -25,74 +25,74 @@ module QueryParams = {
       },
     )
 
-  let setParamArray = (dict, ~key, ~value) => dict->Js.Dict.set(key, value)
+  let setParamArray = (dict, ~key, ~value) => dict->Dict.set(key, value)
   let setParamArrayOpt = (dict, ~key, ~value) =>
     switch value {
-    | Some(value) => dict->Js.Dict.set(key, value)
+    | Some(value) => dict->Dict.set(key, value)
     | None => dict->deleteParam(key)
     }
 
   let printValue = value =>
     value
-    ->Js.Array2.map(v => Js.Global.encodeURIComponent(v->Js.String2.trim))
-    ->Js.Array2.joinWith(",")
+    ->Array.map(v => encodeURIComponent(v->String.trim))
+    ->Array.join(",")
 
   let printKeyValue = (key, value) => key ++ "=" ++ printValue(value)
 
   let toString = raw => {
     let parts =
       raw
-      ->Js.Dict.entries
-      ->Js.Array2.map(((key, value)) => {
+      ->Dict.toArray
+      ->Array.map(((key, value)) => {
         printKeyValue(key, value)
       })
 
-    switch parts->Js.Array2.length {
+    switch parts->Array.length {
     | 0 => ""
-    | _ => "?" ++ parts->Js.Array2.joinWith("&")
+    | _ => "?" ++ parts->Array.join("&")
     }
   }
 
   let toStringStable = raw => {
     let parts =
       raw
-      ->Js.Dict.entries
-      ->Belt.SortArray.stableSortBy(((a, _), (b, _)) =>
-        if a->Js.String2.localeCompare(b) > 0. {
-          1
+      ->Dict.toArray
+      ->Array.toSorted(((a, _), (b, _)) =>
+        if a->String.localeCompare(b) > 0. {
+          1.0
         } else {
-          -1
+          -1.0
         }
       )
-      ->Js.Array2.map(((key, value)) => {
+      ->Array.map(((key, value)) => {
         printKeyValue(key, value)
       })
 
-    switch parts->Js.Array2.length {
+    switch parts->Array.length {
     | 0 => ""
-    | _ => "?" ++ parts->Js.Array2.joinWith("&")
+    | _ => "?" ++ parts->Array.join("&")
     }
   }
 
   let decodeValue = value => {
-    value->Js.String2.split(",")->Js.Array2.map(v => Js.Global.decodeURIComponent(v))
+    value->String.split(",")->Array.map(v => decodeURIComponent(v))
   }
 
   let parse = search => {
-    let dict = Js.Dict.empty()
+    let dict = Dict.make()
 
-    let search = if search->Js.String2.startsWith("?") {
-      search->Js.String2.sliceToEnd(~from=1)
+    let search = if search->String.startsWith("?") {
+      search->String.sliceToEnd(~start=1)
     } else {
       search
     }
 
-    let parts = search->Js.String2.split("&")
+    let parts = search->String.split("&")
 
-    parts->Js.Array2.forEach(part => {
-      let keyValue = part->Js.String2.split("=")
-      switch (keyValue->Belt.Array.get(0), keyValue->Belt.Array.get(1)) {
-      | (Some(key), Some(value)) => dict->Js.Dict.set(key, decodeValue(value))
+    parts->Array.forEach(part => {
+      let keyValue = part->String.split("=")
+      switch (keyValue->Array.get(0), keyValue->Array.get(1)) {
+      | (Some(key), Some(value)) => dict->Dict.set(key, decodeValue(value))
       | _ => ()
       }
     })
@@ -101,14 +101,14 @@ module QueryParams = {
   }
 
   let getParamByKey = (parsedParams, key) =>
-    parsedParams->Js.Dict.get(key)->Belt.Option.getWithDefault([])->Belt.Array.get(0)
+    parsedParams->Dict.get(key)->Option.getOr([])->Array.get(0)
 
-  let getArrayParamByKey = (parsedParams, key) => parsedParams->Js.Dict.get(key)
+  let getArrayParamByKey = (parsedParams, key) => parsedParams->Dict.get(key)
 
   let getParamInt = (parsedParams, key) =>
     switch parsedParams->getParamByKey(key) {
     | None => None
-    | Some(raw) => Belt.Int.fromString(raw)
+    | Some(raw) => Int.fromString(raw)
     }
 
   let getParamBool = (parsedParams, key) =>
@@ -135,12 +135,12 @@ module URL = {
   external getHash: t => string = "hash"
 
   @get
-  external getState: t => Js.Json.t = "state"
+  external getState: t => JSON.t = "state"
 }
 
 type streamedEntry = {
   id: string,
-  response: option<Js.Json.t>,
+  response: option<JSON.t>,
   final: option<bool>,
 }
 
@@ -154,10 +154,10 @@ module RelayReplaySubject = {
   external complete: t => unit = "complete"
 
   @send
-  external error: (t, Js.Exn.t) => unit = "error"
+  external error: (t, Exn.t) => unit = "error"
 
   @send
-  external next: (t, Js.Json.t) => unit = "next"
+  external next: (t, JSON.t) => unit = "next"
 
   @send
   external subscribe: (
@@ -184,4 +184,4 @@ module RelayReplaySubject = {
 }
 
 @module("./vendor/react-router.js")
-external generatePath: (string, Js.Dict.t<string>) => string = "generatePath"
+external generatePath: (string, Dict.t<string>) => string = "generatePath"

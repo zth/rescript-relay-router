@@ -71,7 +71,7 @@ Let's set up the actual ReScript code. First, let's initiate our router:
 ```rescript
 // Router.res
 
-let preparedAssetsMap = Js.Dict.empty()
+let preparedAssetsMap = Dict.make()
 
 // `cleanup` does not need to run on the client, but would clean up the router after you're done using it, like when doing SSR.
 let (_cleanup, routerContext) = RelayRouter.Router.make(
@@ -328,7 +328,7 @@ If your only scrolling area is the document itself, you can enable scroll restor
 If you have scrolling content areas that isn't scrolling on the main document itself, you'll need to tell the router about it so it can correctly help you with scroll restoration, and look at the intersection of the correct elements when detecting if links are in view yet. You tell the router about your scrolling areas this way:
 
 ```rescript
-let mainContainerRef = React.useRef(Js.Nullable.null)
+let mainContainerRef = React.useRef(Nullable.null)
 
 <RelayRouterScroll.TargetScrollElement.Provider
   targetElementRef=mainContainerRef
@@ -343,7 +343,7 @@ let mainContainerRef = React.useRef(Js.Nullable.null)
 This lets the router know that `<main />` is the element that will be scrolling. If you also want the router to do scroll restoration, you can render `<RelayRouterScroll.ScrollRestoration />` at the bottom inside of `<RelayRouterScroll.TargetScrollElement.Provider />`, like so:
 
 ```rescript
-let mainContainerRef = React.useRef(Js.Nullable.null)
+let mainContainerRef = React.useRef(Nullable.null)
 
 <RelayRouterScroll.TargetScrollElement.Provider
   targetElementRef=mainContainerRef

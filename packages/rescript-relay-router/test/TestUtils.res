@@ -33,6 +33,6 @@ let testMatchLocation = (mockContent, pathname) => {
     "pathname": pathname,
     "search": "",
     "hash": "",
-    "state": Js.Json.null,
+    "state": JSON.Null,
   })
 }

@@ -17,7 +17,7 @@ let makeMockParserCtx = (
       ()
     },
     getRouteFile: (~fileName, ~parentContext as _) =>
-      switch routeFiles->Js.Dict.get(fileName) {
+      switch routeFiles->Dict.get(fileName) {
       | None => Error("Route file not mocked.")
       | Some(rawText) => Ok({content: [], fileName, rawText})
       },

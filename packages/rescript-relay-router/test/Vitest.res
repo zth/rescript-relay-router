@@ -27,26 +27,26 @@ type benchOptions = {
 }
 
 module type Runner = {
-  let describe: (string, unit => Js.undefined<unit>, Js.undefined<int>) => unit
+  let describe: (string, unit => option<unit>, option<int>) => unit
 
-  let test: (string, unit => Js.undefined<unit>, Js.undefined<int>) => unit
-  let testAsync: (string, unit => promise<unit>, Js.undefined<int>) => unit
+  let test: (string, unit => option<unit>, option<int>) => unit
+  let testAsync: (string, unit => promise<unit>, option<int>) => unit
 
-  let it: (string, unit => Js.undefined<unit>, Js.undefined<int>) => unit
-  let itAsync: (string, unit => promise<unit>, Js.undefined<int>) => unit
+  let it: (string, unit => option<unit>, option<int>) => unit
+  let itAsync: (string, unit => promise<unit>, option<int>) => unit
 
-  let bench: (string, unit => Js.undefined<unit>, Js.undefined<benchOptions>) => unit
-  let benchAsync: (string, unit => promise<unit>, Js.undefined<benchOptions>) => unit
+  let bench: (string, unit => option<unit>, option<benchOptions>) => unit
+  let benchAsync: (string, unit => promise<unit>, option<benchOptions>) => unit
 }
 
 module type ConcurrentRunner = {
-  let describe: (string, unit => Js.undefined<unit>, Js.undefined<int>) => unit
+  let describe: (string, unit => option<unit>, option<int>) => unit
 
-  let testAsync: (string, unit => promise<unit>, Js.undefined<int>) => unit
+  let testAsync: (string, unit => promise<unit>, option<int>) => unit
 
-  let itAsync: (string, unit => promise<unit>, Js.undefined<int>) => unit
+  let itAsync: (string, unit => promise<unit>, option<int>) => unit
 
-  let benchAsync: (string, unit => promise<unit>, Js.undefined<benchOptions>) => unit
+  let benchAsync: (string, unit => promise<unit>, option<benchOptions>) => unit
 }
 
 module MakeRunner = (Runner: Runner) => {
@@ -56,9 +56,9 @@ module MakeRunner = (Runner: Runner) => {
       name,
       () => {
         callback()
-        Js.undefined
+        None
       },
-      timeout->Js.Undefined.fromOption,
+      timeout,
     )
 
   @inline
@@ -67,14 +67,14 @@ module MakeRunner = (Runner: Runner) => {
       name,
       () => {
         callback(suite)
-        Js.undefined
+        None
       },
-      timeout->Js.Undefined.fromOption,
+      timeout,
     )
 
   @inline
   let testAsync = (name, ~timeout=?, callback) =>
-    Runner.testAsync(name, () => callback(suite), timeout->Js.Undefined.fromOption)
+    Runner.testAsync(name, () => callback(suite), timeout)
 
   @deprecated("use testAsync instead")
   let testPromise = testAsync
@@ -85,14 +85,13 @@ module MakeRunner = (Runner: Runner) => {
       name,
       () => {
         callback(suite)
-        Js.undefined
+        None
       },
-      timeout->Js.Undefined.fromOption,
+      timeout,
     )
 
   @inline
-  let itAsync = (name, ~timeout=?, callback) =>
-    Runner.itAsync(name, () => callback(suite), timeout->Js.Undefined.fromOption)
+  let itAsync = (name, ~timeout=?, callback) => Runner.itAsync(name, () => callback(suite), timeout)
 
   @deprecated("use itAsync instead")
   let itPromise = itAsync
@@ -103,9 +102,9 @@ module MakeRunner = (Runner: Runner) => {
       name,
       () => {
         callback(suite)
-        Js.undefined
+        None
       },
-      Some({time, iterations, warmupTime, warmupIterations})->Js.Undefined.fromOption,
+      Some({time, iterations, warmupTime, warmupIterations}),
     )
 
   @inline
@@ -113,7 +112,7 @@ module MakeRunner = (Runner: Runner) => {
     Runner.benchAsync(
       name,
       () => callback(suite),
-      Some({time, iterations, warmupTime, warmupIterations})->Js.Undefined.fromOption,
+      Some({time, iterations, warmupTime, warmupIterations}),
     )
 
   @deprecated("use benchAsync instead")
@@ -127,21 +126,20 @@ module MakeConcurrentRunner = (Runner: ConcurrentRunner) => {
       name,
       () => {
         callback()
-        Js.undefined
+        None
       },
-      timeout->Js.Undefined.fromOption,
+      timeout,
     )
 
   @inline
   let testAsync = (name, ~timeout=?, callback) =>
-    Runner.testAsync(name, () => callback(suite), timeout->Js.Undefined.fromOption)
+    Runner.testAsync(name, () => callback(suite), timeout)
 
   @deprecated("use testAsync instead")
   let test = testAsync
 
   @inline
-  let itAsync = (name, ~timeout=?, callback) =>
-    Runner.itAsync(name, () => callback(suite), timeout->Js.Undefined.fromOption)
+  let itAsync = (name, ~timeout=?, callback) => Runner.itAsync(name, () => callback(suite), timeout)
 
   @deprecated("use itAsync instead")
   let it = itAsync
@@ -149,34 +147,25 @@ module MakeConcurrentRunner = (Runner: ConcurrentRunner) => {
 
 include MakeRunner({
   @module("vitest") @val
-  external describe: (string, @uncurry unit => Js.undefined<unit>, Js.undefined<int>) => unit =
-    "describe"
+  external describe: (string, unit => option<unit>, option<int>) => unit = "describe"
 
   @module("vitest") @val
-  external test: (string, @uncurry unit => Js.undefined<unit>, Js.undefined<int>) => unit = "test"
+  external test: (string, unit => option<unit>, option<int>) => unit = "test"
 
   @module("vitest") @val
-  external testAsync: (string, @uncurry unit => promise<unit>, Js.undefined<int>) => unit = "test"
+  external testAsync: (string, unit => promise<unit>, option<int>) => unit = "test"
 
   @module("vitest") @val
-  external it: (string, @uncurry unit => Js.undefined<unit>, Js.undefined<int>) => unit = "it"
+  external it: (string, unit => option<unit>, option<int>) => unit = "it"
 
   @module("vitest") @val
-  external itAsync: (string, @uncurry unit => promise<unit>, Js.undefined<int>) => unit = "it"
+  external itAsync: (string, unit => promise<unit>, option<int>) => unit = "it"
 
   @module("vitest") @val
-  external bench: (
-    string,
-    @uncurry unit => Js.undefined<unit>,
-    Js.undefined<benchOptions>,
-  ) => unit = "bench"
+  external bench: (string, unit => option<unit>, option<benchOptions>) => unit = "bench"
 
   @module("vitest") @val
-  external benchAsync: (
-    string,
-    @uncurry unit => promise<unit>,
-    Js.undefined<benchOptions>,
-  ) => unit = "bench"
+  external benchAsync: (string, unit => promise<unit>, option<benchOptions>) => unit = "bench"
 })
 
 module Concurrent = {
@@ -200,35 +189,23 @@ module Concurrent = {
   )
 
   @send
-  external describe: (
-    concurrent_describe,
-    string,
-    @uncurry unit => Js.undefined<unit>,
-    Js.undefined<int>,
-  ) => unit = "concurrent"
+  external describe: (concurrent_describe, string, unit => option<unit>, option<int>) => unit =
+    "concurrent"
 
   @send
-  external testAsync: (
-    concurrent_test,
-    string,
-    @uncurry unit => promise<unit>,
-    Js.undefined<int>,
-  ) => unit = "concurrent"
+  external testAsync: (concurrent_test, string, unit => promise<unit>, option<int>) => unit =
+    "concurrent"
 
   @send
-  external itAsync: (
-    concurrent_it,
-    string,
-    @uncurry unit => promise<unit>,
-    Js.undefined<int>,
-  ) => unit = "concurrent"
+  external itAsync: (concurrent_it, string, unit => promise<unit>, option<int>) => unit =
+    "concurrent"
 
   @send
   external benchAsync: (
     concurrent_bench,
     string,
-    @uncurry unit => promise<unit>,
-    Js.undefined<benchOptions>,
+    unit => promise<unit>,
+    option<benchOptions>,
   ) => unit = "concurrent"
 
   include MakeConcurrentRunner({
@@ -260,52 +237,26 @@ module Only = {
   )
 
   @send
-  external describe: (
-    only_describe,
-    string,
-    @uncurry unit => Js.undefined<unit>,
-    Js.undefined<int>,
-  ) => unit = "only"
+  external describe: (only_describe, string, unit => option<unit>, option<int>) => unit = "only"
 
   @send
-  external test: (
-    only_test,
-    string,
-    @uncurry unit => Js.undefined<unit>,
-    Js.undefined<int>,
-  ) => unit = "only"
+  external test: (only_test, string, unit => option<unit>, option<int>) => unit = "only"
 
   @send
-  external testAsync: (
-    only_test,
-    string,
-    @uncurry unit => promise<unit>,
-    Js.undefined<int>,
-  ) => unit = "only"
+  external testAsync: (only_test, string, unit => promise<unit>, option<int>) => unit = "only"
 
   @send
-  external it: (only_it, string, @uncurry unit => Js.undefined<unit>, Js.undefined<int>) => unit =
+  external it: (only_it, string, unit => option<unit>, option<int>) => unit = "only"
+
+  @send
+  external itAsync: (only_it, string, unit => promise<unit>, option<int>) => unit = "only"
+
+  @send
+  external bench: (only_bench, string, unit => option<unit>, option<benchOptions>) => unit = "only"
+
+  @send
+  external benchAsync: (only_bench, string, unit => promise<unit>, option<benchOptions>) => unit =
     "only"
-
-  @send
-  external itAsync: (only_it, string, @uncurry unit => promise<unit>, Js.undefined<int>) => unit =
-    "only"
-
-  @send
-  external bench: (
-    only_bench,
-    string,
-    @uncurry unit => Js.undefined<unit>,
-    Js.undefined<benchOptions>,
-  ) => unit = "only"
-
-  @send
-  external benchAsync: (
-    only_bench,
-    string,
-    @uncurry unit => promise<unit>,
-    Js.undefined<benchOptions>,
-  ) => unit = "only"
 
   include MakeRunner({
     let describe = describe(only_describe, ...)
@@ -341,35 +292,23 @@ module Only = {
     )
 
     @send
-    external describe: (
-      concurrent_describe,
-      string,
-      @uncurry unit => Js.undefined<unit>,
-      Js.undefined<int>,
-    ) => unit = "concurrent"
+    external describe: (concurrent_describe, string, unit => option<unit>, option<int>) => unit =
+      "concurrent"
 
     @send
-    external testAsync: (
-      concurrent_test,
-      string,
-      @uncurry unit => promise<unit>,
-      Js.undefined<int>,
-    ) => unit = "concurrent"
+    external testAsync: (concurrent_test, string, unit => promise<unit>, option<int>) => unit =
+      "concurrent"
 
     @send
-    external itAsync: (
-      concurrent_it,
-      string,
-      @uncurry unit => promise<unit>,
-      Js.undefined<int>,
-    ) => unit = "concurrent"
+    external itAsync: (concurrent_it, string, unit => promise<unit>, option<int>) => unit =
+      "concurrent"
 
     @send
     external benchAsync: (
       concurrent_bench,
       string,
-      @uncurry unit => promise<unit>,
-      Js.undefined<benchOptions>,
+      unit => promise<unit>,
+      option<benchOptions>,
     ) => unit = "concurrent"
 
     include MakeConcurrentRunner({
@@ -402,52 +341,26 @@ module Skip = {
   )
 
   @send
-  external describe: (
-    skip_describe,
-    string,
-    @uncurry unit => Js.undefined<unit>,
-    Js.undefined<int>,
-  ) => unit = "skip"
+  external describe: (skip_describe, string, unit => option<unit>, option<int>) => unit = "skip"
 
   @send
-  external test: (
-    skip_test,
-    string,
-    @uncurry unit => Js.undefined<unit>,
-    Js.undefined<int>,
-  ) => unit = "skip"
+  external test: (skip_test, string, unit => option<unit>, option<int>) => unit = "skip"
 
   @send
-  external testAsync: (
-    skip_test,
-    string,
-    @uncurry unit => promise<unit>,
-    Js.undefined<int>,
-  ) => unit = "skip"
+  external testAsync: (skip_test, string, unit => promise<unit>, option<int>) => unit = "skip"
 
   @send
-  external it: (skip_it, string, @uncurry unit => Js.undefined<unit>, Js.undefined<int>) => unit =
+  external it: (skip_it, string, unit => option<unit>, option<int>) => unit = "skip"
+
+  @send
+  external itAsync: (skip_it, string, unit => promise<unit>, option<int>) => unit = "skip"
+
+  @send
+  external bench: (skip_bench, string, unit => option<unit>, option<benchOptions>) => unit = "skip"
+
+  @send
+  external benchAsync: (skip_bench, string, unit => promise<unit>, option<benchOptions>) => unit =
     "skip"
-
-  @send
-  external itAsync: (skip_it, string, @uncurry unit => promise<unit>, Js.undefined<int>) => unit =
-    "skip"
-
-  @send
-  external bench: (
-    skip_bench,
-    string,
-    @uncurry unit => Js.undefined<unit>,
-    Js.undefined<benchOptions>,
-  ) => unit = "skip"
-
-  @send
-  external benchAsync: (
-    skip_bench,
-    string,
-    @uncurry unit => promise<unit>,
-    Js.undefined<benchOptions>,
-  ) => unit = "skip"
 
   include MakeRunner({
     let describe = describe(skip_describe, ...)
@@ -483,35 +396,23 @@ module Skip = {
     )
 
     @send
-    external describe: (
-      concurrent_describe,
-      string,
-      @uncurry unit => Js.undefined<unit>,
-      Js.undefined<int>,
-    ) => unit = "concurrent"
+    external describe: (concurrent_describe, string, unit => option<unit>, option<int>) => unit =
+      "concurrent"
 
     @send
-    external testAsync: (
-      concurrent_test,
-      string,
-      @uncurry unit => promise<unit>,
-      Js.undefined<int>,
-    ) => unit = "concurrent"
+    external testAsync: (concurrent_test, string, unit => promise<unit>, option<int>) => unit =
+      "concurrent"
 
     @send
-    external itAsync: (
-      concurrent_it,
-      string,
-      @uncurry unit => promise<unit>,
-      Js.undefined<int>,
-    ) => unit = "concurrent"
+    external itAsync: (concurrent_it, string, unit => promise<unit>, option<int>) => unit =
+      "concurrent"
 
     @send
     external benchAsync: (
       concurrent_bench,
       string,
-      @uncurry unit => promise<unit>,
-      Js.undefined<benchOptions>,
+      unit => promise<unit>,
+      option<benchOptions>,
     ) => unit = "concurrent"
 
     include MakeConcurrentRunner({
@@ -609,296 +510,202 @@ module Each: EachType = {
     external testObj: (
       ~test: test,
       ~cases: array<'a>,
-    ) => (~name: string, ~f: @uncurry 'a => unit, ~timeout: Js.undefined<int>) => unit = "each"
+    ) => (~name: string, ~f: 'a => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external test2: (
       ~test: test,
       ~cases: array<('a, 'b)>,
-    ) => (~name: string, ~f: @uncurry ('a, 'b) => unit, ~timeout: Js.undefined<int>) => unit =
-      "each"
+    ) => (~name: string, ~f: ('a, 'b) => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external test3: (
       ~test: test,
       ~cases: array<('a, 'b, 'c)>,
-    ) => (~name: string, ~f: @uncurry ('a, 'b, 'c) => unit, ~timeout: Js.undefined<int>) => unit =
-      "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c) => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external test4: (
       ~test: test,
       ~cases: array<('a, 'b, 'c, 'd)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c, 'd) => unit,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c, 'd) => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external test5: (
       ~test: test,
       ~cases: array<('a, 'b, 'c, 'd, 'e)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c, 'd, 'e) => unit,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c, 'd, 'e) => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external testObjAsync: (
       ~test: test,
       ~cases: array<'a>,
-    ) => (~name: string, ~f: @uncurry 'a => promise<unit>, ~timeout: Js.undefined<int>) => unit =
-      "each"
+    ) => (~name: string, ~f: 'a => promise<unit>, ~timeout: option<int>) => unit = "each"
 
     @send
     external test2Async: (
       ~test: test,
       ~cases: array<('a, 'b)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b) => promise<unit>,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b) => promise<unit>, ~timeout: option<int>) => unit = "each"
 
     @send
     external test3Async: (
       ~test: test,
       ~cases: array<('a, 'b, 'c)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c) => promise<unit>,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c) => promise<unit>, ~timeout: option<int>) => unit = "each"
 
     @send
     external test4Async: (
       ~test: test,
       ~cases: array<('a, 'b, 'c, 'd)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c, 'd) => promise<unit>,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c, 'd) => promise<unit>, ~timeout: option<int>) => unit =
+      "each"
 
     @send
     external test5Async: (
       ~test: test,
       ~cases: array<('a, 'b, 'c, 'd, 'e)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c, 'd, 'e) => promise<unit>,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c, 'd, 'e) => promise<unit>, ~timeout: option<int>) => unit =
+      "each"
 
     @send
     external describeObj: (
       ~describe: describe,
       ~cases: array<'a>,
-    ) => (~name: string, ~f: @uncurry 'a => unit, ~timeout: Js.undefined<int>) => unit = "each"
+    ) => (~name: string, ~f: 'a => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external describe2: (
       ~describe: describe,
       ~cases: array<('a, 'b)>,
-    ) => (~name: string, ~f: @uncurry ('a, 'b) => unit, ~timeout: Js.undefined<int>) => unit =
-      "each"
+    ) => (~name: string, ~f: ('a, 'b) => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external describe3: (
       ~describe: describe,
       ~cases: array<('a, 'b, 'c)>,
-    ) => (~name: string, ~f: @uncurry ('a, 'b, 'c) => unit, ~timeout: Js.undefined<int>) => unit =
-      "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c) => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external describe4: (
       ~describe: describe,
       ~cases: array<('a, 'b, 'c, 'd)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c, 'd) => unit,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c, 'd) => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external describe5: (
       ~describe: describe,
       ~cases: array<('a, 'b, 'c, 'd, 'e)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c, 'd, 'e) => unit,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c, 'd, 'e) => unit, ~timeout: option<int>) => unit = "each"
 
     @send
     external describeObjAsync: (
       ~describe: describe,
       ~cases: array<'a>,
-    ) => (~name: string, ~f: @uncurry 'a => promise<unit>, ~timeout: Js.undefined<int>) => unit =
-      "each"
+    ) => (~name: string, ~f: 'a => promise<unit>, ~timeout: option<int>) => unit = "each"
 
     @send
     external describe2Async: (
       ~describe: describe,
       ~cases: array<('a, 'b)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b) => promise<unit>,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b) => promise<unit>, ~timeout: option<int>) => unit = "each"
 
     @send
     external describe3Async: (
       ~describe: describe,
       ~cases: array<('a, 'b, 'c)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c) => promise<unit>,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c) => promise<unit>, ~timeout: option<int>) => unit = "each"
 
     @send
     external describe4Async: (
       ~describe: describe,
       ~cases: array<('a, 'b, 'c, 'd)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c, 'd) => promise<unit>,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c, 'd) => promise<unit>, ~timeout: option<int>) => unit =
+      "each"
 
     @send
     external describe5Async: (
       ~describe: describe,
       ~cases: array<('a, 'b, 'c, 'd, 'e)>,
-    ) => (
-      ~name: string,
-      ~f: @uncurry ('a, 'b, 'c, 'd, 'e) => promise<unit>,
-      ~timeout: Js.undefined<int>,
-    ) => unit = "each"
+    ) => (~name: string, ~f: ('a, 'b, 'c, 'd, 'e) => promise<unit>, ~timeout: option<int>) => unit =
+      "each"
   }
 
   @inline
   let test = (cases, name, ~timeout=?, f) =>
-    Ext.testObj(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+    Ext.testObj(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
-  let test2 = (cases, name, ~timeout=?, f) =>
-    Ext.test2(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+  let test2 = (cases, name, ~timeout=?, f) => Ext.test2(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
-  let test3 = (cases, name, ~timeout=?, f) =>
-    Ext.test3(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+  let test3 = (cases, name, ~timeout=?, f) => Ext.test3(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
-  let test4 = (cases, name, ~timeout=?, f) =>
-    Ext.test4(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+  let test4 = (cases, name, ~timeout=?, f) => Ext.test4(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
-  let test5 = (cases, name, ~timeout=?, f) =>
-    Ext.test5(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+  let test5 = (cases, name, ~timeout=?, f) => Ext.test5(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let testAsync = (cases, name, ~timeout=?, f) =>
-    Ext.testObjAsync(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+    Ext.testObjAsync(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let test2Async = (cases, name, ~timeout=?, f) =>
-    Ext.test2Async(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+    Ext.test2Async(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let test3Async = (cases, name, ~timeout=?, f) =>
-    Ext.test3Async(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+    Ext.test3Async(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let test4Async = (cases, name, ~timeout=?, f) =>
-    Ext.test4Async(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+    Ext.test4Async(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let test5Async = (cases, name, ~timeout=?, f) =>
-    Ext.test5Async(~test=Ext.test, ~cases)(~name, ~f, ~timeout=timeout->Js.Undefined.fromOption)
+    Ext.test5Async(~test=Ext.test, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describe = (cases, name, ~timeout=?, f) =>
-    Ext.describeObj(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describeObj(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describe2 = (cases, name, ~timeout=?, f) =>
-    Ext.describe2(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describe2(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describe3 = (cases, name, ~timeout=?, f) =>
-    Ext.describe3(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describe3(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describe4 = (cases, name, ~timeout=?, f) =>
-    Ext.describe4(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describe4(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describe5 = (cases, name, ~timeout=?, f) =>
-    Ext.describe5(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describe5(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describeAsync = (cases, name, ~timeout=?, f) =>
-    Ext.describeObjAsync(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describeObjAsync(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describe2Async = (cases, name, ~timeout=?, f) =>
-    Ext.describe2Async(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describe2Async(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describe3Async = (cases, name, ~timeout=?, f) =>
-    Ext.describe3Async(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describe3Async(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describe4Async = (cases, name, ~timeout=?, f) =>
-    Ext.describe4Async(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describe4Async(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 
   @inline
   let describe5Async = (cases, name, ~timeout=?, f) =>
-    Ext.describe5Async(~describe=Ext.describe, ~cases)(
-      ~name,
-      ~f,
-      ~timeout=timeout->Js.Undefined.fromOption,
-    )
+    Ext.describe5Async(~describe=Ext.describe, ~cases)(~name, ~f, ~timeout)
 }
 
 module Todo = {
@@ -927,40 +734,35 @@ module Todo = {
   @inline let it = name => todo_it->it(name)
 }
 
-@module("vitest") @val external beforeEach: (@uncurry unit => unit) => unit = "beforeEach"
+@module("vitest") @val external beforeEach: (unit => unit) => unit = "beforeEach"
 
 @module("vitest") @val
-external beforeEachPromise: (@uncurry unit => promise<'a>, Js.Undefined.t<int>) => unit =
-  "beforeEach"
+external beforeEachPromise: (unit => promise<'a>, option<int>) => unit = "beforeEach"
 
 @inline
-let beforeEachPromise = (~timeout=?, callback) =>
-  beforeEachPromise(callback, timeout->Js.Undefined.fromOption)
+let beforeEachPromise = (~timeout=?, callback) => beforeEachPromise(callback, timeout)
 
-@module("vitest") external beforeAll: (@uncurry unit => unit) => unit = "beforeAll"
+@module("vitest") external beforeAll: (unit => unit) => unit = "beforeAll"
 
 @module("vitest")
-external beforeAllPromise: (@uncurry unit => promise<'a>, Js.Undefined.t<int>) => unit = "beforeAll"
+external beforeAllPromise: (unit => promise<'a>, option<int>) => unit = "beforeAll"
 
 @inline
-let beforeAllPromise = (~timeout=?, callback) =>
-  beforeAllPromise(callback, timeout->Js.Undefined.fromOption)
+let beforeAllPromise = (~timeout=?, callback) => beforeAllPromise(callback, timeout)
 
-@module("vitest") external afterEach: (@uncurry unit => unit) => unit = "afterEach"
+@module("vitest") external afterEach: (unit => unit) => unit = "afterEach"
 
 @module("vitest")
-external afterEachPromise: (@uncurry unit => promise<'a>, Js.Undefined.t<int>) => unit = "afterEach"
+external afterEachPromise: (unit => promise<'a>, option<int>) => unit = "afterEach"
 
 @inline
-let afterEachPromise = (~timeout=?, callback) =>
-  afterEachPromise(callback, timeout->Js.Undefined.fromOption)
+let afterEachPromise = (~timeout=?, callback) => afterEachPromise(callback, timeout)
 
 @module("vitest")
-external afterAllPromise: (@uncurry unit => promise<'a>, Js.Undefined.t<int>) => unit = "afterAll"
+external afterAllPromise: (unit => promise<'a>, option<int>) => unit = "afterAll"
 
 @inline
-let afterAllPromise = (~timeout=?, callback) =>
-  afterAllPromise(callback, timeout->Js.Undefined.fromOption)
+let afterAllPromise = (~timeout=?, callback) => afterAllPromise(callback, timeout)
 
 module Matchers = (
   Config: {
@@ -974,15 +776,15 @@ module Matchers = (
 
   @send external eq: (expected<'a>, 'a) => Config.return<'a> = "eq"
 
-  @send external toBeDefined: expected<Js.undefined<'a>> => Config.return<'a> = "toBeDefined"
+  @send external toBeDefined: expected<option<'a>> => Config.return<'a> = "toBeDefined"
 
-  @send external toBeUndefined: expected<Js.undefined<'a>> => Config.return<'a> = "toBeUndefined"
+  @send external toBeUndefined: expected<option<'a>> => Config.return<'a> = "toBeUndefined"
 
   @send external toBeTruthy: expected<'a> => Config.return<'a> = "toBeTruthy"
 
   @send external toBeFalsy: expected<'a> => Config.return<'a> = "toBeFalsy"
 
-  @send external toBeNull: expected<Js.null<'a>> => Config.return<'a> = "toBeNull"
+  @send external toBeNull: expected<null<'a>> => Config.return<'a> = "toBeNull"
 
   // @send external toBeInstanceOf: (expected<'a>, ?) => Config.return<'a> = "toBeInstanceOf"
 
@@ -1011,16 +813,15 @@ module Matchers = (
   @send external toMatchSnapshot: expected<'a> => Config.return<'a> = "toMatchSnapshot"
 
   @send
-  external toThrow: (expected<unit => 'a>, Js.undefined<string>) => Config.return<'a> = "toThrow"
+  external toThrow: (expected<unit => 'a>, option<string>) => Config.return<'a> = "toThrow"
   @inline
-  let toThrow = (~message=?, expected) => expected->toThrow(message->Js.Undefined.fromOption)
+  let toThrow = (~message=?, expected) => expected->toThrow(message)
 
   @send
-  external toThrowError: (expected<unit => 'a>, Js.undefined<string>) => Config.return<'a> =
+  external toThrowError: (expected<unit => 'a>, option<string>) => Config.return<'a> =
     "toThrowError"
   @inline
-  let toThrowError = (~message=?, expected) =>
-    expected->toThrowError(message->Js.Undefined.fromOption)
+  let toThrowError = (~message=?, expected) => expected->toThrowError(message)
 
   module Int = {
     type t = int
@@ -1066,7 +867,7 @@ module Matchers = (
 
     @send external toHaveLength: (expected, int) => Config.return<'a> = "toHaveLength"
 
-    @send external toMatch: (expected, Js.Re.t) => Config.return<'a> = "toMatch"
+    @send external toMatch: (expected, RegExp.t) => Config.return<'a> = "toMatch"
   }
 
   module Array = {
@@ -1080,31 +881,30 @@ module Matchers = (
   module List = {
     @inline
     let toContain = (expected, item) => {
-      expected->unwrap->Belt.List.toArray->wrap->Array.toContain(item)
+      expected->unwrap->List.toArray->wrap->Array.toContain(item)
     }
 
     @inline
     let toHaveLength = (expected, length) => {
-      expected->unwrap->Belt.List.toArray->wrap->Array.toHaveLength(length)
+      expected->unwrap->List.toArray->wrap->Array.toHaveLength(length)
     }
 
     @inline
     let toMatch = (expected, list) => {
-      expected->unwrap->Belt.List.toArray->wrap->Array.toMatch(list->Belt.List.toArray)
+      expected->unwrap->List.toArray->wrap->Array.toMatch(list->List.toArray)
     }
   }
 
   module Dict = {
     @send
-    external toHaveProperty: (expected<Js.Dict.t<'a>>, string, 'a) => Config.return<'a> =
+    external toHaveProperty: (expected<Dict.t<'a>>, string, 'a) => Config.return<'a> =
       "toHaveProperty"
 
     @send
-    external toHaveKey: (expected<Js.Dict.t<'a>>, string) => Config.return<'a> = "toHaveProperty"
+    external toHaveKey: (expected<Dict.t<'a>>, string) => Config.return<'a> = "toHaveProperty"
 
     @send
-    external toMatch: (expected<Js.Dict.t<'a>>, Js.Dict.t<'a>) => Config.return<'a> =
-      "toMatchObject"
+    external toMatch: (expected<Dict.t<'a>>, Dict.t<'a>) => Config.return<'a> = "toMatchObject"
   }
 }
 
@@ -1120,19 +920,18 @@ module Expect = {
 
     include Matchers({
       type return<'a> = promise<unit>
-      let emptyReturn = Js.Promise2.resolve()
+      let emptyReturn = Promise.resolve()
     })
 
     @send
-    external toThrow: (expected<'a>, Js.undefined<string>) => promise<unit> = "toThrow"
+    external toThrow: (expected<'a>, option<string>) => promise<unit> = "toThrow"
     @inline
-    let toThrow = (~message=?, expected) => expected->toThrow(message->Js.Undefined.fromOption)
+    let toThrow = (~message=?, expected) => expected->toThrow(message)
 
     @send
-    external toThrowError: (expected<'a>, Js.undefined<string>) => promise<unit> = "toThrowError"
+    external toThrowError: (expected<'a>, option<string>) => promise<unit> = "toThrowError"
     @inline
-    let toThrowError = (~message=?, expected) =>
-      expected->toThrowError(message->Js.Undefined.fromOption)
+    let toThrowError = (~message=?, expected) => expected->toThrowError(message)
   }
 }
 
@@ -1141,16 +940,15 @@ module Assert = {
 
   %%private(@module("vitest") @val external assert_obj: t = "assert")
 
-  @send external equal: (t, 'a, 'a, Js.undefined<string>) => unit = "equal"
+  @send external equal: (t, 'a, 'a, option<string>) => unit = "equal"
 
   @inline
-  let equal = (~message=?, a, b) => assert_obj->equal(a, b, message->Js.Undefined.fromOption)
+  let equal = (~message=?, a, b) => assert_obj->equal(a, b, message)
 
-  @send external deepEqual: (t, 'a, 'a, Js.undefined<string>) => unit = "deepEqual"
+  @send external deepEqual: (t, 'a, 'a, option<string>) => unit = "deepEqual"
 
   @inline
-  let deepEqual = (~message=?, a, b) =>
-    assert_obj->deepEqual(a, b, message->Js.Undefined.fromOption)
+  let deepEqual = (~message=?, a, b) => assert_obj->deepEqual(a, b, message)
 }
 
 module Vi = {
@@ -1176,12 +974,12 @@ module Vi = {
   @send external useRealTimers: t => t = "useRealTimers"
   @inline let useRealTimers = () => vi_obj->useRealTimers
 
-  @send external mockCurrentDate: (t, Js.Date.t) => t = "mockCurrentDate"
+  @send external mockCurrentDate: (t, Date.t) => t = "mockCurrentDate"
   @inline let mockCurrentDate = date => vi_obj->mockCurrentDate(date)
 
-  @send external restoreCurrentDate: (t, Js.Date.t) => t = "restoreCurrentDate"
+  @send external restoreCurrentDate: (t, Date.t) => t = "restoreCurrentDate"
   @inline let restoreCurrentDate = date => vi_obj->restoreCurrentDate(date)
 
-  @send external getMockedDate: t => Js.null<Js.Date.t> = "getMockedDate"
-  @inline let getMockedDate = () => vi_obj->getMockedDate->Js.Null.toOption
+  @send external getMockedDate: t => null<Date.t> = "getMockedDate"
+  @inline let getMockedDate = () => vi_obj->getMockedDate->Null.toOption
 }

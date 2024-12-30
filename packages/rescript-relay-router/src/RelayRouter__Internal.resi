@@ -26,7 +26,7 @@ let useMakeLinkWithPreservedPath: (
   ~applyQueryParams: applyQueryParamsFn<'queryParams>,
 ) => makeNewQueryParamsFn<'queryParams>
 
-type pathMatch = {params: Js.Dict.t<string>}
+type pathMatch = {params: Dict.t<string>}
 
 @module("./vendor/react-router.js") @return(nullable)
 external matchPath: (string, string) => option<pathMatch> = "matchPath"

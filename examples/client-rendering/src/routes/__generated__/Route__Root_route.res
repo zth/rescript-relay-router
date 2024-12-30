@@ -33,7 +33,7 @@ module Internal = {
   @live
   let makePrepareProps = (. 
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Js.Dict.t<string>,
+    ~pathParams: Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter.History.location,
   ): prepareProps => {
@@ -55,12 +55,12 @@ let routePattern = "/"
 
 @live
 let makeLink = () => {
-  RelayRouter.Bindings.generatePath(routePattern, Js.Dict.fromArray([]))
+  RelayRouter.Bindings.generatePath(routePattern, Dict.fromArray([]))
 }
 
 @live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
-  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
+  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Option.isSome
 }
 
 @live
@@ -74,7 +74,7 @@ type subRoute = [#Todos]
 @live
 let getActiveSubRoute = (location: RelayRouter.History.location): option<[#Todos]> => {
   let {pathname} = location
-  if RelayRouter.Internal.matchPath("/todos", pathname)->Belt.Option.isSome {
+  if RelayRouter.Internal.matchPath("/todos", pathname)->Option.isSome {
       Some(#Todos)
     } else {
     None

@@ -1,30 +1,28 @@
 // This is a simple example of how one could leverage `preloadAsset` to preload
 // things from the GraphQL response. This should live inside of the
 // (comprehensive) example application we're going to build eventually.
-let preloadFromResponse = (part: Js.Json.t, ~preloadAsset: RelayRouter__Types.preloadAssetFn) => {
-  switch part->Js.Json.decodeObject {
-  | None => ()
-  | Some(obj) =>
+let preloadFromResponse = (part: JSON.t, ~preloadAsset: RelayRouter__Types.preloadAssetFn) => {
+  switch part {
+  | Object(obj) =>
     switch obj->Dict.get("extensions") {
-    | None => ()
-    | Some(extensions) =>
-      switch extensions->Js.Json.decodeObject {
-      | None => ()
-      | Some(extensions) =>
-        extensions
-        ->Dict.get("preloadableImages")
-        ->Option.map(images =>
-          images
-          ->Js.Json.decodeArray
-          ->Option.getOr([])
-          ->Array.filterMap(item => item->Js.Json.decodeString)
+    // todo: use pattern matching on dict once we move to rescript v12
+    | Some(Object(extensions)) =>
+      let images = switch extensions->Dict.get("preloadableImages") {
+      | Some(Array(images)) =>
+        images->Array.filterMap(item =>
+          switch item {
+          | String(url) => Some(url)
+          | _ => None
+          }
         )
-        ->Option.getOr([])
-        ->Array.forEach(imgUrl => {
-          preloadAsset(~priority=RelayRouter.Types.Default, RelayRouter.Types.Image({url: imgUrl}))
-        })
+      | _ => []
       }
+      images->Array.forEach(imgUrl => {
+        preloadAsset(~priority=RelayRouter.Types.Default, RelayRouter.Types.Image({url: imgUrl}))
+      })
+    | _ => ()
     }
+  | _ => ()
   }
 }
 
@@ -39,9 +37,9 @@ let makeFetchQuery = (~preloadAsset) =>
       "http://localhost:4000/graphql",
       {
         "method": "POST",
-        "headers": Js.Dict.fromArray([("content-type", "application/json")]),
+        "headers": Dict.fromArray([("content-type", "application/json")]),
         "body": {"query": operation.text, "variables": variables}
-        ->Js.Json.stringifyAny
+        ->JSON.stringifyAny
         ->Option.getOr(""),
       },
     )
@@ -81,9 +79,9 @@ let makeServerFetchQuery = (
       "http://localhost:4000/graphql",
       {
         "method": "POST",
-        "headers": Js.Dict.fromArray([("content-type", "application/json")]),
+        "headers": Dict.fromArray([("content-type", "application/json")]),
         "body": {"query": operation.text, "variables": variables}
-        ->Js.Json.stringifyAny
+        ->JSON.stringifyAny
         ->Option.getOr(""),
       },
     )

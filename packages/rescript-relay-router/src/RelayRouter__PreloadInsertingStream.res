@@ -1,4 +1,4 @@
-type onQuery = (~id: string, ~response: option<Js.Json.t>=?, ~final: option<bool>=?) => unit
+type onQuery = (~id: string, ~response: option<JSON.t>=?, ~final: option<bool>=?) => unit
 type onAssetPreload = string => unit
 
 module Node = {
@@ -10,12 +10,8 @@ module Node = {
   @new @module("./PreloadInsertingStreamNode.mjs") external make: 'a => t = "default"
 
   @send
-  external onQuery: (
-    t,
-    ~id: string,
-    ~response: option<Js.Json.t>=?,
-    ~final: option<bool>=?,
-  ) => unit = "onQuery"
+  external onQuery: (t, ~id: string, ~response: option<JSON.t>=?, ~final: option<bool>=?) => unit =
+    "onQuery"
 
   @send external onAssetPreload: (t, string) => unit = "onAssetPreload"
 }

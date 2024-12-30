@@ -34,12 +34,12 @@ type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
 type preparedContainer = {
   disposables: array<unit => unit>,
   render: RelayRouter.Types.renderRouteFn,
-  mutable timeout: option<Js.Global.timeoutId>,
+  mutable timeout: option<timeoutId>,
 }
 
 type makePrepareProps = (
   ~environment: RescriptRelay.Environment.t,
-  ~pathParams: Js.Dict.t<string>,
+  ~pathParams: Dict.t<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter__History.location,
 ) => prepareProps
@@ -52,10 +52,10 @@ let doLoadRouteRenderer = (
   let promise = loadFn()
   loadedRouteRenderers->Belt.HashMap.String.set(routeName, Pending(promise))
 
-  promise->(Js.Promise.then_(routeRenderer => {
-      loadedRouteRenderers->Belt.HashMap.String.set(routeName, Loaded(routeRenderer))
-      Js.Promise.resolve()
-    }, _))
+  promise->Promise.then(routeRenderer => {
+    loadedRouteRenderers->Belt.HashMap.String.set(routeName, Loaded(routeRenderer))
+    Promise.resolve()
+  })
 }
 
 // This does a bunch of suspense/React gymnastics for kicking off code
@@ -80,22 +80,24 @@ let preloadCode = (
   }
 
   switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
-  | None | Some(NotInitiated) => loadRouteRenderer()->(Js.Promise.then_(() => {
-        switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
-        | Some(Loaded(routeRenderer)) => routeRenderer->apply->Js.Promise.resolve
-        | _ =>
-          raise(
-            Route_loading_failed(
-              "Invalid state after loading route renderer. Please report this error.",
-            ),
-          )
-        }
-      }, _))
-  | Some(Pending(promise)) => promise->(Js.Promise.then_(routeRenderer => {
-        routeRenderer->apply->Js.Promise.resolve
-      }, _))
+  | None | Some(NotInitiated) =>
+    loadRouteRenderer()->Promise.then(() => {
+      switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
+      | Some(Loaded(routeRenderer)) => routeRenderer->apply->Promise.resolve
+      | _ =>
+        raise(
+          Route_loading_failed(
+            "Invalid state after loading route renderer. Please report this error.",
+          ),
+        )
+      }
+    })
+  | Some(Pending(promise)) =>
+    promise->Promise.then(routeRenderer => {
+      routeRenderer->apply->Promise.resolve
+    })
   | Some(Loaded(routeRenderer)) =>
-    Js.Promise.make((~resolve, ~reject as _) => {
+    Promise.make((resolve, _) => {
       resolve(apply(routeRenderer))
     })
   }
@@ -105,17 +107,17 @@ type prepareAssets = {
   getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
   prepareRoute: (
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Js.Dict.t<string>,
+    ~pathParams: Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,
     ~makePrepareProps: (
       ~environment: RescriptRelay.Environment.t,
-      ~pathParams: Js.Dict.t<string>,
+      ~pathParams: Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter__History.location,
     ) => prepareProps,
     ~makeRouteKey: (
-      ~pathParams: Js.Dict.t<string>,
+      ~pathParams: Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ) => string,
     ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
@@ -134,13 +136,13 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
   let disposeOfPrepared = (~routeKey) => {
     switch getPrepared(~routeKey) {
     | None => ()
-    | Some({disposables}) => disposables->Belt.Array.forEach(dispose => dispose())
+    | Some({disposables}) => disposables->Array.forEach(dispose => dispose())
     }
   }
 
   let clearTimeout = (~routeKey) => {
     switch getPrepared(~routeKey) {
-    | Some({timeout: Some(timeoutId)}) => Js.Global.clearTimeout(timeoutId)
+    | Some({timeout: Some(timeoutId)}) => clearTimeout(timeoutId)
     | _ => ()
     }
   }
@@ -154,7 +156,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
   let setTimeout = (~routeKey) => {
     clearTimeout(~routeKey)
     switch getPrepared(~routeKey) {
-    | Some(r) => r.timeout = Some(Js.Global.setTimeout(() => {
+    | Some(r) => r.timeout = Some(setTimeout(() => {
           expirePrepared(~routeKey)
         }, prepareDisposeTimeout))
     | None => ()
@@ -174,8 +176,8 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
       // the new query refs have had a chance to be used by React.
       let {disposables: oldDisposables} = preparedEntry
 
-      let _ = Js.Global.setTimeout(() => {
-        oldDisposables->Js.Array2.forEach(dispose => {
+      let _ = RescriptCore.setTimeout(() => {
+        oldDisposables->Array.forEach(dispose => {
           dispose()
         })
       }, 0)
@@ -218,17 +220,17 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
   // needed to prepare and render a route.
   let prepareRoute = (
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Js.Dict.t<string>,
+    ~pathParams: Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,
     ~makePrepareProps: (
       ~environment: RescriptRelay.Environment.t,
-      ~pathParams: Js.Dict.t<string>,
+      ~pathParams: Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter__History.location,
     ) => prepareProps,
     ~makeRouteKey: (
-      ~pathParams: Js.Dict.t<string>,
+      ~pathParams: Dict.t<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ) => string,
     ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
@@ -284,22 +286,22 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
 
       switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
       | None | Some(NotInitiated) =>
-        let preparePromise = loadRouteRenderer()->(Js.Promise.then_(() => {
-            switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
-            | Some(Loaded(routeRenderer)) => doPrepare(routeRenderer)->Js.Promise.resolve
-            | _ =>
-              raise(
-                Route_loading_failed(
-                  "Route renderer not in loaded state even though it should be. This should be impossible, please report this error.",
-                ),
-              )
-            }
-          }, _))
+        let preparePromise = loadRouteRenderer()->Promise.then(() => {
+          switch loadedRouteRenderers->Belt.HashMap.String.get(routeName) {
+          | Some(Loaded(routeRenderer)) => doPrepare(routeRenderer)->Promise.resolve
+          | _ =>
+            raise(
+              Route_loading_failed(
+                "Route renderer not in loaded state even though it should be. This should be impossible, please report this error.",
+              ),
+            )
+          }
+        })
         preparedRef.contents = Pending(preparePromise)
       | Some(Pending(promise)) =>
-        let preparePromise = promise->(Js.Promise.then_(routeRenderer => {
-            doPrepare(routeRenderer)->Js.Promise.resolve
-          }, _))
+        let preparePromise = promise->Promise.then(routeRenderer => {
+          doPrepare(routeRenderer)->Promise.resolve
+        })
         preparedRef.contents = Pending(preparePromise)
       | Some(Loaded(routeRenderer)) =>
         let _ = doPrepare(routeRenderer)
@@ -320,7 +322,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
                 // In short, we need this expire to run after the route renderer
                 // has been unmounted, or Relay gives us a "using preloaded
                 // query that was disposed" error.
-                let _ = Js.Global.setTimeout(
+                let _ = RescriptCore.setTimeout(
                   () => {
                     expirePrepared(~routeKey)
                   },
@@ -334,7 +336,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
 
         switch (loadedRouteRenderers->Belt.HashMap.String.get(routeName), preparedRef.contents) {
         | (_, NotInitiated) =>
-          Js.log(
+          Console.log(
             "Warning: Tried to render route with prepared not initiated. This should not happen, prepare should be called prior to any rendering.",
           )
           React.null
@@ -350,7 +352,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
             ),
           )
         | _ =>
-          Js.log("Warning: Invalid state")
+          Console.log("Warning: Invalid state")
           React.null
         }
       }

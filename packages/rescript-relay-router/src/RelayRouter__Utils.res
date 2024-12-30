@@ -62,7 +62,7 @@ let isRouteActive = (~pathname, ~routePattern, ~exact=false) => {
   RelayRouter__Internal.matchPathWithOptions(
     {"path": routePattern, "end": exact},
     pathname,
-  )->Belt.Option.isSome
+  )->Option.isSome
 }
 
 let useIsRouteActive = (~routePattern, ~exact=false) => {

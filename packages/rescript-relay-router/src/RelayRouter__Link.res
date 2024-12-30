@@ -50,7 +50,7 @@ let make = (
   ~style=?,
   ~tabIndex=?,
 ) => {
-  let linkElement = React.useRef(Js.Nullable.null)
+  let linkElement = React.useRef(null)
   let hasPreloaded = React.useRef(false)
   let router = RelayRouter__Context.useRouterContext()
   let {history} = router
@@ -75,14 +75,12 @@ let make = (
 
   let doPreloadDataAndCode = React.useCallback(
     overridePriority =>
-      to_->router.preload(~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority)),
+      to_->router.preload(~priority=overridePriority->Option.getOr(preloadPriority)),
     (to_, router.preload, preloadPriority),
   )
   let doPreloadCode = React.useCallback(
     overridePriority =>
-      to_->router.preloadCode(
-        ~priority=overridePriority->Belt.Option.getWithDefault(preloadPriority),
-      ),
+      to_->router.preloadCode(~priority=overridePriority->Option.getOr(preloadPriority)),
     (to_, router.preloadCode, preloadPriority),
   )
   let onIntent = React.useCallback(overridePriority =>
@@ -113,12 +111,12 @@ let make = (
 
   // Sets up an intersection observer for the link if wanted
   React.useEffect(() => {
-    switch (linkElement.current->Js.Nullable.toOption, preloadData, preloadCode) {
-    | (Some(linkElement), OnInView, _) | (Some(linkElement), _, OnInView) =>
+    switch (linkElement.current, preloadData, preloadCode) {
+    | (Value(linkElement), OnInView, _) | (Value(linkElement), _, OnInView) =>
       let observer = IntersectionObserver.make(
         entries => {
           let isVisible =
-            entries->Belt.Array.some(entry => entry.isIntersecting && entry.target === linkElement)
+            entries->Array.some(entry => entry.isIntersecting && entry.target === linkElement)
 
           switch (hasPreloaded.current, isVisible, preloadData, preloadCode) {
           | (true, _, _, _) => ()
@@ -136,7 +134,7 @@ let make = (
           "threshold": 1.,
           "root": switch targetElementRef {
           | None => None
-          | Some({targetElementRef}) => targetElementRef.current->Js.Nullable.toOption
+          | Some({targetElementRef}) => targetElementRef.current->Nullable.toOption
           },
         },
       )

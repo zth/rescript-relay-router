@@ -30,7 +30,7 @@ switch NodeJs.isProduction {
 
       app->listen(9999)
 
-      Js.Console.log(`Listening on http://localhost:9999 🚀`)
+      Console.log(`Listening on http://localhost:9999 🚀`)
     })
     ->ignore
   }
@@ -67,7 +67,7 @@ switch NodeJs.isProduction {
           },
         )
       } catch {
-      | Js.Exn.Error(err) => {
+      | Exn.Error(err) => {
           vite->ssrFixStacktrace(err)
           Console.log("[debug] got error")
           Console.log(err)

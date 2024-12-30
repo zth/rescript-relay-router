@@ -62,12 +62,12 @@ module URL: {
   external getHash: t => string = "hash"
 
   @get
-  external getState: t => Js.Json.t = "state"
+  external getState: t => JSON.t = "state"
 }
 
 type streamedEntry = {
   id: string,
-  response: option<Js.Json.t>,
+  response: option<JSON.t>,
   final: option<bool>,
 }
 
@@ -81,10 +81,10 @@ module RelayReplaySubject: {
   external complete: t => unit = "complete"
 
   @send
-  external error: (t, Js.Exn.t) => unit = "error"
+  external error: (t, Exn.t) => unit = "error"
 
   @send
-  external next: (t, Js.Json.t) => unit = "next"
+  external next: (t, JSON.t) => unit = "next"
 
   @send
   external subscribe: (
@@ -102,4 +102,4 @@ module RelayReplaySubject: {
 }
 
 @module("./vendor/react-router.js")
-external generatePath: (string, Js.Dict.t<string>) => string = "generatePath"
+external generatePath: (string, Dict.t<string>) => string = "generatePath"

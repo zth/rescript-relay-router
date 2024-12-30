@@ -13,10 +13,10 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
   [
       {
     let routeName = "Root"
-    let loadRouteRenderer = () => (() => Js.import(Root_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+    let loadRouteRenderer = () => (() => import(Root_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
     let makePrepareProps = (. 
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Js.Dict.t<string>,
+    ~pathParams: Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter.History.location,
   ): prepareProps => {
@@ -37,7 +37,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       loadRouteRenderer,
       preloadCode: (
         ~environment: RescriptRelay.Environment.t,
-        ~pathParams: Js.Dict.t<string>,
+        ~pathParams: Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
         ~location: RelayRouter.History.location,
       ) => preloadCode(
@@ -52,7 +52,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       ),
       prepare: (
         ~environment: RescriptRelay.Environment.t,
-        ~pathParams: Js.Dict.t<string>,
+        ~pathParams: Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
         ~location: RelayRouter.History.location,
         ~intent: RelayRouter.Types.prepareIntent,
@@ -65,7 +65,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
         ~loadRouteRenderer,
         ~makePrepareProps,
         ~makeRouteKey=(
-    ~pathParams: Js.Dict.t<string>,
+    ~pathParams: Dict.t<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t
   ): string => {
     ignore(pathParams)
@@ -82,10 +82,10 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       ),
       children: [    {
         let routeName = "Root__Todos"
-        let loadRouteRenderer = () => (() => Js.import(Root__Todos_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+        let loadRouteRenderer = () => (() => import(Root__Todos_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
         let makePrepareProps = (. 
         ~environment: RescriptRelay.Environment.t,
-        ~pathParams: Js.Dict.t<string>,
+        ~pathParams: Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t,
         ~location: RelayRouter.History.location,
       ): prepareProps => {
@@ -94,7 +94,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       
           location: location,
           childParams: Obj.magic(pathParams),
-          statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
+          statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
         }
         prepareProps->unsafe_toPrepareProps
       }
@@ -106,7 +106,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           loadRouteRenderer,
           preloadCode: (
             ~environment: RescriptRelay.Environment.t,
-            ~pathParams: Js.Dict.t<string>,
+            ~pathParams: Dict.t<string>,
             ~queryParams: RelayRouter.Bindings.QueryParams.t,
             ~location: RelayRouter.History.location,
           ) => preloadCode(
@@ -121,7 +121,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           ),
           prepare: (
             ~environment: RescriptRelay.Environment.t,
-            ~pathParams: Js.Dict.t<string>,
+            ~pathParams: Dict.t<string>,
             ~queryParams: RelayRouter.Bindings.QueryParams.t,
             ~location: RelayRouter.History.location,
             ~intent: RelayRouter.Types.prepareIntent,
@@ -134,7 +134,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             ~loadRouteRenderer,
             ~makePrepareProps,
             ~makeRouteKey=(
-        ~pathParams: Js.Dict.t<string>,
+        ~pathParams: Dict.t<string>,
         ~queryParams: RelayRouter.Bindings.QueryParams.t
       ): string => {
         ignore(pathParams)
@@ -150,10 +150,10 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           ),
           children: [      {
               let routeName = "Root__Todos__ByStatus"
-              let loadRouteRenderer = () => (() => Js.import(Root__Todos__ByStatus_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+              let loadRouteRenderer = () => (() => import(Root__Todos__ByStatus_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
               let makePrepareProps = (. 
               ~environment: RescriptRelay.Environment.t,
-              ~pathParams: Js.Dict.t<string>,
+              ~pathParams: Dict.t<string>,
               ~queryParams: RelayRouter.Bindings.QueryParams.t,
               ~location: RelayRouter.History.location,
             ): prepareProps => {
@@ -161,8 +161,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 environment: environment,
             
                 location: location,
-                byStatus: pathParams->Js.Dict.unsafeGet("byStatus")->Obj.magic,
-                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
+                byStatus: pathParams->Dict.getUnsafe("byStatus")->Obj.magic,
+                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
               }
               prepareProps->unsafe_toPrepareProps
             }
@@ -174,7 +174,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
-                  ~pathParams: Js.Dict.t<string>,
+                  ~pathParams: Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.History.location,
                 ) => preloadCode(
@@ -189,7 +189,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 ),
                 prepare: (
                   ~environment: RescriptRelay.Environment.t,
-                  ~pathParams: Js.Dict.t<string>,
+                  ~pathParams: Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.History.location,
                   ~intent: RelayRouter.Types.prepareIntent,
@@ -202,12 +202,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                   ~loadRouteRenderer,
                   ~makePrepareProps,
                   ~makeRouteKey=(
-              ~pathParams: Js.Dict.t<string>,
+              ~pathParams: Dict.t<string>,
               ~queryParams: RelayRouter.Bindings.QueryParams.t
             ): string => {
             
               "Root__Todos__ByStatus:"
-                ++ pathParams->Js.Dict.get("byStatus")->Option.getOr("")
+                ++ pathParams->Dict.get("byStatus")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
             }
             
@@ -220,10 +220,10 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             },
             {
               let routeName = "Root__Todos__Single"
-              let loadRouteRenderer = () => (() => Js.import(Root__Todos__Single_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+              let loadRouteRenderer = () => (() => import(Root__Todos__Single_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
               let makePrepareProps = (. 
               ~environment: RescriptRelay.Environment.t,
-              ~pathParams: Js.Dict.t<string>,
+              ~pathParams: Dict.t<string>,
               ~queryParams: RelayRouter.Bindings.QueryParams.t,
               ~location: RelayRouter.History.location,
             ): prepareProps => {
@@ -231,9 +231,9 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 environment: environment,
             
                 location: location,
-                todoId: pathParams->Js.Dict.unsafeGet("todoId"),
-                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
-                showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.flatMap(value => switch value {
+                todoId: pathParams->Dict.getUnsafe("todoId"),
+                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
+                showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Option.flatMap(value => switch value {
                   | "true" => Some(true)
                   | "false" => Some(false)
                   | _ => None
@@ -249,7 +249,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
-                  ~pathParams: Js.Dict.t<string>,
+                  ~pathParams: Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.History.location,
                 ) => preloadCode(
@@ -264,7 +264,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 ),
                 prepare: (
                   ~environment: RescriptRelay.Environment.t,
-                  ~pathParams: Js.Dict.t<string>,
+                  ~pathParams: Dict.t<string>,
                   ~queryParams: RelayRouter.Bindings.QueryParams.t,
                   ~location: RelayRouter.History.location,
                   ~intent: RelayRouter.Types.prepareIntent,
@@ -277,12 +277,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                   ~loadRouteRenderer,
                   ~makePrepareProps,
                   ~makeRouteKey=(
-              ~pathParams: Js.Dict.t<string>,
+              ~pathParams: Dict.t<string>,
               ~queryParams: RelayRouter.Bindings.QueryParams.t
             ): string => {
             
               "Root__Todos__Single:"
-                ++ pathParams->Js.Dict.get("todoId")->Option.getOr("")
+                ++ pathParams->Dict.get("todoId")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Option.getOr("")
             }

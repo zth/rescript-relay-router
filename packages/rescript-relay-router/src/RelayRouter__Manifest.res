@@ -15,10 +15,10 @@ type file = {
 }
 type t = {
   entryPoint: string,
-  files: Js.Dict.t<file>,
+  files: Dict.t<file>,
 }
 
 @scope("JSON") @val external parse: string => t = "parse"
 @scope("JSON") @val external stringify: t => string = "stringify"
-@scope("JSON") @val external stringifyWithSpace: (t, Js.null<unit>, int) => string = "stringify"
-let stringifyWithSpace = (t, int) => stringifyWithSpace(t, Js.null, int)
+@scope("JSON") @val external stringifyWithSpace: (t, null<unit>, int) => string = "stringify"
+let stringifyWithSpace = (t, int) => stringifyWithSpace(t, Null.null, int)

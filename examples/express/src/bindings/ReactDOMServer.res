@@ -11,9 +11,9 @@ type renderToPipeableStreamOptions = {
   @optional bootstrapScriptContent: string,
   @optional bootstrapModules: array<string>,
   @optional onShellReady: unit => unit,
-  @optional onShellError: Js.Exn.t => unit,
+  @optional onShellError: Exn.t => unit,
   @optional onAllReady: unit => unit,
-  @optional onError: Js.Exn.t => unit,
+  @optional onError: Exn.t => unit,
 }
 
 type renderToPipeableStreamControls = {

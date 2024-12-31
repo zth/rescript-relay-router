@@ -20,3 +20,6 @@ stats.html
 # Commit our Vite plugins written in plain JavaScript.
 !vite-plugins/**/*.mjs
 !test/RescriptRelayServerVitePlugin.test.mjs
+
+# commit our bundled files
+!*.bundle.mjs

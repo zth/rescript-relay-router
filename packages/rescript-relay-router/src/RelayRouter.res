@@ -48,8 +48,6 @@ module RouterEnvironment = {
 }
 
 module Router = {
-  let dictDelete: (Dict.t<'any>, string) => unit = %raw(`function(dict, key) { delete dict[key] }`)
-
   @val
   external origin: string = "window.location.origin"
 
@@ -192,7 +190,7 @@ module Router = {
       subscribers->Dict.set(Int.toString(id), cb)
 
       () => {
-        subscribers->dictDelete(Int.toString(id))
+        subscribers->Dict.delete(Int.toString(id))
       }
     }
 

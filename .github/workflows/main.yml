@@ -38,9 +38,6 @@ jobs:
       - name: Build all projects
         run: |
           yarn build
-      - name: Bundle CLI and vite plugins
-        run: |
-          yarn bundle
       # Since we don't want to have generated code formatted in the router we regenerate
       # the router code after formatting.
       - name: Sync router code generation

@@ -13,7 +13,6 @@
     "build": "yarn build:libs && yarn build:examples",
     "build:libs": "yarn workspaces foreach -v --topological --include 'rescript-relay-router' --include '@rescript-relay-router/*' run build",
     "build:examples": "yarn workspaces foreach -v --topological --include '@rescript-relay-router-example/*' run build",
-    "bundle": "yarn workspace rescript-relay-router run bundle",
     "preview": "yarn workspaces foreach -v -pi --include '@rescript-relay-router-example/*' run preview",
     "start": "yarn workspaces foreach -v -pi --include '@rescript-relay-router-example/*' run start",
     "dev": "yarn workspaces foreach -v -pi --include '@rescript-relay-router-example/*' run dev",

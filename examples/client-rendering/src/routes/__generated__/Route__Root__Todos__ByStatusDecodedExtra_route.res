@@ -8,6 +8,7 @@ type pathParams = {
 type queryParams = {
   statuses: option<array<TodoStatus.t>>,
   statusWithDefault: TodoStatus.t,
+  byValue: option<string>,
 }
 
 module Internal = {
@@ -47,8 +48,9 @@ module Internal = {
   
       location: location,
       byStatusDecoded: pathParams->Dict.getUnsafe("byStatusDecoded")->((byStatusDecodedRawAsString: string) => (byStatusDecodedRawAsString :> TodoStatusPathParam.t)),
-      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
-      statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+      statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+      byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
     }
   }
 
@@ -59,9 +61,11 @@ let parseQueryParams = (search: string): queryParams => {
   open RelayRouter.Bindings
   let queryParams = QueryParams.parse(search)
   {
-    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
+    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
 
-    statusWithDefault: queryParams->QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+    statusWithDefault: queryParams->QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+
+    byValue: queryParams->QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
 
   }
 }
@@ -74,8 +78,9 @@ let applyQueryParams = (
   open RelayRouter__Bindings
 
   
-  queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize->encodeURIComponent)))
-  queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=newParams.statusWithDefault->TodoStatus.serialize->encodeURIComponent)
+  queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize)))
+  queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=newParams.statusWithDefault->TodoStatus.serialize)
+  queryParams->QueryParams.setParamOpt(~key="byValue", ~value=newParams.byValue->Option.map(byValue => byValue))
 }
 
 @live
@@ -107,23 +112,28 @@ let useQueryParams = (): useQueryParamsReturn => {
 let routePattern = "/todos/extra/:byStatusDecoded"
 
 @live
-let makeLink = (~byStatusDecoded: TodoStatusPathParam.t, ~statuses: option<array<TodoStatus.t>>=?, ~statusWithDefault: option<TodoStatus.t>=?) => {
+let makeLink = (~byStatusDecoded: TodoStatusPathParam.t, ~statuses: option<array<TodoStatus.t>>=?, ~statusWithDefault: option<TodoStatus.t>=?, ~byValue: option<string>=?) => {
   open RelayRouter.Bindings
   let queryParams = QueryParams.make()
   switch statuses {
     | None => ()
-    | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Array.map(value => value->TodoStatus.serialize->encodeURIComponent))
+    | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Array.map(value => value->TodoStatus.serialize))
   }
 
   switch statusWithDefault {
     | None => ()
-    | Some(statusWithDefault) => queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=statusWithDefault->TodoStatus.serialize->encodeURIComponent)
+    | Some(statusWithDefault) => queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=statusWithDefault->TodoStatus.serialize)
+  }
+
+  switch byValue {
+    | None => ()
+    | Some(byValue) => queryParams->QueryParams.setParam(~key="byValue", ~value=byValue)
   }
   RelayRouter.Bindings.generatePath(routePattern, Dict.fromArray([("byStatusDecoded", (byStatusDecoded :> string)->encodeURIComponent)])) ++ queryParams->QueryParams.toString
 }
 @live
 let makeLinkFromQueryParams = (~byStatusDecoded: TodoStatusPathParam.t, queryParams: queryParams) => {
-  makeLink(~byStatusDecoded, ~statuses=?queryParams.statuses, ~statusWithDefault=queryParams.statusWithDefault, )
+  makeLink(~byStatusDecoded, ~statuses=?queryParams.statuses, ~statusWithDefault=queryParams.statusWithDefault, ~byValue=?queryParams.byValue, )
 }
 
 @live

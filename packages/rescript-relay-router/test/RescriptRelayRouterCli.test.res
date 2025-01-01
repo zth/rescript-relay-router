@@ -1,4 +1,4 @@
-open Vitest
+open RescriptRelayRouterUtils.Vitest
 open RescriptRelayRouterCli__Types
 
 module U = RescriptRelayRouterCli__Utils
@@ -27,9 +27,7 @@ describe("Query params", () => {
   test("serializes query param types", _t => {
     open U.QueryParams
 
-    expect(String->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->encodeURIComponent",
-    )
+    expect(String->toSerializer(~variableName="propName"))->Expect.toBe("propName")
     expect(
       Boolean->toSerializer(~variableName="propName"),
     )->Expect.toBe(`switch propName { | true => "true" | false => "false" }`)
@@ -39,12 +37,10 @@ describe("Query params", () => {
       CustomModule({moduleName: "SomeModule", required: false})->toSerializer(
         ~variableName="propName",
       ),
-    )->Expect.toBe("propName->SomeModule.serialize->encodeURIComponent")
+    )->Expect.toBe("propName->SomeModule.serialize")
 
     /* Arrays */
-    expect(Array(String)->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Array.map(encodeURIComponent)",
-    )
+    expect(Array(String)->toSerializer(~variableName="propName"))->Expect.toBe("propName")
     expect(
       Array(Boolean)->toSerializer(~variableName="propName"),
     )->Expect.toBe(`propName->Array.map(bool => switch bool { | true => "true" | false => "false" })`)
@@ -58,30 +54,26 @@ describe("Query params", () => {
       Array(CustomModule({moduleName: "SomeModule", required: false}))->toSerializer(
         ~variableName="propName",
       ),
-    )->Expect.toBe("propName->Array.map(value => value->SomeModule.serialize->encodeURIComponent)")
+    )->Expect.toBe("propName->Array.map(value => value->SomeModule.serialize)")
   })
 
   test("emits parse code for query params", _t => {
     open U.QueryParams
 
-    expect(String->toParser(~variableName="propName"))->Expect.toBe(
-      "Some(propName->decodeURIComponent)",
-    )
+    expect(String->toParser(~variableName="propName"))->Expect.toBe("Some(propName)")
     expect(Int->toParser(~variableName="propName"))->Expect.toBe("Int.fromString(propName)")
     expect(Float->toParser(~variableName="propName"))->Expect.toBe("Float.fromString(propName)")
 
     expect(
       CustomModule({moduleName: "SomeModule", required: false})->toParser(~variableName="propName"),
-    )->Expect.toBe("propName->decodeURIComponent->SomeModule.parse")
+    )->Expect.toBe("propName->SomeModule.parse")
 
     expect(
       CustomModule({moduleName: "SomeModule", required: true})->toParser(~variableName="propName"),
-    )->Expect.toBe("propName->decodeURIComponent->SomeModule.parse")
+    )->Expect.toBe("propName->SomeModule.parse")
 
     /* Arrays */
-    expect(Array(String)->toParser(~variableName="propName"))->Expect.toBe(
-      "propName->decodeURIComponent",
-    )
+    expect(Array(String)->toParser(~variableName="propName"))->Expect.toBe("propName")
     expect(Array(Int)->toParser(~variableName="propName"))->Expect.toBe(
       "propName->Array.map(Int.fromString)",
     )
@@ -94,13 +86,13 @@ describe("Query params", () => {
       Array(CustomModule({moduleName: "SomeModule", required: false}))->toParser(
         ~variableName="propName",
       ),
-    )->Expect.toBe("propName->Array.map(value => value->decodeURIComponent->SomeModule.parse)")
+    )->Expect.toBe("propName->Array.map(value => value->SomeModule.parse)")
 
     // Custom module, not required
     expect(
       Array(CustomModule({moduleName: "SomeModule", required: true}))->toParser(
         ~variableName="propName",
       ),
-    )->Expect.toBe("propName->Array.map(value => value->decodeURIComponent->SomeModule.parse)")
+    )->Expect.toBe("propName->Array.map(value => value->SomeModule.parse)")
   })
 })

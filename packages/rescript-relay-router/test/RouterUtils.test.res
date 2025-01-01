@@ -1,4 +1,4 @@
-open Vitest
+open RescriptRelayRouterUtils.Vitest
 open RelayRouter__Utils
 
 type testCase = {

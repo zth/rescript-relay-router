@@ -1,0 +1,17 @@
+{
+  "name": "@rescript-relay-router/utils",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "node": ">=16"
+  },
+  "type": "module",
+  "packageManager": "yarn@3.2.1",
+  "scripts": {
+    "build": "rescript"
+  },
+  "dependencies": {
+    "@rescript/core": "1.5.2",
+    "rescript": "11.1.3"
+  }
+}

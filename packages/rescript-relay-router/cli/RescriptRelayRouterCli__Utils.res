@@ -81,21 +81,21 @@ module QueryParams = {
   // Prints a serializer for a typed/decoded query param.
   let toSerializer = (queryParam, ~variableName) => {
     switch queryParam {
-    | String => `${variableName}->encodeURIComponent`
+    | String => variableName
     | Boolean => `switch ${variableName} { | true => "true" | false => "false" }`
     | Int => `Int.toString(${variableName})`
     | Float => `Float.toString(${variableName})`
-    | CustomModule({moduleName}) => `${variableName}->${moduleName}.serialize->encodeURIComponent`
+    | CustomModule({moduleName}) => `${variableName}->${moduleName}.serialize`
     | Array(inner) =>
       switch inner {
-      | Array(_) => variableName
-      | String => `${variableName}->Array.map(encodeURIComponent)`
+      | Array(_)
+      | String => variableName
       | Boolean =>
         `${variableName}->Array.map(bool => switch bool { | true => "true" | false => "false" })`
       | Int => `${variableName}->Array.map(Int.toString)`
       | Float => `${variableName}->Array.map(Float.toString)`
       | CustomModule({moduleName}) =>
-        `${variableName}->Array.map(value => value->${moduleName}.serialize->encodeURIComponent)`
+        `${variableName}->Array.map(value => value->${moduleName}.serialize)`
       }
     }
   }
@@ -103,7 +103,7 @@ module QueryParams = {
   // Prints a parser for a typed query param.
   let toParser = (queryParam, ~variableName) => {
     switch queryParam {
-    | String => `Some(${variableName}->decodeURIComponent)`
+    | String => `Some(${variableName})`
     | Boolean =>
       `switch ${variableName} {
       | "true" => Some(true)
@@ -112,11 +112,11 @@ module QueryParams = {
       }`
     | Int => `Int.fromString(${variableName})`
     | Float => `Float.fromString(${variableName})`
-    | CustomModule({moduleName}) => `${variableName}->decodeURIComponent->${moduleName}.parse`
+    | CustomModule({moduleName}) => `${variableName}->${moduleName}.parse`
     | Array(inner) =>
       switch inner {
-      | Array(_) => variableName
-      | String => `${variableName}->decodeURIComponent`
+      | Array(_)
+      | String => variableName
       | Boolean =>
         `${variableName}->Array.map(value => switch value {
       | "true" => Some(true)
@@ -126,7 +126,7 @@ module QueryParams = {
       | Int => `${variableName}->Array.map(Int.fromString)`
       | Float => `${variableName}->Array.map(Float.fromString)`
       | CustomModule({moduleName}) =>
-        `${variableName}->Array.map(value => value->decodeURIComponent->${moduleName}.parse)`
+        `${variableName}->Array.map(value => value->${moduleName}.parse)`
       }
     }
   }

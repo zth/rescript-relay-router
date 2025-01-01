@@ -1,6 +1,6 @@
 [
   {
-    "path": "todos?statuses=array<TodoStatus.t>&statusWithDefault=TodoStatus.t!",
+    "path": "todos?statuses=array<TodoStatus.t>&statusWithDefault=TodoStatus.t!&byValue=string",
     "name": "Todos",
     "children": [
       {
@@ -13,14 +13,14 @@
         "name": "ByStatusDecoded",
         "children": [
           {
-            "path": "", 
+            "path": "",
             "name": "Child"
           }
         ]
       },
       {
         "path": "extra/:byStatusDecoded:TodoStatusPathParam.t",
-        "name": "ByStatusDecodedExtra",
+        "name": "ByStatusDecodedExtra"
       },
       {
         "path": ":todoId?showMore=bool",

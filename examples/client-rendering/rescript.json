@@ -10,6 +10,11 @@
     {
       "dir": "src",
       "subdirs": true
+    },
+    {
+      "dir": "test",
+      "subdirs": true,
+      "type": "dev"
     }
   ],
   "package-specs": [
@@ -26,6 +31,7 @@
     "rescript-relay-router",
     "@rescript/core"
   ],
+  "bs-dev-dependencies": ["@rescript-relay-router/utils"],
   "bsc-flags": ["-open RescriptCore"],
   "pinned-dependencies": ["rescript-relay-router"]
 }

@@ -92,8 +92,9 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       
           location: location,
           childParams: Obj.magic(pathParams),
-          statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
-          statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+          statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+          statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+          byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
         }
         prepareProps->unsafe_toPrepareProps
       }
@@ -142,6 +143,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       
           ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
           ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
+          ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
       }
       
       ,
@@ -162,8 +164,9 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             
                 location: location,
                 byStatus: pathParams->Dict.getUnsafe("byStatus")->Obj.magic,
-                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
-                statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+                statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
               }
               prepareProps->unsafe_toPrepareProps
             }
@@ -211,6 +214,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 ++ pathParams->Dict.get("byStatus")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
             }
             
             ,
@@ -235,8 +239,9 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 location: location,
                 childParams: Obj.magic(pathParams),
                 byStatusDecoded: pathParams->Dict.getUnsafe("byStatusDecoded")->((byStatusDecodedRawAsString: string) => (byStatusDecodedRawAsString :> TodoStatusPathParam.t)),
-                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
-                statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+                statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
               }
               prepareProps->unsafe_toPrepareProps
             }
@@ -284,6 +289,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 ++ pathParams->Dict.get("byStatusDecoded")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
             }
             
             ,
@@ -304,8 +310,9 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                     
                         location: location,
                         byStatusDecoded: pathParams->Dict.getUnsafe("byStatusDecoded")->((byStatusDecodedRawAsString: string) => (byStatusDecodedRawAsString :> TodoStatusPathParam.t)),
-                        statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
-                        statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                        statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+                        statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                        byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
                       }
                       prepareProps->unsafe_toPrepareProps
                     }
@@ -353,6 +360,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                         ++ pathParams->Dict.get("byStatusDecoded")->Option.getOr("")
                         ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
                         ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
+                        ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
                     }
                     
                     ,
@@ -378,8 +386,9 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             
                 location: location,
                 byStatusDecoded: pathParams->Dict.getUnsafe("byStatusDecoded")->((byStatusDecodedRawAsString: string) => (byStatusDecodedRawAsString :> TodoStatusPathParam.t)),
-                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
-                statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+                statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
               }
               prepareProps->unsafe_toPrepareProps
             }
@@ -427,6 +436,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 ++ pathParams->Dict.get("byStatusDecoded")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
             }
             
             ,
@@ -450,8 +460,9 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             
                 location: location,
                 todoId: pathParams->Dict.getUnsafe("todoId"),
-                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
-                statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+                statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+                byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
                 showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Option.flatMap(value => switch value {
                   | "true" => Some(true)
                   | "false" => Some(false)
@@ -504,6 +515,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 ++ pathParams->Dict.get("todoId")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
+                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
                 ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Option.getOr("")
             }
             

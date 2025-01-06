@@ -8,7 +8,7 @@ export default [
       format: "esm",
       name: "RescriptRelayRouterCli",
     },
-    plugins: [resolve({ resolveOnly: [/^@rescript\/.*$/] })],
+    plugins: [resolve({ resolveOnly: ["@rescript/core", "rescript"] })],
     external: ["fsevents"],
   },
   {

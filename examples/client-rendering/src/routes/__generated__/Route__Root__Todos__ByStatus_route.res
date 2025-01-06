@@ -48,24 +48,42 @@ module Internal = {
   
       location: location,
       byStatus: pathParams->Dict.getUnsafe("byStatus")->Obj.magic,
-      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
-      statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
-      byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
+      statuses: {
+        let param = queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
+        React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param])
+      },
+      statusWithDefault: {
+        let param = queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")
+        React.useMemo(() => param->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue), [param])
+      },
+      byValue: {
+        let param = queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")
+        React.useMemo(() => param->Option.flatMap(value => Some(value)), [param])
+      },
     }
   }
 
 }
 
 @live
-let parseQueryParams = (search: string): queryParams => {
+let useParseQueryParams = (search: string): queryParams => {
   open RelayRouter.Bindings
-  let queryParams = QueryParams.parse(search)
+  let queryParams = React.useMemo(() => QueryParams.parse(search), [search])
   {
-    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+    statuses: {
+      let param = queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
+      React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param])
+    },
 
-    statusWithDefault: queryParams->QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+    statusWithDefault: {
+      let param = queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")
+      React.useMemo(() => param->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue), [param])
+    },
 
-    byValue: queryParams->QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
+    byValue: {
+      let param = queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")
+      React.useMemo(() => param->Option.flatMap(value => Some(value)), [param])
+    },
 
   }
 }
@@ -99,12 +117,12 @@ type useQueryParamsReturn = {
 let useQueryParams = (): useQueryParamsReturn => {
   let {search} = RelayRouter.Utils.useLocation()
   let currentQueryParams = React.useMemo(() => {
-    search->parseQueryParams
+    search->useParseQueryParams
   }, [search])
 
   {
     queryParams: currentQueryParams,
-    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams, ~applyQueryParams),
+    setParams: RelayRouter__Internal.useSetQueryParams(~useParseQueryParams, ~applyQueryParams),
   }
 }
 
@@ -137,7 +155,7 @@ let makeLinkFromQueryParams = (~byStatus: [#"completed" | #"not-completed"], que
 }
 
 @live
-let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams, ~applyQueryParams)
+let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~useParseQueryParams, ~applyQueryParams)
 
 
 @live

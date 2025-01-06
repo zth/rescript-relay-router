@@ -150,7 +150,7 @@ let makeLinkFromQueryParams = (`->addToStr
 
     `
 @live
-let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams, ~applyQueryParams)
+let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~useParseQueryParams, ~applyQueryParams)
 `->addToStr
   }
 
@@ -204,14 +204,12 @@ let getQueryParamAssets = (route: printableRoute) => {
 
     str.contents =
       str.contents ++
-      `@live\nlet parseQueryParams = (search: string): queryParams => {
+      `@live\nlet useParseQueryParams = (search: string): queryParams => {
   open RelayRouter.Bindings
-  let queryParams = QueryParams.parse(search)
+  let queryParams = React.useMemo(() => QueryParams.parse(search), [search])
   {${queryParamEntries
         ->Array.map(((key, queryParam)) => {
-          `\n    ${key}: queryParams->QueryParams.${queryParam->Utils.queryParamToQueryParamDecoder(
-              ~key,
-            )}`
+          `\n    ${key}: ${queryParam->Utils.queryParamToQueryParamDecoder(~key)}`
         })
         ->Array.join("")}
   }
@@ -260,12 +258,12 @@ type useQueryParamsReturn = {
 let useQueryParams = (): useQueryParamsReturn => {
   let {search} = RelayRouter.Utils.useLocation()
   let currentQueryParams = React.useMemo(() => {
-    search->parseQueryParams
+    search->useParseQueryParams
   }, [search])
 
   {
     queryParams: currentQueryParams,
-    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams, ~applyQueryParams),
+    setParams: RelayRouter__Internal.useSetQueryParams(~useParseQueryParams, ~applyQueryParams),
   }
 }`
     str.contents
@@ -426,7 +424,7 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
 
       str.contents =
         str.contents ++
-        `    ${safeParam->SafeParam.getSafeKey}: queryParams->RelayRouter.Bindings.QueryParams.${param->Utils.queryParamToQueryParamDecoder(
+        `    ${safeParam->SafeParam.getSafeKey}: ${param->Utils.queryParamToQueryParamDecoder(
             ~key=safeParam->SafeParam.getOriginalKey,
           )}`
     })

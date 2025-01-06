@@ -1,4 +1,6 @@
-open RescriptRelayRouterUtils.Vitest
+open RescriptRelayRouterUtils
+open Vitest
+open TestingLibraryReactHooks
 
 describe("makeLink", () => {
   test("should generate link with statuses", _t => {
@@ -26,9 +28,10 @@ describe("makeLink", () => {
 
 describe("parsing", () => {
   test("query params are correctly decoded", _t => {
-    let queryParams = Routes.Root.Todos.Route.parseQueryParams(
-      "?byValue=%2Fincorrect%20value%2C%20for%20url",
+    let {result} = renderHook(
+      () =>
+        Routes.Root.Todos.Route.useParseQueryParams("?byValue=%2Fincorrect%20value%2C%20for%20url"),
     )
-    expect(queryParams.byValue->Option.getExn)->Expect.toBe("/incorrect value, for url")
+    expect(result.current.byValue->Option.getUnsafe)->Expect.toBe("/incorrect value, for url")
   })
 })

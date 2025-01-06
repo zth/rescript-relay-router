@@ -47,18 +47,24 @@ module Internal = {
   
       location: location,
       childParams: Obj.magic(pathParams),
-      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+      statuses: {
+        let param = queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
+        React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param])
+      },
     }
   }
 
 }
 
 @live
-let parseQueryParams = (search: string): queryParams => {
+let useParseQueryParams = (search: string): queryParams => {
   open RelayRouter.Bindings
-  let queryParams = QueryParams.parse(search)
+  let queryParams = React.useMemo(() => QueryParams.parse(search), [search])
   {
-    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+    statuses: {
+      let param = queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
+      React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param])
+    },
 
   }
 }
@@ -90,12 +96,12 @@ type useQueryParamsReturn = {
 let useQueryParams = (): useQueryParamsReturn => {
   let {search} = RelayRouter.Utils.useLocation()
   let currentQueryParams = React.useMemo(() => {
-    search->parseQueryParams
+    search->useParseQueryParams
   }, [search])
 
   {
     queryParams: currentQueryParams,
-    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams, ~applyQueryParams),
+    setParams: RelayRouter__Internal.useSetQueryParams(~useParseQueryParams, ~applyQueryParams),
   }
 }
 
@@ -118,7 +124,7 @@ let makeLinkFromQueryParams = (queryParams: queryParams) => {
 }
 
 @live
-let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams, ~applyQueryParams)
+let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~useParseQueryParams, ~applyQueryParams)
 
 
 @live

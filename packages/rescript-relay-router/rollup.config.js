@@ -2,7 +2,7 @@ import resolve from "@rollup/plugin-node-resolve";
 
 export default [
   {
-    input: "cli/RescriptRelayRouterCli.mjs",
+    input: "cli/RescriptRelayRouterCli.res.mjs",
     output: {
       file: "cli/RescriptRelayRouterCli.bundle.mjs",
       format: "esm",

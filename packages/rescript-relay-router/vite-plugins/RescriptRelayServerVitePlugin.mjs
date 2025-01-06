@@ -4,8 +4,8 @@ import path from "path";
 import readline from "readline";
 import MagicString from "magic-string";
 import { normalizePath } from "vite";
-import { runCli } from "../cli/RescriptRelayRouterCli__Commands.mjs";
-import { transformManifest } from "./RescriptRelayVitePlugin__ManifestTransform.mjs";
+import { runCli } from "../cli/RescriptRelayRouterCli__Commands.res.mjs";
+import { transformManifest } from "./RescriptRelayVitePlugin__ManifestTransform.res.mjs";
 
 const ROUTER_MANIFEST_NAME = "routerManifest.json";
 
@@ -333,12 +333,12 @@ function replaceAsyncWithMagicString(string, searchValue, replacer) {
   }
   try {
     var values = [];
-    String.prototype.replace.call(string, searchValue, function() {
+    String.prototype.replace.call(string, searchValue, function () {
       values.push(replacer.apply(undefined, arguments));
       return "";
     });
     let mapTrackingString = new MagicString(string);
-    return Promise.all(values).then(function(resolvedValues) {
+    return Promise.all(values).then(function (resolvedValues) {
       // Call replace again, this time on the string that tracks a sourcemap.
       // We use the replacerFunction so each occurrence can be replaced by the
       // previously resolved value for that index.

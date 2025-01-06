@@ -19,7 +19,7 @@ switch NodeJs.isProduction {
     let manifest = loadRouterManifest()
 
     // Load our compiled production server entry.
-    import_("./dist/server/EntryServer.js")
+    import_("./dist/server/EntryServer.res.js")
     ->Promise.thenResolve(entryServer => {
       module EntryServer = unpack(entryServer)
 
@@ -51,13 +51,13 @@ switch NodeJs.isProduction {
         // Load the dev server entry point through Vite within the route handler so it's automatically
         // recompiled when any of the code changes (Vite caches it for us).
         vite
-        ->ssrLoadModule("/src/EntryServer.mjs")
+        ->ssrLoadModule("/src/EntryServer.res.mjs")
         ->Promise.then(
           (entryServer: module(EntryServer)) => {
             open RelayRouter.Manifest
             module EntryServer = unpack(entryServer)
 
-            let entryPoint = "/src/EntryClient.mjs"
+            let entryPoint = "/src/EntryClient.res.mjs"
             let manifest = {
               entryPoint,
               files: Dict.fromArray([(entryPoint, {imports: [], css: [], assets: []})]),

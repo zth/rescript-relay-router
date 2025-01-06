@@ -1,4 +1,4 @@
-import { runCli } from "../cli/RescriptRelayRouterCli__Commands.mjs";
+import { runCli } from "../cli/RescriptRelayRouterCli__Commands.res.mjs";
 
 /**
  * @typedef {import("vite").ResolvedConfig} ResolvedConfig

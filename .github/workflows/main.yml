@@ -47,7 +47,7 @@ jobs:
         id: git_status
         shell: bash
         run: |
-          echo "::set-output name=status::$( git status --porcelain )"
+          echo "status=$( git status --porcelain )" >> "$GITHUB_OUTPUT"
       - name: Exit if routes have not been properly regenerated and committed, or if formatting is incorrect
         shell: bash
         run: |

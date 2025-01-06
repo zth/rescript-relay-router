@@ -10,7 +10,7 @@ external fetch: (string, 'fetchOpts) => promise<response> = "fetch"
 type parts
 
 @send
-external getPartsJson: parts => promise<Js.Json.t> = "json"
+external getPartsJson: parts => promise<JSON.t> = "json"
 
 let isAsyncIterable: parts => bool = %raw(`function isAsyncIterable(input) {
 	return (
@@ -23,8 +23,8 @@ let isAsyncIterable: parts => bool = %raw(`function isAsyncIterable(input) {
 
 let decodeEachChunk: (
   parts,
-  Js.Json.t => unit,
-  Js.Exn.t => unit,
+  JSON.t => unit,
+  Exn.t => unit,
 ) => promise<unit> = %raw(`async function(parts, onNext, onError) {
     for await (const part of parts) {
 			if (!part.json) {
@@ -45,28 +45,28 @@ let decodeEachChunk: (
 external meros: response => promise<parts> = "meros"
 
 let getChunks = (response: response, ~onNext, ~onError, ~onComplete): promise<unit> => {
-  meros(response)->(Js.Promise.then_(parts => {
-      if isAsyncIterable(parts) {
+  meros(response)->Promise.then(parts => {
+    if isAsyncIterable(parts) {
+      parts
+      ->decodeEachChunk(onNext, onError)
+      ->Promise.then(() => {
+        onComplete()
+        Promise.resolve()
+      })
+    } else {
+      try {
         parts
-        ->decodeEachChunk(onNext, onError)
-        ->(Js.Promise.then_(() => {
-            onComplete()
-            Js.Promise.resolve()
-          }, _))
-      } else {
-        try {
-          parts
-          ->getPartsJson
-          ->(Js.Promise.then_(json => {
-              onNext(json)
-              onComplete()
-              Js.Promise.resolve()
-            }, _))
-        } catch {
-        | Js.Exn.Error(err) =>
-          onError(err)
-          Js.Promise.resolve()
-        }
+        ->getPartsJson
+        ->Promise.then(json => {
+          onNext(json)
+          onComplete()
+          Promise.resolve()
+        })
+      } catch {
+      | Exn.Error(err) =>
+        onError(err)
+        Promise.resolve()
       }
-    }, _))
+    }
+  })
 }

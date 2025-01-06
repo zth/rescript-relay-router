@@ -90,10 +90,8 @@ let routePattern = "${route.path->RoutePath.toPattern}"
   ") => {\n"->addToStr
 
   let pathParamNames = route.params->Array.map(Utils.printablePathParamToParamName)
-  let pathParamsAsJsDict = `Js.Dict.fromArray([${pathParamNames
-    ->Array.map(paramName =>
-      `("${paramName}", (${paramName} :> string)->Js.Global.encodeURIComponent)`
-    )
+  let pathParamsAsJsDict = `Dict.fromArray([${pathParamNames
+    ->Array.map(paramName => `("${paramName}", (${paramName} :> string)->encodeURIComponent)`)
     ->Array.join(",")}])`
 
   if hasQueryParams {
@@ -229,7 +227,7 @@ let applyQueryParams = (
         ->Array.map(((key, queryParam)) => {
           switch queryParam {
           | Array(queryParam) =>
-            `\n  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Belt.Option.map(${key} => ${key}->Belt.Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+            `\n  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${key}->Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
                 ~variableName=key,
               )})))`
           | CustomModule({required: true}) =>
@@ -237,7 +235,7 @@ let applyQueryParams = (
                 ~variableName=`newParams.${key}`,
               )})`
           | queryParam =>
-            `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Belt.Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+            `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
                 ~variableName=key,
               )}))`
           }
@@ -299,9 +297,7 @@ let getRecordStructureToDecodePathParams = (p: printableRoute, ~paramName="param
         str.contents ++
         `    ${Utils.printablePathParamToParamName(
             p,
-          )}: ${paramName}->Js.Dict.unsafeGet("${Utils.printablePathParamToParamName(
-            p,
-          )}")${switch p {
+          )}: ${paramName}->Dict.getUnsafe("${Utils.printablePathParamToParamName(p)}")${switch p {
           | PrintableRegularPathParam({text, pathToCustomModuleWithTypeT}) =>
             `->((${text}RawAsString: string) => (${text}RawAsString :> ${pathToCustomModuleWithTypeT}))`
           | PrintablePathParamWithMatchBranches(_) => `->Obj.magic`
@@ -385,7 +381,7 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
 
   let str = ref(`(. 
   ~environment: RescriptRelay.Environment.t,
-  ~pathParams: Js.Dict.t<string>,
+  ~pathParams: dict<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter.History.location,
 ): prepareProps => {\n`)
@@ -453,7 +449,7 @@ let getMakeRouteKeyFn = (route: printableRoute) => {
   let {pathParamsRecordFields, queryParamsRecordFields} = getRouteParamRecordFields(route)
 
   `(
-  ~pathParams: Js.Dict.t<string>,
+  ~pathParams: dict<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t
 ): string => {
 ${if pathParamsRecordFields->Array.length == 0 {
@@ -467,9 +463,7 @@ ${if pathParamsRecordFields->Array.length == 0 {
     }}
   "${route.name->RouteName.getFullRouteName}:"
 ${pathParamsRecordFields
-    ->Array.map(((key, _)) =>
-      "    ++ pathParams->Js.Dict.get(\"" ++ key ++ "\")->Option.getOr(\"\")"
-    )
+    ->Array.map(((key, _)) => "    ++ pathParams->Dict.get(\"" ++ key ++ "\")->Option.getOr(\"\")")
     ->Array.join("\n")}
 ${queryParamsRecordFields
     ->Array.map(((key, _)) =>
@@ -609,7 +603,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
 
   let str = `{
   let routeName = "${routeName}"
-  let loadRouteRenderer = () => (() => Js.import(${routeName}_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+  let loadRouteRenderer = () => (() => import(${routeName}_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
   let makePrepareProps = ${route->getMakePrepareProps(~returnMode=ForInlinedRouteFn)}
 
   {
@@ -619,7 +613,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
     loadRouteRenderer,
     preloadCode: (
       ~environment: RescriptRelay.Environment.t,
-      ~pathParams: Js.Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.History.location,
     ) => preloadCode(
@@ -634,7 +628,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
     ),
     prepare: (
       ~environment: RescriptRelay.Environment.t,
-      ~pathParams: Js.Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.History.location,
       ~intent: RelayRouter.Types.prepareIntent,
@@ -665,7 +659,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
 let getIsRouteActiveFn = () => {
   `@live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
-  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
+  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Option.isSome
 }
 
 @live
@@ -703,7 +697,7 @@ let getActiveSubRoute = (location: RelayRouter.History.location): option<${subRo
   let {pathname} = location
   ${elgibleChildren
       ->Array.mapWithIndex((child, index) => {
-        let checkStr = `RelayRouter.Internal.matchPath("${child.path->RoutePath.toPattern}", pathname)->Belt.Option.isSome`
+        let checkStr = `RelayRouter.Internal.matchPath("${child.path->RoutePath.toPattern}", pathname)->Option.isSome`
         let str = ref("")
 
         if index == 0 {

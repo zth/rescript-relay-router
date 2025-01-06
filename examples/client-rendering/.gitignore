@@ -12,7 +12,7 @@ lib
 # Ignore build output
 dist
 stats.html
-*.mjs
+*.res.mjs
 
 # Ignore generated files but allow keeping the folder itself.
 src/__generated__/**

@@ -1,2 +1,2 @@
-type preparedAssetsMap = Js.Dict.t<bool>
+type preparedAssetsMap = dict<bool>
 let makeClientAssetPreloader: preparedAssetsMap => RelayRouter__Types.preloadAssetFn

@@ -130,13 +130,13 @@ module URL: {
   external getHash: t => string = "hash"
 
   @get
-  external getState: t => Js.Json.t = "state"
+  external getState: t => JSON.t = "state"
 }
 
 module CosmiConfig: {
   type t
 
-  type config = Js.Dict.t<string>
+  type config = dict<string>
   type result = {
     config: option<config>,
     filepath: string,

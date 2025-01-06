@@ -20,7 +20,7 @@ module Response = {
   type cookieOpts = {
     domain: string,
     encode: string => string,
-    expires: Js.Date.t,
+    expires: Date.t,
     httpOnly: bool,
     maxAge: int,
     path: string,

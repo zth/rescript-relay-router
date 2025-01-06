@@ -16,35 +16,32 @@ external setRelayDataStructure: (window, relayDataStructure) => unit = "__RELAY_
 @get @return(nullable)
 external unsafe_initialRelayData: window => option<array<streamedEntry>> = "__RELAY_DATA"
 
-let deleteKey = (dict, key) => Js.Dict.unsafeDeleteKey(Obj.magic(dict), key)
+let deleteKey = (dict, key) => Dict.delete(Obj.magic(dict), key)
 
-let streamedPreCache: Js.Dict.t<array<streamedEntry>> = Js.Dict.empty()
-let replaySubjects: Js.Dict.t<RelayReplaySubject.t> = Js.Dict.empty()
+let streamedPreCache: dict<array<streamedEntry>> = Dict.make()
+let replaySubjects: dict<RelayReplaySubject.t> = Dict.make()
 
 let cleanupId = id => {
-  Js.log("[debug] Cleaning up id \"" ++ id ++ "\"")
+  Console.log("[debug] Cleaning up id \"" ++ id ++ "\"")
   replaySubjects->deleteKey(id)
 }
 
 let handleIncomingStreamedDataEntry = (streamedEntry: streamedEntry) => {
-  Js.log(
-    "[debug] Got streamed entry: " ++
-    Js.Json.stringifyAny(streamedEntry)->Belt.Option.getWithDefault("-"),
-  )
-  switch replaySubjects->Js.Dict.get(streamedEntry.id) {
+  Console.log("[debug] Got streamed entry: " ++ JSON.stringifyAny(streamedEntry)->Option.getOr("-"))
+  switch replaySubjects->Dict.get(streamedEntry.id) {
   | None =>
     // No existing subject means this is the init request. Create a replay subject.
-    replaySubjects->Js.Dict.set(streamedEntry.id, RelayReplaySubject.make())
-    switch streamedPreCache->Js.Dict.get(streamedEntry.id) {
-    | None => streamedPreCache->Js.Dict.set(streamedEntry.id, [streamedEntry])
+    replaySubjects->Dict.set(streamedEntry.id, RelayReplaySubject.make())
+    switch streamedPreCache->Dict.get(streamedEntry.id) {
+    | None => streamedPreCache->Dict.set(streamedEntry.id, [streamedEntry])
     | Some(data) =>
-      let _ = data->Js.Array2.push(streamedEntry)
+      let _ = data->Array.push(streamedEntry)
     }
   | Some(replaySubject) =>
     replaySubject->RelayReplaySubject.applyPayload(streamedEntry)
 
-    if streamedEntry.final->Belt.Option.getWithDefault(false) {
-      Js.log("[debug] completing replay subject with id " ++ streamedEntry.id)
+    if streamedEntry.final->Option.getOr(false) {
+      Console.log("[debug] completing replay subject with id " ++ streamedEntry.id)
       replaySubject->RelayReplaySubject.complete
     }
   }
@@ -67,40 +64,40 @@ external hydrateRoot: (Dom.node, React.element) => unit = "hydrateRoot"
 external observableDo: (
   RescriptRelay.Observable.t<'t>,
   RescriptRelay.Observable.observer<'t>,
-) => RescriptRelay.Observable.t<Js.Json.t> = "do"
+) => RescriptRelay.Observable.t<JSON.t> = "do"
 
 let bootOnClient = (~render) => {
   let boot = () => {
     window
     ->unsafe_initialRelayData
-    ->Belt.Option.getWithDefault([])
-    ->Belt.Array.forEach(streamedEntry => {
+    ->Option.getOr([])
+    ->Array.forEach(streamedEntry => {
       handleIncomingStreamedDataEntry(streamedEntry)
     })
 
     window->setRelayDataStructure({
       push: streamedEntry => {
-        Js.log2("[debug] Got stream response when client was ready: ", streamedEntry)
+        Console.log2("[debug] Got stream response when client was ready: ", streamedEntry)
         handleIncomingStreamedDataEntry(streamedEntry)
       },
     })
 
-    Js.log("[debug] Booting because stream said so...")
+    Console.log("[debug] Booting because stream said so...")
     document->hydrateRoot(render())
   }
 
   window->setBootFn(boot)
 
-  if window->isReadyToBoot->Belt.Option.getWithDefault(false) {
+  if window->isReadyToBoot->Option.getOr(false) {
     boot()
   }
 
   window->setStreamCompleteFn(() => {
-    Js.log("[debug] completing stream: " ++ replaySubjects->Js.Dict.keys->Js.Array2.joinWith(", "))
+    Console.log("[debug] completing stream: " ++ replaySubjects->Dict.keysToArray->Array.join(", "))
     // Remove all replay subjects when stream has completed
     replaySubjects
-    ->Js.Dict.keys
-    ->Belt.Array.forEach(key => {
+    ->Dict.keysToArray
+    ->Array.forEach(key => {
       replaySubjects->deleteKey(key)
     })
   })
@@ -122,10 +119,10 @@ let subscribeToReplaySubject = (replaySubject, ~sink: RescriptRelay.Observable.s
   )
 
 let applyPreCacheData = (replaySubject, ~id) => {
-  switch streamedPreCache->Js.Dict.get(id) {
+  switch streamedPreCache->Dict.get(id) {
   | None => ()
   | Some(preCacheData) =>
-    preCacheData->Belt.Array.forEach(data => {
+    preCacheData->Array.forEach(data => {
       switch data {
       | {response: Some(response), final: Some(final)} =>
         replaySubject->RelayReplaySubject.next(response)
@@ -142,16 +139,16 @@ let applyPreCacheData = (replaySubject, ~id) => {
 }
 
 let makeIdentifier = (operation: RescriptRelay.Network.operation, variables) =>
-  operation.name ++ variables->Js.Json.stringifyAny->Belt.Option.getWithDefault("{}")
+  operation.name ++ variables->JSON.stringifyAny->Option.getOr("{}")
 
 let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObservable => {
   (operation, variables, _cacheConfig, _uploads) => {
     RescriptRelay.Observable.make(sink => {
       let id = makeIdentifier(operation, variables)
 
-      switch replaySubjects->Js.Dict.get(id) {
+      switch replaySubjects->Dict.get(id) {
       | Some(replaySubject) =>
-        Js.log("[debug] request " ++ id ++ " had ReplaySubject")
+        Console.log("[debug] request " ++ id ++ " had ReplaySubject")
         // Subscribe and apply any precache data
         let subscription = replaySubject->subscribeToReplaySubject(~sink)
         // Subscribe with a new observer so we can clean up the replay subject after it finishes
@@ -170,7 +167,7 @@ let makeClientFetchFunction = (fetch): RescriptRelay.Network.fetchFunctionObserv
           },
         })
       | None =>
-        Js.log("[debug] request " ++ id ++ " did not have ReplaySubject")
+        Console.log("[debug] request " ++ id ++ " did not have ReplaySubject")
         fetch(sink, operation, variables, _cacheConfig, _uploads)
       }
     })
@@ -203,17 +200,17 @@ let makeServerFetchFunction = (
           // the spec, so that's what most server implementations uses, but
           // Relay is using is_final and haven't adapted to the spec yet
           // because it's not quite finalized.
-          ~final=switch payload->Js.Json.decodeObject {
-          | Some(obj) =>
-            switch obj->Js.Dict.get("hasNext") {
+          ~final=switch payload {
+          | Object(obj) =>
+            switch obj->Dict.get("hasNext") {
             | None => true
             | Some(hasNext) =>
-              switch hasNext->Js.Json.decodeBoolean {
-              | Some(true) => false
+              switch hasNext {
+              | Boolean(true) => false
               | _ => true
               }
             }
-          | None => true
+          | _ => true
           }->Some,
         )
       }),

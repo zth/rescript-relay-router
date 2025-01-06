@@ -9,7 +9,7 @@ type nodeType = [#object | #array | #property | #string | #number | #boolean | #
 @live
 type rec rawNode = {
   @as("type") typ: nodeType,
-  value: option<Js.Json.t>,
+  value: option<JSON.t>,
   offset: int,
   length: int,
   children: option<array<rawNode>>,

@@ -4,11 +4,11 @@ let bootOnClient: (~render: unit => React.element) => unit
 @live
 let makeClientFetchFunction: (
   (
-    RescriptRelay.Observable.sink<Js.Json.t>,
+    RescriptRelay.Observable.sink<JSON.t>,
     RescriptRelay.Network.operation,
-    Js.Json.t,
+    JSON.t,
     RescriptRelay.cacheConfig,
-    Js.Nullable.t<RescriptRelay.uploadables>,
+    Nullable.t<RescriptRelay.uploadables>,
   ) => option<RescriptRelay.Observable.subscription>
 ) => RescriptRelay.Network.fetchFunctionObservable
 
@@ -16,11 +16,11 @@ let makeClientFetchFunction: (
 let makeServerFetchFunction: (
   RelayRouter__PreloadInsertingStream.onQuery,
   (
-    RescriptRelay.Observable.sink<Js.Json.t>,
+    RescriptRelay.Observable.sink<JSON.t>,
     RescriptRelay.Network.operation,
-    Js.Json.t,
+    JSON.t,
     RescriptRelay.cacheConfig,
-    Js.Nullable.t<RescriptRelay.uploadables>,
+    Nullable.t<RescriptRelay.uploadables>,
   ) => option<RescriptRelay.Observable.subscription>,
 ) => RescriptRelay.Network.fetchFunctionObservable
 

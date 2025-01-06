@@ -12,7 +12,7 @@ type location = {
   pathname: string,
   search: string,
   hash: string,
-  state: Js.Json.t,
+  state: JSON.t,
   key: string,
 }
 

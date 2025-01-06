@@ -11,51 +11,51 @@ type loadedRouteRenderer = suspenseEnabledHolder<RouteRenderer.t>
 type preparedContainer = {
   disposables: array<unit => unit>,
   render: RelayRouter.Types.renderRouteFn,
-  mutable timeout: option<Js.Global.timeoutId>,
+  mutable timeout: option<timeoutId>,
 }
 
 type makePrepareProps = (
   ~environment: RescriptRelay.Environment.t,
-  ~pathParams: Js.Dict.t<string>,
+  ~pathParams: dict<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter__History.location,
 ) => prepareProps
 
 let doLoadRouteRenderer: (
   unit => promise<RouteRenderer.t>,
-  ~routeName: Belt.HashMap.String.key,
-  ~loadedRouteRenderers: Belt.HashMap.String.t<suspenseEnabledHolder<RouteRenderer.t>>,
+  ~routeName: string,
+  ~loadedRouteRenderers: Map.t<string, suspenseEnabledHolder<RouteRenderer.t>>,
 ) => promise<unit>
 
 let preloadCode: (
-  ~loadedRouteRenderers: Belt.HashMap.String.t<suspenseEnabledHolder<RouteRenderer.t>>,
-  ~routeName: Belt.HashMap.String.key,
+  ~loadedRouteRenderers: Map.t<string, suspenseEnabledHolder<RouteRenderer.t>>,
+  ~routeName: string,
   ~loadRouteRenderer: unit => promise<unit>,
   ~makePrepareProps: makePrepareProps,
   ~environment: RescriptRelay.Environment.t,
-  ~pathParams: Js.Dict.t<string>,
+  ~pathParams: dict<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter__History.location,
 ) => promise<array<RelayRouter__Types.preloadAsset>>
 
 type prepareAssets = {
-  getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
+  getPrepared: (~routeKey: string) => option<preparedContainer>,
   prepareRoute: (
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Js.Dict.t<string>,
+    ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,
     ~makePrepareProps: (
       ~environment: RescriptRelay.Environment.t,
-      ~pathParams: Js.Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter__History.location,
     ) => prepareProps,
     ~makeRouteKey: (
-      ~pathParams: Js.Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ) => string,
-    ~getPrepared: (~routeKey: Belt.HashMap.String.key) => option<preparedContainer>,
+    ~getPrepared: (~routeKey: string) => option<preparedContainer>,
     ~routeName: string,
     ~loadRouteRenderer: unit => promise<unit>,
     ~intent: RelayRouter__Types.prepareIntent,
@@ -63,6 +63,6 @@ type prepareAssets = {
 }
 
 let makePrepareAssets: (
-  ~loadedRouteRenderers: Belt.HashMap.String.t<suspenseEnabledHolder<RouteRenderer.t>>,
+  ~loadedRouteRenderers: Map.t<string, suspenseEnabledHolder<RouteRenderer.t>>,
   ~prepareDisposeTimeout: int,
 ) => prepareAssets

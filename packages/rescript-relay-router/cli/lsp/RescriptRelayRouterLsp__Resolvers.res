@@ -387,7 +387,7 @@ let routeRendererCodeLens = (
         // lens.
         let routeName = LspUtils.routeNameFromRouteRendererFileName(routeRendererFileName)
 
-        switch routeName->Belt.Option.flatMap(routeName =>
+        switch routeName->Option.flatMap(routeName =>
           routeName->LspUtils.findRouteWithName(~routeChildren=routeStructure.result)
         ) {
         | None => ()

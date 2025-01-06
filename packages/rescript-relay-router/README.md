@@ -71,7 +71,7 @@ Let's set up the actual ReScript code. First, let's initiate our router:
 ```rescript
 // Router.res
 
-let preparedAssetsMap = Js.Dict.empty()
+let preparedAssetsMap = Dict.make()
 
 // `cleanup` does not need to run on the client, but would clean up the router after you're done using it, like when doing SSR.
 let (_cleanup, routerContext) = RelayRouter.Router.make(
@@ -238,16 +238,16 @@ Now, let's look at what props each part of the route renderer receives:
 - `childRoutes: React.element` - if there are rendered child routes, its rendered content will be here.
 - `prepared` - whatever it is that `prepare` returns above.
 
-### Child routes + `RelayRouterUtils.childRouteHasContent`
+### Child routes + `RelayRouter.Utils.childRouteHasContent`
 
 As you can see, both child route params and content is passed along to your parent route.
 
 The child route _content_ (that you render to show the actual route contents) is passed along as a prop `childRoutes`. The child route _params_ (any path params for child routes) are passed along as `childParams`, if there are any child params. This means that `childParams` will only exist if there are actual child params.
 
-Sometimes it's useful to know whether that child route content is actually rendered or not. For example, maybe you want to control whether a slideover or modal shows based on whether there's actual content to show in it. For that purpose, there's a helper called `RelayRouterUtils.childRouteHasContent`. Here's an example of using it:
+Sometimes it's useful to know whether that child route content is actually rendered or not. For example, maybe you want to control whether a slideover or modal shows based on whether there's actual content to show in it. For that purpose, there's a helper called `RelayRouter.Utils.childRouteHasContent`. Here's an example of using it:
 
 ```rescript
-<SlideOver open_={RelayRouterUtils.childRouteHasContent(childRoutes)} title=None>
+<SlideOver open_={RelayRouter.Utils.childRouteHasContent(childRoutes)} title=None>
   {childRoutes}
 </SlideOver>
 ```
@@ -261,9 +261,9 @@ There, excellent! We've now covered how we define and render routes. Let's move 
 Linking to routes is fully type safe, and also quite ergonomic. A type safe `makeLink` function is generated for every defined route. Using it looks like this:
 
 ```rescript
-<RelayRouterLink to_={Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true)}>
+<RelayRouter.Link to_={Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true)}>
   {React.string("See active members")}
-</RelayRouterLink>
+</RelayRouter.Link>
 ```
 
 `makeLink` will take any parameters defined for the route as non-optional (`slug` here), and any query param defined for the route (or any parent route that renders it) as an optional. `makeLink` will then produce the correct URL for you.
@@ -274,14 +274,14 @@ Linking to routes is fully type safe, and also quite ergonomic. A type safe `mak
 
 In `Routes.res`, any route will have all its generated assets at the route name itself + `Route`, like `Routes.Organization.Members.Route.makeLink`. Any children of that route would be located inside of that same module, like `Routes.Organization.Members.SomeChildRoute.Route`.
 
-> Tip: Create a helper module and alias the link component, so you use something link `<U.Link />` day to day instead of `<RelayRouterLink />`. This helps if you need to add your own things to the Link component at a later stage.
+> Tip: Create a helper module and alias the link component, so you use something link `<U.Link />` day to day instead of `<RelayRouter.Link />`. This helps if you need to add your own things to the Link component at a later stage.
 
 ### Programatic navigation and preloading
 
 The router lets you navigate and preload/prepare routes programatically if needed. It works like this:
 
 ```rescript
-let {push, replace, preload, preloadCode} = RelayRouterUtils.useRouter()
+let {push, replace, preload, preloadCode} = RelayRouter.Utils.useRouter()
 
 // This will push a new route
 push(Routes.Organization.Members.Route.makeLink(~slug=organization.slug, ~showActive=true))
@@ -302,7 +302,7 @@ preload(
 )
 ```
 
-Just as with the imperative functions above, `<RelayRouterLink />` can help you preload both code and data. It's configured via these props:
+Just as with the imperative functions above, `<RelayRouter.Link />` can help you preload both code and data. It's configured via these props:
 
 - `preloadCode` - controls when code will be preloaded. Default is `OnInView`, and variants are:
   - `OnRender` as soon as the link renders. Suitable for things like important menu entries etc.
@@ -321,39 +321,39 @@ A few notes on preloading:
 
 ### Scrolling and scroll restoration
 
-If your only scrolling area is the document itself, you can enable scroll restoration via the router (if you don't prefer the browser's built in scroll restoration) by simply rendering `<RelayRouterScroll.ScrollRestoration />` inside of your app, close to the router provider.
+If your only scrolling area is the document itself, you can enable scroll restoration via the router (if you don't prefer the browser's built in scroll restoration) by simply rendering `<RelayRouter.Scroll.ScrollRestoration />` inside of your app, close to the router provider.
 
 > Remember to turn off the built in browser scroll restoration if you do this: ``%%raw(`window.history.scrollRestoration = "manual"`)``
 
 If you have scrolling content areas that isn't scrolling on the main document itself, you'll need to tell the router about it so it can correctly help you with scroll restoration, and look at the intersection of the correct elements when detecting if links are in view yet. You tell the router about your scrolling areas this way:
 
 ```rescript
-let mainContainerRef = React.useRef(Js.Nullable.null)
+let mainContainerRef = React.useRef(Nullable.null)
 
-<RelayRouterScroll.TargetScrollElement.Provider
+<RelayRouter.Scroll.TargetScrollElement.Provider
   targetElementRef=mainContainerRef
   id="main-scroll-area"
 >
   <main ref={ReactDOM.Ref.domRef(mainContainerRef)}>
     {children}
   </main>
-</RelayRouterScroll.TargetScrollElement.Provider>
+</RelayRouter.Scroll.TargetScrollElement.Provider>
 ```
 
-This lets the router know that `<main />` is the element that will be scrolling. If you also want the router to do scroll restoration, you can render `<RelayRouterScroll.ScrollRestoration />` at the bottom inside of `<RelayRouterScroll.TargetScrollElement.Provider />`, like so:
+This lets the router know that `<main />` is the element that will be scrolling. If you also want the router to do scroll restoration, you can render `<RelayRouter.Scroll.ScrollRestoration />` at the bottom inside of `<RelayRouter.Scroll.TargetScrollElement.Provider />`, like so:
 
 ```rescript
-let mainContainerRef = React.useRef(Js.Nullable.null)
+let mainContainerRef = React.useRef(Nullable.null)
 
-<RelayRouterScroll.TargetScrollElement.Provider
+<RelayRouter.Scroll.TargetScrollElement.Provider
   targetElementRef=mainContainerRef
   id="main-scroll-area"
 >
   <main ref={ReactDOM.Ref.domRef(mainContainerRef)}>
     {children}
-    <RelayRouterScroll.ScrollRestoration />
+    <RelayRouter.Scroll.ScrollRestoration />
   </main>
-</RelayRouterScroll.TargetScrollElement.Provider>
+</RelayRouter.Scroll.TargetScrollElement.Provider>
 ```
 
 This will have the router restore scroll as you navigate back and forth through your app. Repeat this for as many content areas as you'd like.
@@ -541,20 +541,20 @@ let routeActive = Routes.Organization.Members.Route.useIsRouteActive(~exact=fals
 #### Checking whether a route is active in a generic way (`<NavLink />`)
 
 ```rescript
-// There's a generic way to check if a route is active or not, `RelayRouterUtils.useIsRouteActive`.
+// There's a generic way to check if a route is active or not, `RelayRouter.Utils.useIsRouteActive`.
 // Useful for making your own <NavLink /> component that highlights itself in some way when it's active.
 // A very crude example below:
 module NavLink = {
   @react.component
   let make = (~href, ~routePattern, ~exact=false) => {
-    let isRouteActive = RelayRouterUtils.useIsRouteActive(
+    let isRouteActive = RelayRouter.Utils.useIsRouteActive(
       // Every route has a `routePattern` you can use
       ~routePattern=Routes.Organization.Members.Route.routePattern,
       // Whether to check whether _exactly_ this route is active. `false` means subroutes of the route will also say it's active.
       ~exact
     )
 
-    <RelayRouterLink
+    <RelayRouter.Link
       to_=href
       className={className ++ " " ++ isRouteActive ? "css-classes-for-active-styling" : "css-classes-for-not-active-styling"}
     >
@@ -569,7 +569,7 @@ module NavLink = {
 >
 
 // You can also check a pathname directly, without using the hook:
-let routeActive = RelayRouterUtils.isRouteActive(
+let routeActive = RelayRouter.Utils.isRouteActive(
   ~pathname="/some/thing/123",
   ~routePattern="/some/thing/:id",
   ~exact=true,

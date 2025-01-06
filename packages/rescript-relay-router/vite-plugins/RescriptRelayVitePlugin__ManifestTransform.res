@@ -4,16 +4,16 @@
 module ViteManifest = {
   type chunk = {
     file: string,
-    src: Js.Nullable.t<string>,
-    isEntry: Js.Nullable.t<bool>,
-    isDynamicEntry: Js.Nullable.t<bool>,
-    imports: Js.Nullable.t<array<string>>,
-    dynamicImports: Js.Nullable.t<array<string>>,
-    css: Js.Nullable.t<array<string>>,
-    assets: Js.Nullable.t<array<string>>,
+    src: Nullable.t<string>,
+    isEntry: Nullable.t<bool>,
+    isDynamicEntry: Nullable.t<bool>,
+    imports: Nullable.t<array<string>>,
+    dynamicImports: Nullable.t<array<string>>,
+    css: Nullable.t<array<string>>,
+    assets: Nullable.t<array<string>>,
   }
-  type t = Js.Dict.t<chunk>
-  external objToManifest: Js.Json.t => t = "%identity"
+  type t = dict<chunk>
+  external objToManifest: JSON.t => t = "%identity"
 }
 
 /**
@@ -24,27 +24,29 @@ module ViteManifest = {
  */
 let viteManifestToRelayRouterManifest: ViteManifest.t => RelayRouter.Manifest.t = manifest => {
   let orEmptyArray = nullableArray =>
-    nullableArray->Js.Nullable.toOption->Belt.Option.getWithDefault([])
-  let getChunk = Js.Dict.unsafeGet(manifest)
+    switch nullableArray {
+    | Nullable.Null | Undefined => []
+    | Value(v) => v
+    }
+  let getChunk = key => Dict.getUnsafe(manifest, key)
   let getFile = import_ => "/" ++ getChunk(import_).file
   // let getImports = import_ => getChunk(import_).imports->orEmptyArray
   // let getCss = import_ => getChunk(import_).css->orEmptyArray
   // let getAssets = import_ => getChunk(import_).assets->orEmptyArray
 
   {
-    entryPoint: "/" ++ (manifest->Js.Dict.unsafeGet("index.html")).file,
+    entryPoint: "/" ++ (manifest->Dict.getUnsafe("index.html")).file,
     files: manifest
-    ->Js.Dict.entries
-    ->Belt.Array.keepMap(((source, chunk)) => {
+    ->Dict.toArray
+    ->Array.filterMap(((source, chunk)) => {
       open RelayRouter.Manifest
       // The isEntry or isDynamicEntry field is only ever present when it's `true`.
-      switch !(chunk.isEntry->Js.Nullable.isNullable) ||
-      !(chunk.isDynamicEntry->Js.Nullable.isNullable) {
+      switch !(chunk.isEntry->Nullable.isNullable) || !(chunk.isDynamicEntry->Nullable.isNullable) {
       | true =>
         Some((
           source->getFile,
           {
-            imports: chunk.imports->orEmptyArray->Js.Array2.map(getFile),
+            imports: chunk.imports->orEmptyArray->Array.map(getFile),
             css: chunk.css->orEmptyArray,
             assets: chunk.assets->orEmptyArray,
           },
@@ -52,7 +54,7 @@ let viteManifestToRelayRouterManifest: ViteManifest.t => RelayRouter.Manifest.t 
       | false => None
       }
     })
-    ->Js.Dict.fromArray,
+    ->Dict.fromArray,
   }
 }
 
@@ -60,7 +62,7 @@ let viteManifestToRelayRouterManifest: ViteManifest.t => RelayRouter.Manifest.t 
  * Load our client manifest.
  */
 let loadViteManifest = path => {
-  readFileSync(path, "utf-8")->Js.Json.parseExn->ViteManifest.objToManifest
+  readFileSync(path, "utf-8")->JSON.parseExn->ViteManifest.objToManifest
 }
 
 let writeRouterManifest = (path, manifest: RelayRouter.Manifest.t) => {

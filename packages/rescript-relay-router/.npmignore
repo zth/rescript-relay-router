@@ -6,12 +6,12 @@ test/
 .gitignore
 
 # For the CLI only the compiled code is published that can be used directly in Node.js.
-!cli/**/*.mjs
+!cli/**/*.bundle.mjs
 cli/**/*.res
 cli/**/*.resi
 
-# Commit the PreloadInsertingStreamNode as it has no ReScript source file.
+# Publish PreloadInsertingStreamNode as it has no ReScript source file.
 !src/PreloadInsertingStreamNode.mjs
 
 # Publish the Vite plugins that projects will need as is.
-!vite-plugins/*.mjs
+!vite-plugins/*.bundle.mjs

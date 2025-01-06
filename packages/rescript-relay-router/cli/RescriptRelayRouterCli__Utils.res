@@ -81,21 +81,21 @@ module QueryParams = {
   // Prints a serializer for a typed/decoded query param.
   let toSerializer = (queryParam, ~variableName) => {
     switch queryParam {
-    | String => `${variableName}->Js.Global.encodeURIComponent`
-    | Boolean => `string_of_bool(${variableName})`
-    | Int => `Belt.Int.toString(${variableName})`
-    | Float => `Js.Float.toString(${variableName})`
-    | CustomModule({moduleName}) =>
-      `${variableName}->${moduleName}.serialize->Js.Global.encodeURIComponent`
+    | String => `${variableName}->encodeURIComponent`
+    | Boolean => `switch ${variableName} { | true => "true" | false => "false" }`
+    | Int => `Int.toString(${variableName})`
+    | Float => `Float.toString(${variableName})`
+    | CustomModule({moduleName}) => `${variableName}->${moduleName}.serialize->encodeURIComponent`
     | Array(inner) =>
       switch inner {
       | Array(_) => variableName
-      | String => `${variableName}->Belt.Array.map(Js.Global.encodeURIComponent)`
-      | Boolean => `${variableName}->Belt.Array.map(string_of_bool)`
-      | Int => `${variableName}->Belt.Array.map(Belt.Int.toString)`
-      | Float => `${variableName}->Belt.Array.map(Js.Float.toString)`
+      | String => `${variableName}->Array.map(encodeURIComponent)`
+      | Boolean =>
+        `${variableName}->Array.map(bool => switch bool { | true => "true" | false => "false" })`
+      | Int => `${variableName}->Array.map(Int.toString)`
+      | Float => `${variableName}->Array.map(Float.toString)`
       | CustomModule({moduleName}) =>
-        `${variableName}->Belt.Array.map(value => value->${moduleName}.serialize->Js.Global.encodeURIComponent)`
+        `${variableName}->Array.map(value => value->${moduleName}.serialize->encodeURIComponent)`
       }
     }
   }
@@ -103,31 +103,30 @@ module QueryParams = {
   // Prints a parser for a typed query param.
   let toParser = (queryParam, ~variableName) => {
     switch queryParam {
-    | String => `Some(${variableName}->Js.Global.decodeURIComponent)`
+    | String => `Some(${variableName}->decodeURIComponent)`
     | Boolean =>
       `switch ${variableName} {
       | "true" => Some(true)
       | "false" => Some(false)
       | _ => None
       }`
-    | Int => `Belt.Int.fromString(${variableName})`
-    | Float => `Js.Float.fromString(${variableName})`
-    | CustomModule({moduleName}) =>
-      `${variableName}->Js.Global.decodeURIComponent->${moduleName}.parse`
+    | Int => `Int.fromString(${variableName})`
+    | Float => `Float.fromString(${variableName})`
+    | CustomModule({moduleName}) => `${variableName}->decodeURIComponent->${moduleName}.parse`
     | Array(inner) =>
       switch inner {
       | Array(_) => variableName
-      | String => `${variableName}->Js.Global.decodeURIComponent`
+      | String => `${variableName}->decodeURIComponent`
       | Boolean =>
-        `${variableName}->Belt.Array.map(value => switch value {
+        `${variableName}->Array.map(value => switch value {
       | "true" => Some(true)
       | "false" => Some(false)
       | _ => None
       })`
-      | Int => `${variableName}->Belt.Array.map(Belt.Int.fromString)`
-      | Float => `${variableName}->Belt.Array.map(Js.Float.fromString)`
+      | Int => `${variableName}->Array.map(Int.fromString)`
+      | Float => `${variableName}->Array.map(Float.fromString)`
       | CustomModule({moduleName}) =>
-        `${variableName}->Belt.Array.map(value => value->Js.Global.decodeURIComponent->${moduleName}.parse)`
+        `${variableName}->Array.map(value => value->decodeURIComponent->${moduleName}.parse)`
       }
     }
   }
@@ -166,14 +165,14 @@ let rec rawRouteToMatchable = (route: printableRoute): routeForCliMatching => {
 }
 
 type routeMatchCli = {
-  params: Dict.t<string>,
+  params: dict<string>,
   route: RescriptRelayRouterCli__Types.routeForCliMatching,
 }
 
 @module("../src/vendor/react-router.js") @return(nullable)
 external matchRoutesCli: (
   array<RescriptRelayRouterCli__Types.routeForCliMatching>,
-  {"pathname": string, "hash": string, "search": string, "state": Js.Json.t},
+  {"pathname": string, "hash": string, "search": string, "state": JSON.t},
 ) => option<array<routeMatchCli>> = "matchRoutes"
 
 let rec routeChildrenToPrintable = (routeChildren: array<routeChild>): array<printableRoute> => {
@@ -209,7 +208,7 @@ exception Decode_error(RescriptRelayRouterCli__Types.routeStructure)
 
 let readRouteStructure = (config): (
   array<printableRoute>,
-  Dict.t<(RescriptRelayRouterCli__Types.printableRoute, List.t<string>)>,
+  dict<(RescriptRelayRouterCli__Types.printableRoute, List.t<string>)>,
 ) => {
   let {
     errors,
@@ -297,15 +296,15 @@ let rec printNestedRouteModules = (route: printableRoute, ~indentation): string 
 let queryParamToQueryParamDecoder = (param, ~key) => {
   switch param {
   | Array(param) =>
-    `getArrayParamByKey("${key}")->Belt.Option.map(value => value->Belt.Array.keepMap(value => ${param->QueryParams.toParser(
+    `getArrayParamByKey("${key}")->Option.map(value => value->Array.filterMap(value => ${param->QueryParams.toParser(
         ~variableName="value",
       )})),\n`
   | CustomModule({required: true, moduleName}) =>
-    `getParamByKey("${key}")->Belt.Option.flatMap(value => ${param->QueryParams.toParser(
+    `getParamByKey("${key}")->Option.flatMap(value => ${param->QueryParams.toParser(
         ~variableName="value",
-      )})->Belt.Option.getWithDefault(${moduleName}.defaultValue),\n`
+      )})->Option.getOr(${moduleName}.defaultValue),\n`
   | param =>
-    `getParamByKey("${key}")->Belt.Option.flatMap(value => ${param->QueryParams.toParser(
+    `getParamByKey("${key}")->Option.flatMap(value => ${param->QueryParams.toParser(
         ~variableName="value",
       )}),\n`
   }

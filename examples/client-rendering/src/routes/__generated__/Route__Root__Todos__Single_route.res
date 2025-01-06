@@ -39,7 +39,7 @@ module Internal = {
   @live
   let makePrepareProps = (. 
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Js.Dict.t<string>,
+    ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter.History.location,
   ): prepareProps => {
@@ -47,10 +47,10 @@ module Internal = {
       environment: environment,
   
       location: location,
-      todoId: pathParams->Js.Dict.unsafeGet("todoId"),
-      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
-      statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Belt.Option.flatMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)->Belt.Option.getWithDefault(TodoStatus.defaultValue),
-      showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Belt.Option.flatMap(value => switch value {
+      todoId: pathParams->Dict.getUnsafe("todoId"),
+      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
+      statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+      showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Option.flatMap(value => switch value {
         | "true" => Some(true)
         | "false" => Some(false)
         | _ => None
@@ -65,11 +65,11 @@ let parseQueryParams = (search: string): queryParams => {
   open RelayRouter.Bindings
   let queryParams = QueryParams.parse(search)
   {
-    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Belt.Option.map(value => value->Belt.Array.keepMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)),
+    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
 
-    statusWithDefault: queryParams->QueryParams.getParamByKey("statusWithDefault")->Belt.Option.flatMap(value => value->Js.Global.decodeURIComponent->TodoStatus.parse)->Belt.Option.getWithDefault(TodoStatus.defaultValue),
+    statusWithDefault: queryParams->QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->decodeURIComponent->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
 
-    showMore: queryParams->QueryParams.getParamByKey("showMore")->Belt.Option.flatMap(value => switch value {
+    showMore: queryParams->QueryParams.getParamByKey("showMore")->Option.flatMap(value => switch value {
       | "true" => Some(true)
       | "false" => Some(false)
       | _ => None
@@ -86,9 +86,9 @@ let applyQueryParams = (
   open RelayRouter__Bindings
 
   
-  queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Belt.Option.map(statuses => statuses->Belt.Array.map(statuses => statuses->TodoStatus.serialize->Js.Global.encodeURIComponent)))
-  queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=newParams.statusWithDefault->TodoStatus.serialize->Js.Global.encodeURIComponent)
-  queryParams->QueryParams.setParamOpt(~key="showMore", ~value=newParams.showMore->Belt.Option.map(showMore => string_of_bool(showMore)))
+  queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize->encodeURIComponent)))
+  queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=newParams.statusWithDefault->TodoStatus.serialize->encodeURIComponent)
+  queryParams->QueryParams.setParamOpt(~key="showMore", ~value=newParams.showMore->Option.map(showMore => switch showMore { | true => "true" | false => "false" }))
 }
 
 @live
@@ -125,19 +125,19 @@ let makeLink = (~todoId: string, ~statuses: option<array<TodoStatus.t>>=?, ~stat
   let queryParams = QueryParams.make()
   switch statuses {
     | None => ()
-    | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Belt.Array.map(value => value->TodoStatus.serialize->Js.Global.encodeURIComponent))
+    | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Array.map(value => value->TodoStatus.serialize->encodeURIComponent))
   }
 
   switch statusWithDefault {
     | None => ()
-    | Some(statusWithDefault) => queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=statusWithDefault->TodoStatus.serialize->Js.Global.encodeURIComponent)
+    | Some(statusWithDefault) => queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=statusWithDefault->TodoStatus.serialize->encodeURIComponent)
   }
 
   switch showMore {
     | None => ()
-    | Some(showMore) => queryParams->QueryParams.setParam(~key="showMore", ~value=string_of_bool(showMore))
+    | Some(showMore) => queryParams->QueryParams.setParam(~key="showMore", ~value=switch showMore { | true => "true" | false => "false" })
   }
-  RelayRouter.Bindings.generatePath(routePattern, Js.Dict.fromArray([("todoId", (todoId :> string)->Js.Global.encodeURIComponent)])) ++ queryParams->QueryParams.toString
+  RelayRouter.Bindings.generatePath(routePattern, Dict.fromArray([("todoId", (todoId :> string)->encodeURIComponent)])) ++ queryParams->QueryParams.toString
 }
 @live
 let makeLinkFromQueryParams = (~todoId: string, queryParams: queryParams) => {
@@ -150,7 +150,7 @@ let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) 
 
 @live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
-  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Belt.Option.isSome
+  RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Option.isSome
 }
 
 @live

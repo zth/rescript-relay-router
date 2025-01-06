@@ -6,7 +6,7 @@ open RescriptRelayRouterCli__Types
 
 type parserContext = {
   routeFileNames: array<string>,
-  routeFiles: Dict.t<loadedRouteFile>,
+  routeFiles: dict<loadedRouteFile>,
   getRouteFileContents: string => result<string, Exn.t>,
 }
 
@@ -89,19 +89,19 @@ module ReScriptTransformer = {
 
     switch (node.typ, node.value, node.children) {
     | (#boolean, Some(value), _) =>
-      switch value->Js.Json.decodeBoolean {
-      | None => None
-      | Some(value) => Some(Boolean({loc, error: None, value}))
+      switch value {
+      | Boolean(value) => Some(Boolean({loc, error: None, value}))
+      | _ => None
       }
     | (#string, Some(value), _) =>
-      switch value->Js.Json.decodeString {
-      | None => None
-      | Some(value) => Some(String({loc, error: None, value}))
+      switch value {
+      | String(value) => Some(String({loc, error: None, value}))
+      | _ => None
       }
     | (#number, Some(value), _) =>
-      switch value->Js.Json.decodeNumber {
-      | None => None
-      | Some(value) => Some(Number({loc, error: None, value}))
+      switch value {
+      | Number(value) => Some(Number({loc, error: None, value}))
+      | _ => None
       }
     | (#null, _, _) => Some(Null({loc, error: None}))
     | (#array, _, Some(children)) =>
@@ -123,8 +123,8 @@ module ReScriptTransformer = {
             children->Array.forEach(child => {
               switch (child.typ, child.children) {
               | (#property, Some([{typ: #string, value: Some(name)}, rawValue])) =>
-                switch (name->Js.Json.decodeString, rawValue->transformNode(~ctx)) {
-                | (Some(name), Some(value)) =>
+                switch (name, rawValue->transformNode(~ctx)) {
+                | (String(name), Some(value)) =>
                   properties->Array.push({
                     loc: child->rangeFromNode(~lineLookup=ctx.lineLookup),
                     name,
@@ -482,7 +482,7 @@ module Path = {
           `"${rawTypeText}" is not a valid query param type.\n  ` ++ if (
             fuzzyMatches->Array.length > 0
           ) {
-            `Did you mean "${fuzzyMatches->Js.Array2.unsafe_get(0)}"?`
+            `Did you mean "${fuzzyMatches->Array.getUnsafe(0)}"?`
           } else if rawTypeText == "boolean" {
             `Did you mean "bool"?`
           } else {

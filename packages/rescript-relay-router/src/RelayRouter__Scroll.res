@@ -20,18 +20,18 @@ external getScrollPositions: (
 external setScrollPositions: (@as(json`"RESCRIPT_RELAY_ROUTER_SCROLL_POS"`) _, string) => unit =
   "sessionStorage.setItem"
 
-external castToPositionsShape: Js.Json.t => Js.Dict.t<int> = "%identity"
+external castToPositionsShape: JSON.t => dict<int> = "%identity"
 
 let scrollPositionsY = ref(
   if RelaySSRUtils.ssr {
-    Js.Dict.empty()
+    Dict.make()
   } else {
     try {
       getScrollPositions()
-      ->Belt.Option.map(positionsRaw => positionsRaw->Js.Json.parseExn->castToPositionsShape)
-      ->Belt.Option.getWithDefault(Js.Dict.empty())
+      ->Option.map(positionsRaw => positionsRaw->JSON.parseExn->castToPositionsShape)
+      ->Option.getOr(Dict.make())
     } catch {
-    | Js.Exn.Error(_) => Js.Dict.empty()
+    | Exn.Error(_) => Dict.make()
     }
   },
 )
@@ -39,7 +39,7 @@ let scrollPositionsY = ref(
 module TargetScrollElement = {
   type context = {
     id: string,
-    targetElementRef: React.ref<Js.Nullable.t<Dom.element>>,
+    targetElementRef: React.ref<Nullable.t<Dom.element>>,
   }
 
   type targetElementContext = option<context>
@@ -91,12 +91,12 @@ module ScrollRestoration = {
   @val @return(nullable)
   external getElementById: string => option<Dom.element> = "document.getElementById"
 
-  type targetElement = Window(Dom.element) | Element(React.ref<Js.Nullable.t<Dom.element>>)
+  type targetElement = Window(Dom.element) | Element(React.ref<Nullable.t<Dom.element>>)
 
   let getElement = targetElement =>
     switch targetElement {
     | Window(window) => Some(window)
-    | Element(ref) => ref.current->Js.Nullable.toOption
+    | Element(ref) => ref.current->Nullable.toOption
     }
 
   @react.component
@@ -115,10 +115,7 @@ module ScrollRestoration = {
       switch targetElement->getElement {
       | None => ()
       | Some(targetElement) =>
-        scrollPositionsY.contents->Js.Dict.set(
-          location->getScrollPosId(~id),
-          targetElement->scrollTop,
-        )
+        scrollPositionsY.contents->Dict.set(location->getScrollPosId(~id), targetElement->scrollTop)
       }
     }, (location, targetElement, id))
 
@@ -126,12 +123,9 @@ module ScrollRestoration = {
       switch targetElement->getElement {
       | None => ()
       | Some(targetElement) =>
-        scrollPositionsY.contents->Js.Dict.set(
-          location->getScrollPosId(~id),
-          targetElement->scrollTop,
-        )
+        scrollPositionsY.contents->Dict.set(location->getScrollPosId(~id), targetElement->scrollTop)
         let _ = RelayRouter__Internal.runAtPriority(~priority, () => {
-          switch scrollPositionsY.contents->Js.Json.stringifyAny {
+          switch scrollPositionsY.contents->JSON.stringifyAny {
           | None => ()
           | Some(stringifiedPositions) => setScrollPositions(stringifiedPositions)
           }
@@ -164,13 +158,13 @@ module ScrollRestoration = {
         | RestoreScroll(location) =>
           switch (
             targetElement->getElement,
-            scrollPositionsY.contents->Js.Dict.get(location->getScrollPosId(~id)),
+            scrollPositionsY.contents->Dict.get(location->getScrollPosId(~id)),
           ) {
           | (None, _) => ()
           | (Some(targetElement), Some(y)) => targetElement->scrollToYOnElement(~y)
           | (Some(targetElement), None) =>
             // If there's a hash, we'll try to scroll to it. If not, we'll scroll to top
-            switch location.hash->Js.String2.sliceToEnd(~from=1)->getElementById {
+            switch location.hash->String.sliceToEnd(~start=1)->getElementById {
             | None =>
               // No hash, scroll to top
               targetElement->scrollToYOnElement(~y=0)

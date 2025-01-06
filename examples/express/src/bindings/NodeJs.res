@@ -1,8 +1,14 @@
 @scope("process.env") @val external nodeEnv: Nullable.t<string> = "NODE_ENV"
-let isProduction = nodeEnv->Nullable.toOption->Option.getOr("development") === "production"
+let isProduction = switch nodeEnv {
+| Value("production") => true
+| _ => false
+}
 
 @scope("process.env") @val external enableFileserver: Nullable.t<string> = "ENABLE_FILESERVER"
-let shouldEnableFileserver = enableFileserver->Nullable.toOption->Option.getOr("false") === "true"
+let shouldEnableFileserver = switch enableFileserver {
+| Value("true") => true
+| _ => false
+}
 
 module Fs = {
   module Stats = {

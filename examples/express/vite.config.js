@@ -7,7 +7,7 @@ import { virtualIndex } from "rescript-relay-router/VirtualIndex.mjs";
 export default defineConfig({
   base: process.env.APP_PATH ?? "/",
   plugins: [
-    virtualIndex({ entryClient: "/src/EntryClient.mjs" }),
+    virtualIndex({ entryClient: "/src/EntryClient.res.mjs" }),
     reactRefresh(),
     process.env.NODE_ENV !== "test"
       ? rescriptRelayVitePlugin({

@@ -28,67 +28,65 @@ describe("Query params", () => {
     open U.QueryParams
 
     expect(String->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Js.Global.encodeURIComponent",
+      "propName->encodeURIComponent",
     )
-    expect(Boolean->toSerializer(~variableName="propName"))->Expect.toBe("string_of_bool(propName)")
-    expect(Int->toSerializer(~variableName="propName"))->Expect.toBe("Belt.Int.toString(propName)")
-    expect(Float->toSerializer(~variableName="propName"))->Expect.toBe(
-      "Js.Float.toString(propName)",
-    )
+    expect(
+      Boolean->toSerializer(~variableName="propName"),
+    )->Expect.toBe(`switch propName { | true => "true" | false => "false" }`)
+    expect(Int->toSerializer(~variableName="propName"))->Expect.toBe("Int.toString(propName)")
+    expect(Float->toSerializer(~variableName="propName"))->Expect.toBe("Float.toString(propName)")
     expect(
       CustomModule({moduleName: "SomeModule", required: false})->toSerializer(
         ~variableName="propName",
       ),
-    )->Expect.toBe("propName->SomeModule.serialize->Js.Global.encodeURIComponent")
+    )->Expect.toBe("propName->SomeModule.serialize->encodeURIComponent")
 
     /* Arrays */
     expect(Array(String)->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(Js.Global.encodeURIComponent)",
+      "propName->Array.map(encodeURIComponent)",
     )
-    expect(Array(Boolean)->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(string_of_bool)",
-    )
+    expect(
+      Array(Boolean)->toSerializer(~variableName="propName"),
+    )->Expect.toBe(`propName->Array.map(bool => switch bool { | true => "true" | false => "false" })`)
     expect(Array(Int)->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(Belt.Int.toString)",
+      "propName->Array.map(Int.toString)",
     )
     expect(Array(Float)->toSerializer(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(Js.Float.toString)",
+      "propName->Array.map(Float.toString)",
     )
     expect(
       Array(CustomModule({moduleName: "SomeModule", required: false}))->toSerializer(
         ~variableName="propName",
       ),
-    )->Expect.toBe(
-      "propName->Belt.Array.map(value => value->SomeModule.serialize->Js.Global.encodeURIComponent)",
-    )
+    )->Expect.toBe("propName->Array.map(value => value->SomeModule.serialize->encodeURIComponent)")
   })
 
   test("emits parse code for query params", _t => {
     open U.QueryParams
 
     expect(String->toParser(~variableName="propName"))->Expect.toBe(
-      "Some(propName->Js.Global.decodeURIComponent)",
+      "Some(propName->decodeURIComponent)",
     )
-    expect(Int->toParser(~variableName="propName"))->Expect.toBe("Belt.Int.fromString(propName)")
-    expect(Float->toParser(~variableName="propName"))->Expect.toBe("Js.Float.fromString(propName)")
+    expect(Int->toParser(~variableName="propName"))->Expect.toBe("Int.fromString(propName)")
+    expect(Float->toParser(~variableName="propName"))->Expect.toBe("Float.fromString(propName)")
 
     expect(
       CustomModule({moduleName: "SomeModule", required: false})->toParser(~variableName="propName"),
-    )->Expect.toBe("propName->Js.Global.decodeURIComponent->SomeModule.parse")
+    )->Expect.toBe("propName->decodeURIComponent->SomeModule.parse")
 
     expect(
       CustomModule({moduleName: "SomeModule", required: true})->toParser(~variableName="propName"),
-    )->Expect.toBe("propName->Js.Global.decodeURIComponent->SomeModule.parse")
+    )->Expect.toBe("propName->decodeURIComponent->SomeModule.parse")
 
     /* Arrays */
     expect(Array(String)->toParser(~variableName="propName"))->Expect.toBe(
-      "propName->Js.Global.decodeURIComponent",
+      "propName->decodeURIComponent",
     )
     expect(Array(Int)->toParser(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(Belt.Int.fromString)",
+      "propName->Array.map(Int.fromString)",
     )
     expect(Array(Float)->toParser(~variableName="propName"))->Expect.toBe(
-      "propName->Belt.Array.map(Js.Float.fromString)",
+      "propName->Array.map(Float.fromString)",
     )
 
     // Custom module, not required
@@ -96,17 +94,13 @@ describe("Query params", () => {
       Array(CustomModule({moduleName: "SomeModule", required: false}))->toParser(
         ~variableName="propName",
       ),
-    )->Expect.toBe(
-      "propName->Belt.Array.map(value => value->Js.Global.decodeURIComponent->SomeModule.parse)",
-    )
+    )->Expect.toBe("propName->Array.map(value => value->decodeURIComponent->SomeModule.parse)")
 
     // Custom module, not required
     expect(
       Array(CustomModule({moduleName: "SomeModule", required: true}))->toParser(
         ~variableName="propName",
       ),
-    )->Expect.toBe(
-      "propName->Belt.Array.map(value => value->Js.Global.decodeURIComponent->SomeModule.parse)",
-    )
+    )->Expect.toBe("propName->Array.map(value => value->decodeURIComponent->SomeModule.parse)")
   })
 })

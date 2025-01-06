@@ -9,14 +9,15 @@ lib
 .bsb.lock
 .merlin
 
-# Ignore build output
-dist
-stats.html
-*.mjs
-
 # Commit the PreloadInsertingStreamNode as it has no ReScript source file.
 !src/PreloadInsertingStreamNode.mjs
 
 # Commit our Vite plugins written in plain JavaScript.
 !vite-plugins/**/*.mjs
 !test/RescriptRelayServerVitePlugin.test.mjs
+
+# Ignore build output
+dist
+stats.html
+*.res.mjs
+*.bundle.mjs

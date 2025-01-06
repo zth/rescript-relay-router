@@ -47,7 +47,7 @@ module Internal = {
   
       location: location,
       todoId: pathParams->Dict.getUnsafe("todoId"),
-      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
+      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
       showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Option.flatMap(value => switch value {
         | "true" => Some(true)
         | "false" => Some(false)
@@ -63,7 +63,7 @@ let parseQueryParams = (search: string): queryParams => {
   open RelayRouter.Bindings
   let queryParams = QueryParams.parse(search)
   {
-    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
+    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
 
     showMore: queryParams->QueryParams.getParamByKey("showMore")->Option.flatMap(value => switch value {
       | "true" => Some(true)
@@ -82,7 +82,7 @@ let applyQueryParams = (
   open RelayRouter__Bindings
 
   
-  queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize->encodeURIComponent)))
+  queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize)))
   queryParams->QueryParams.setParamOpt(~key="showMore", ~value=newParams.showMore->Option.map(showMore => switch showMore { | true => "true" | false => "false" }))
 }
 
@@ -120,7 +120,7 @@ let makeLink = (~todoId: string, ~statuses: option<array<TodoStatus.t>>=?, ~show
   let queryParams = QueryParams.make()
   switch statuses {
     | None => ()
-    | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Array.map(value => value->TodoStatus.serialize->encodeURIComponent))
+    | Some(statuses) => queryParams->QueryParams.setParamArray(~key="statuses", ~value=statuses->Array.map(value => value->TodoStatus.serialize))
   }
 
   switch showMore {

@@ -19,7 +19,7 @@
     "dev:relay": "yarn build:relay --watch",
     "dev:rescript": "yarn build:rescript -w",
     "schema": "npx -y get-graphql-schema http://localhost:4000/graphql > schema.graphql",
-    "test": "echo 'No tests implemented for express example' || vitest run",
+    "test": "vitest run",
     "test:watch": "echo 'No tests implemented for express example' || vitest watch"
   },
   "devDependencies": {
@@ -46,9 +46,11 @@
     "rollup": "^2",
     "rollup-plugin-visualizer": "5.5.0",
     "vite": "^4.4.9",
-    "vite-plugin-html": "3.2.0"
+    "vite-plugin-html": "3.2.0",
+    "vitest": "^2.1.8"
   },
   "dependencies": {
+    "@rescript-relay-router/utils": "workspace:^",
     "@rescript/core": "1.5.2",
     "history": "^5.2.0",
     "jsonc-parser": "^3.0.0",

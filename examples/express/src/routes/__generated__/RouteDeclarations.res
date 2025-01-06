@@ -92,7 +92,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       
           location: location,
           childParams: Obj.magic(pathParams),
-          statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
+          statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
         }
         prepareProps->unsafe_toPrepareProps
       }
@@ -160,7 +160,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             
                 location: location,
                 byStatus: pathParams->Dict.getUnsafe("byStatus")->Obj.magic,
-                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
+                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
               }
               prepareProps->unsafe_toPrepareProps
             }
@@ -230,7 +230,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             
                 location: location,
                 todoId: pathParams->Dict.getUnsafe("todoId"),
-                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->decodeURIComponent->TodoStatus.parse)),
+                statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
                 showMore: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Option.flatMap(value => switch value {
                   | "true" => Some(true)
                   | "false" => Some(false)

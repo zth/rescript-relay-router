@@ -81,7 +81,7 @@ let applyQueryParams = (
 
   
   queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize)))
-  queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=newParams.statusWithDefault->TodoStatus.serialize)
+  queryParams->QueryParams.setParamOpt(~key="statusWithDefault", ~value=newParams.statusWithDefault == TodoStatus.defaultValue ? None : newParams.statusWithDefault->TodoStatus.serialize->Some)
   queryParams->QueryParams.setParamOpt(~key="byValue", ~value=newParams.byValue->Option.map(byValue => byValue))
 }
 
@@ -124,7 +124,7 @@ let makeLink = (~statuses: option<array<TodoStatus.t>>=?, ~statusWithDefault: op
 
   switch statusWithDefault {
     | None => ()
-    | Some(statusWithDefault) => queryParams->QueryParams.setParam(~key="statusWithDefault", ~value=statusWithDefault->TodoStatus.serialize)
+    | Some(statusWithDefault) => queryParams->QueryParams.setParamOpt(~key="statusWithDefault", ~value=statusWithDefault == TodoStatus.defaultValue ? None : statusWithDefault->TodoStatus.serialize->Some)
   }
 
   switch byValue {

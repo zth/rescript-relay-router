@@ -86,7 +86,7 @@ module QueryParams = {
     | Int => `Int.toString(${variableName})`
     | Float => `Float.toString(${variableName})`
     | CustomModule({moduleName, required: true}) =>
-      `${variableName}->${moduleName}.serialize == ${moduleName}.defaultValue->${moduleName}.serialize ? None : ${variableName}->${moduleName}.serialize->Some`
+      `${variableName}->${moduleName}.serialize === ${moduleName}.defaultValue->${moduleName}.serialize ? None : ${variableName}->${moduleName}.serialize->Some`
     | CustomModule({moduleName}) => `${variableName}->${moduleName}.serialize`
     | Array(inner) =>
       switch inner {

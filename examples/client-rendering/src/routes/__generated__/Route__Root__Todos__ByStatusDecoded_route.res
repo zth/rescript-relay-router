@@ -45,7 +45,7 @@ module Internal = {
   @live
   let makePrepareProps = (. 
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Dict.t<string>,
+    ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter.History.location,
   ): prepareProps => {

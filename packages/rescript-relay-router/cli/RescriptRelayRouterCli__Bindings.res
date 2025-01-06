@@ -171,7 +171,7 @@ module URL = {
 module CosmiConfig = {
   type t
 
-  type config = Dict.t<string>
+  type config = dict<string>
 
   @live
   type result = {

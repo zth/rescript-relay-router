@@ -15,7 +15,7 @@ type file = {
 }
 type t = {
   entryPoint: string,
-  files: Dict.t<file>,
+  files: dict<file>,
 }
 
 @scope("JSON") @val external parse: string => t = "parse"

@@ -335,19 +335,19 @@ module CurrentContext: {
   let make: (
     ~config: config,
     ~getRouteFileContents: string => result<string, Exn.t>,
-    ~routeRenderersCache: Dict.t<string>,
+    ~routeRenderersCache: dict<string>,
   ) => t
   let isValidRouteFile: (t, string) => bool
   let getCurrentRouteStructure: t => routeStructure
   let getConfig: t => config
   let getRouteFileNames: t => array<string>
-  let getRouteRenderersCache: t => Dict.t<string>
+  let getRouteRenderersCache: t => dict<string>
 } = {
   type t = {
     routeStructure: routeStructure,
     config: config,
     routeFileNames: array<string>,
-    routeRenderersCache: Dict.t<string>,
+    routeRenderersCache: dict<string>,
   }
 
   let make = (~config, ~getRouteFileContents, ~routeRenderersCache) => {
@@ -380,8 +380,8 @@ module CurrentContext: {
 }
 
 let start = (~mode, ~config: config) => {
-  let routeFilesCaches: Dict.t<string> = Dict.make()
-  let routeRenderersCache: Dict.t<string> = Dict.make()
+  let routeFilesCaches: dict<string> = Dict.make()
+  let routeRenderersCache: dict<string> = Dict.make()
 
   // Holds the module graph for ReScript modules
   let moduleDepsCache = {

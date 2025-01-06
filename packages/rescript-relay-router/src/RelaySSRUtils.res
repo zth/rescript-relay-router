@@ -18,8 +18,8 @@ external unsafe_initialRelayData: window => option<array<streamedEntry>> = "__RE
 
 let deleteKey = (dict, key) => Dict.delete(Obj.magic(dict), key)
 
-let streamedPreCache: Dict.t<array<streamedEntry>> = Dict.make()
-let replaySubjects: Dict.t<RelayReplaySubject.t> = Dict.make()
+let streamedPreCache: dict<array<streamedEntry>> = Dict.make()
+let replaySubjects: dict<RelayReplaySubject.t> = Dict.make()
 
 let cleanupId = id => {
   Console.log("[debug] Cleaning up id \"" ++ id ++ "\"")

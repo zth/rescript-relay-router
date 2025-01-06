@@ -20,7 +20,7 @@ external getScrollPositions: (
 external setScrollPositions: (@as(json`"RESCRIPT_RELAY_ROUTER_SCROLL_POS"`) _, string) => unit =
   "sessionStorage.setItem"
 
-external castToPositionsShape: JSON.t => Dict.t<int> = "%identity"
+external castToPositionsShape: JSON.t => dict<int> = "%identity"
 
 let scrollPositionsY = ref(
   if RelaySSRUtils.ssr {

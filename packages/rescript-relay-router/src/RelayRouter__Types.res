@@ -31,13 +31,13 @@ type rec route = {
   loadRouteRenderer: unit => promise<unit>,
   preloadCode: (
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Dict.t<string>,
+    ~pathParams: dict<string>,
     ~queryParams: RelayRouter__Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,
   ) => promise<array<preloadAsset>>,
   prepare: (
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Dict.t<string>,
+    ~pathParams: dict<string>,
     ~queryParams: QueryParams.t,
     ~location: RelayRouter__History.location,
     ~intent: prepareIntent,
@@ -46,7 +46,7 @@ type rec route = {
 }
 
 type routeMatch = {
-  params: Dict.t<string>,
+  params: dict<string>,
   route: route,
 }
 

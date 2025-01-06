@@ -204,7 +204,7 @@ type parentContext = {
   seenPathParams: list<seenPathParam>,
   traversedRouteFiles: list<string>,
   parentRouteLoc: option<parentRouteLoc>,
-  routesByName: Dict.t<routeEntry>,
+  routesByName: dict<routeEntry>,
 }
 
 // This is the route structure produced
@@ -213,8 +213,8 @@ type loadedRouteFile = {fileName: string, rawText: string, content: array<routeC
 type routeStructure = {
   errors: array<decodeError>,
   result: array<routeChild>,
-  routeFiles: Dict.t<loadedRouteFile>,
-  routesByName: Dict.t<routeEntry>,
+  routeFiles: dict<loadedRouteFile>,
+  routesByName: dict<routeEntry>,
 }
 
 // For printing. A simpler AST without unecessary location info etc.
@@ -223,7 +223,7 @@ type rec printableRoute = {
   params: array<printablePathParam>,
   name: RouteName.t,
   children: array<printableRoute>,
-  queryParams: Dict.t<queryParam>,
+  queryParams: dict<queryParam>,
   sourceFile: string,
 }
 
@@ -235,7 +235,7 @@ type rec routeForCliMatching = {
   fullName: string,
   sourceFile: string,
   children: array<routeForCliMatching>,
-  queryParams: Dict.t<queryParam>,
+  queryParams: dict<queryParam>,
 }
 
 type config = {
@@ -250,6 +250,6 @@ type dependencyDeclaration = {
 }
 
 type moduleDepsCache = {
-  mutable cache: Dict.t<dependencyDeclaration>,
+  mutable cache: dict<dependencyDeclaration>,
   mutable compilerLastRebuilt: float,
 }

@@ -39,7 +39,7 @@ type preparedContainer = {
 
 type makePrepareProps = (
   ~environment: RescriptRelay.Environment.t,
-  ~pathParams: Dict.t<string>,
+  ~pathParams: dict<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter__History.location,
 ) => prepareProps
@@ -107,17 +107,17 @@ type prepareAssets = {
   getPrepared: (~routeKey: string) => option<preparedContainer>,
   prepareRoute: (
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Dict.t<string>,
+    ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,
     ~makePrepareProps: (
       ~environment: RescriptRelay.Environment.t,
-      ~pathParams: Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter__History.location,
     ) => prepareProps,
     ~makeRouteKey: (
-      ~pathParams: Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ) => string,
     ~getPrepared: (~routeKey: string) => option<preparedContainer>,
@@ -220,17 +220,17 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
   // needed to prepare and render a route.
   let prepareRoute = (
     ~environment: RescriptRelay.Environment.t,
-    ~pathParams: Dict.t<string>,
+    ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter__History.location,
     ~makePrepareProps: (
       ~environment: RescriptRelay.Environment.t,
-      ~pathParams: Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter__History.location,
     ) => prepareProps,
     ~makeRouteKey: (
-      ~pathParams: Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ) => string,
     ~getPrepared: (~routeKey: string) => option<preparedContainer>,

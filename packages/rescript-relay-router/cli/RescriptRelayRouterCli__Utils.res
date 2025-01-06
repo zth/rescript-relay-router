@@ -165,7 +165,7 @@ let rec rawRouteToMatchable = (route: printableRoute): routeForCliMatching => {
 }
 
 type routeMatchCli = {
-  params: Dict.t<string>,
+  params: dict<string>,
   route: RescriptRelayRouterCli__Types.routeForCliMatching,
 }
 
@@ -208,7 +208,7 @@ exception Decode_error(RescriptRelayRouterCli__Types.routeStructure)
 
 let readRouteStructure = (config): (
   array<printableRoute>,
-  Dict.t<(RescriptRelayRouterCli__Types.printableRoute, List.t<string>)>,
+  dict<(RescriptRelayRouterCli__Types.printableRoute, List.t<string>)>,
 ) => {
   let {
     errors,

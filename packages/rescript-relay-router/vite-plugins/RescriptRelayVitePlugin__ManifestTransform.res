@@ -12,7 +12,7 @@ module ViteManifest = {
     css: Nullable.t<array<string>>,
     assets: Nullable.t<array<string>>,
   }
-  type t = Dict.t<chunk>
+  type t = dict<chunk>
   external objToManifest: JSON.t => t = "%identity"
 }
 

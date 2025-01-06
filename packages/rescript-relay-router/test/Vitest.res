@@ -897,14 +897,14 @@ module Matchers = (
 
   module Dict = {
     @send
-    external toHaveProperty: (expected<Dict.t<'a>>, string, 'a) => Config.return<'a> =
+    external toHaveProperty: (expected<dict<'a>>, string, 'a) => Config.return<'a> =
       "toHaveProperty"
 
     @send
-    external toHaveKey: (expected<Dict.t<'a>>, string) => Config.return<'a> = "toHaveProperty"
+    external toHaveKey: (expected<dict<'a>>, string) => Config.return<'a> = "toHaveProperty"
 
     @send
-    external toMatch: (expected<Dict.t<'a>>, Dict.t<'a>) => Config.return<'a> = "toMatchObject"
+    external toMatch: (expected<dict<'a>>, dict<'a>) => Config.return<'a> = "toMatchObject"
   }
 }
 

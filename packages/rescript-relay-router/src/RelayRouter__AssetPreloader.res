@@ -1,4 +1,4 @@
-type preparedAssetsMap = Dict.t<bool>
+type preparedAssetsMap = dict<bool>
 let makeClientAssetPreloader = preparedAssetsMap => (~priority as _, asset) => {
   let assetIdentifier = switch asset {
   | RelayRouter__Types.Component({chunk}) => "component:" ++ chunk

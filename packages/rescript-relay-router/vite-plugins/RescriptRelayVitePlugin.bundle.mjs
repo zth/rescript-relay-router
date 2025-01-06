@@ -4076,7 +4076,7 @@ function getMakePrepareProps(route, returnMode) {
   var params = route.params;
   var childParams = Object.entries(findChildrenPathParams(route, undefined));
   var str = {
-    contents: "(. \n  ~environment: RescriptRelay.Environment.t,\n  ~pathParams: Dict.t<string>,\n  ~queryParams: RelayRouter.Bindings.QueryParams.t,\n  ~location: RelayRouter.History.location,\n): prepareProps => {\n"
+    contents: "(. \n  ~environment: RescriptRelay.Environment.t,\n  ~pathParams: dict<string>,\n  ~queryParams: RelayRouter.Bindings.QueryParams.t,\n  ~location: RelayRouter.History.location,\n): prepareProps => {\n"
   };
   var propsToIgnore = [
     params.length === 0 && childParams.length === 0 ? "pathParams" : undefined,
@@ -4116,7 +4116,7 @@ function getMakeRouteKeyFn(route) {
   var match = getRouteParamRecordFields(route);
   var queryParamsRecordFields = match.queryParamsRecordFields;
   var pathParamsRecordFields = match.pathParamsRecordFields;
-  return "(\n  ~pathParams: Dict.t<string>,\n  ~queryParams: RelayRouter.Bindings.QueryParams.t\n): string => {\n" + (
+  return "(\n  ~pathParams: dict<string>,\n  ~queryParams: RelayRouter.Bindings.QueryParams.t\n): string => {\n" + (
           pathParamsRecordFields.length === 0 ? "  ignore(pathParams)\n" : ""
         ) + (
           queryParamsRecordFields.length === 0 ? "  ignore(queryParams)\n" : ""
@@ -4207,7 +4207,7 @@ function addIndentation(str, indentation) {
 
 function getRouteDefinition(route, indentation) {
   var routeName = RouteName.getFullRouteName(route.name);
-  var str = "{\n  let routeName = \"" + routeName + "\"\n  let loadRouteRenderer = () => (() => import(" + routeName + "_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)\n  let makePrepareProps = " + getMakePrepareProps(route, "ForInlinedRouteFn") + "\n\n  {\n    path: \"" + RoutePath.getPathSegment(route.path) + "\",\n    name: routeName,\n    chunk: \"" + RouteName.getRouteRendererName(route.name) + "\",\n    loadRouteRenderer,\n    preloadCode: (\n      ~environment: RescriptRelay.Environment.t,\n      ~pathParams: Dict.t<string>,\n      ~queryParams: RelayRouter.Bindings.QueryParams.t,\n      ~location: RelayRouter.History.location,\n    ) => preloadCode(\n      ~loadedRouteRenderers,\n      ~routeName,\n      ~loadRouteRenderer,\n      ~environment,\n      ~location,\n      ~makePrepareProps,\n      ~pathParams,\n      ~queryParams,\n    ),\n    prepare: (\n      ~environment: RescriptRelay.Environment.t,\n      ~pathParams: Dict.t<string>,\n      ~queryParams: RelayRouter.Bindings.QueryParams.t,\n      ~location: RelayRouter.History.location,\n      ~intent: RelayRouter.Types.prepareIntent,\n    ) => prepareRoute(\n      ~environment,\n      ~pathParams,\n      ~queryParams,\n      ~location,\n      ~getPrepared,\n      ~loadRouteRenderer,\n      ~makePrepareProps,\n      ~makeRouteKey=" + getMakeRouteKeyFn(route) + ",\n      ~routeName,\n      ~intent\n    ),\n    children: [" + route.children.map(function (r) {
+  var str = "{\n  let routeName = \"" + routeName + "\"\n  let loadRouteRenderer = () => (() => import(" + routeName + "_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)\n  let makePrepareProps = " + getMakePrepareProps(route, "ForInlinedRouteFn") + "\n\n  {\n    path: \"" + RoutePath.getPathSegment(route.path) + "\",\n    name: routeName,\n    chunk: \"" + RouteName.getRouteRendererName(route.name) + "\",\n    loadRouteRenderer,\n    preloadCode: (\n      ~environment: RescriptRelay.Environment.t,\n      ~pathParams: dict<string>,\n      ~queryParams: RelayRouter.Bindings.QueryParams.t,\n      ~location: RelayRouter.History.location,\n    ) => preloadCode(\n      ~loadedRouteRenderers,\n      ~routeName,\n      ~loadRouteRenderer,\n      ~environment,\n      ~location,\n      ~makePrepareProps,\n      ~pathParams,\n      ~queryParams,\n    ),\n    prepare: (\n      ~environment: RescriptRelay.Environment.t,\n      ~pathParams: dict<string>,\n      ~queryParams: RelayRouter.Bindings.QueryParams.t,\n      ~location: RelayRouter.History.location,\n      ~intent: RelayRouter.Types.prepareIntent,\n    ) => prepareRoute(\n      ~environment,\n      ~pathParams,\n      ~queryParams,\n      ~location,\n      ~getPrepared,\n      ~loadRouteRenderer,\n      ~makePrepareProps,\n      ~makeRouteKey=" + getMakeRouteKeyFn(route) + ",\n      ~routeName,\n      ~intent\n    ),\n    children: [" + route.children.map(function (r) {
           return getRouteDefinition(r, indentation + 1 | 0);
         }).join(",\n") + "],\n  }\n}";
   return str.split("\n").map(function (line) {

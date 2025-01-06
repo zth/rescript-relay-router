@@ -381,7 +381,7 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
 
   let str = ref(`(. 
   ~environment: RescriptRelay.Environment.t,
-  ~pathParams: Dict.t<string>,
+  ~pathParams: dict<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
   ~location: RelayRouter.History.location,
 ): prepareProps => {\n`)
@@ -449,7 +449,7 @@ let getMakeRouteKeyFn = (route: printableRoute) => {
   let {pathParamsRecordFields, queryParamsRecordFields} = getRouteParamRecordFields(route)
 
   `(
-  ~pathParams: Dict.t<string>,
+  ~pathParams: dict<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t
 ): string => {
 ${if pathParamsRecordFields->Array.length == 0 {
@@ -613,7 +613,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
     loadRouteRenderer,
     preloadCode: (
       ~environment: RescriptRelay.Environment.t,
-      ~pathParams: Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.History.location,
     ) => preloadCode(
@@ -628,7 +628,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
     ),
     prepare: (
       ~environment: RescriptRelay.Environment.t,
-      ~pathParams: Dict.t<string>,
+      ~pathParams: dict<string>,
       ~queryParams: RelayRouter.Bindings.QueryParams.t,
       ~location: RelayRouter.History.location,
       ~intent: RelayRouter.Types.prepareIntent,

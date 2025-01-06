@@ -6,7 +6,7 @@ open RescriptRelayRouterCli__Types
 
 type parserContext = {
   routeFileNames: array<string>,
-  routeFiles: Dict.t<loadedRouteFile>,
+  routeFiles: dict<loadedRouteFile>,
   getRouteFileContents: string => result<string, Exn.t>,
 }
 

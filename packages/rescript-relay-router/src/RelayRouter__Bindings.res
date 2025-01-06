@@ -1,5 +1,5 @@
 module QueryParams = {
-  type t = Dict.t<array<string>>
+  type t = dict<array<string>>
 
   let make = () => Dict.make()
 
@@ -184,4 +184,4 @@ module RelayReplaySubject = {
 }
 
 @module("./vendor/react-router.js")
-external generatePath: (string, Dict.t<string>) => string = "generatePath"
+external generatePath: (string, dict<string>) => string = "generatePath"

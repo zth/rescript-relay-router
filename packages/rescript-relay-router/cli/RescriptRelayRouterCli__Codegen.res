@@ -100,6 +100,7 @@ let routePattern = "${route.path->RoutePath.toPattern}"
     queryParamSerializers->Array.forEach(((key, serializer, paramType)) => {
       let serializerStr = `queryParams->QueryParams.${switch paramType {
         | Array(_) => "setParamArray"
+        | CustomModule({required: true}) => "setParamOpt"
         | _ => "setParam"
         }}(~key="${key->SafeParam.getOriginalKey}", ~value=${serializer})`
 
@@ -231,7 +232,7 @@ let applyQueryParams = (
                 ~variableName=key,
               )})))`
           | CustomModule({required: true}) =>
-            `\n  queryParams->QueryParams.setParam(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
+            `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
                 ~variableName=`newParams.${key}`,
               )})`
           | queryParam =>

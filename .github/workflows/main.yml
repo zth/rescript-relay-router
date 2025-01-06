@@ -38,11 +38,6 @@ jobs:
       - name: Build all projects
         run: |
           yarn build
-      # Since we don't want to have generated code formatted in the router we regenerate
-      # the router code after formatting.
-      - name: Sync router code generation
-        run: |
-          yarn workspaces foreach --topological-dev run router:generate
       - name: git status
         id: git_status
         shell: bash

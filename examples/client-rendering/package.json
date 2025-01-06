@@ -8,7 +8,7 @@
   "type": "module",
   "packageManager": "yarn@3.2.1",
   "scripts": {
-    "build": "run-s 'build:*'",
+    "build": "yarn router:generate && run-s 'build:*'",
     "build:relay": "rescript-relay-compiler",
     "build:rescript": "rescript build -with-deps",
     "build:vite": "vite build --outDir dist/client",

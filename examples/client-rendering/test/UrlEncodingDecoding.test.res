@@ -17,6 +17,11 @@ describe("makeLink", () => {
     let link = Routes.Root.Todos.Route.makeLink(~byValue="/incorrect value, for url")
     expect(link)->Expect.toBe("/todos?byValue=%2Fincorrect%20value%2C%20for%20url")
   })
+
+  test("should omit query param when value is default value", _t => {
+    let link = Routes.Root.Todos.Route.makeLink(~statusWithDefault=NotCompleted)
+    expect(link)->Expect.toBe("/todos")
+  })
 })
 
 describe("parsing", () => {

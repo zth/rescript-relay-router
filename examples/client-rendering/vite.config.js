@@ -36,5 +36,10 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     include: ["**/*.{test,spec}{.res,}.?(c|m)[jt]s?(x)"],
+    server: {
+      deps: {
+        inline: true,
+      },
+    },
   },
 });

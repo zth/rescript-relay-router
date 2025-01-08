@@ -1,4 +1,4 @@
-open RescriptRelayRouterUtils.Vitest
+open RescriptRelayRouterTestUtils.Vitest
 
 module P = RescriptRelayRouterCli__Parser
 module U = RescriptRelayRouterCli__Utils

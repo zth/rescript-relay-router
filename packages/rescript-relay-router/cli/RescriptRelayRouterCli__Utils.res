@@ -298,26 +298,43 @@ let rec printNestedRouteModules = (route: printableRoute, ~indentation): string 
 let queryParamToQueryParamDecoder = (param, ~key) => {
   switch param {
   | Array(param) =>
-    `{
-      let param = queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("${key}")
-      React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => ${param->QueryParams.toParser(
+    `getArrayParamByKey("${key}")->Option.map(value => value->Array.filterMap(value => ${param->QueryParams.toParser(
         ~variableName="value",
-      )})), [param])
-    },\n`
+      )})),\n`
+  | CustomModule({required: true, moduleName}) =>
+    `getParamByKey("${key}")->Option.flatMap(value => ${param->QueryParams.toParser(
+        ~variableName="value",
+      )})->Option.getOr(${moduleName}.defaultValue),\n`
+  | param =>
+    `getParamByKey("${key}")->Option.flatMap(value => ${param->QueryParams.toParser(
+        ~variableName="value",
+      )}),\n`
+  }
+}
+
+let queryParamToQueryParamDecoderInHook = (param, ~key) => {
+  switch param {
+  | Array(param) =>
+    `{
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getArrayParamByKey("${key}")
+    React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => ${param->QueryParams.toParser(
+        ~variableName="value",
+      )})), [param->Option.getOr([])->Array.join(" | ")])
+  }`
   | CustomModule({required: true, moduleName}) =>
     `{
-      let param = queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("${key}")
-      React.useMemo(() => param->Option.flatMap(value => ${param->QueryParams.toParser(
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("${key}")
+    React.useMemo(() => param->Option.flatMap(value => ${param->QueryParams.toParser(
         ~variableName="value",
       )})->Option.getOr(${moduleName}.defaultValue), [param])
-    },\n`
+  }`
   | param =>
     `{
-      let param = queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("${key}")
-      React.useMemo(() => param->Option.flatMap(value => ${param->QueryParams.toParser(
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("${key}")
+    React.useMemo(() => param->Option.flatMap(value => ${param->QueryParams.toParser(
         ~variableName="value",
       )}), [param])
-    },\n`
+  }`
   }
 }
 

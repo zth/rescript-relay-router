@@ -16,14 +16,14 @@ type setQueryParamsFn<'queryParams> = (
   ~shallow: bool=?,
 ) => unit
 
-type useParseQueryParamsFn<'queryParams> = string => 'queryParams
+type parseQueryParamsFn<'queryParams> = RelayRouter__Bindings.QueryParams.t => 'queryParams
 type applyQueryParamsFn<'queryParams> = (
   RelayRouter__Bindings.QueryParams.t,
   ~newParams: 'queryParams,
 ) => unit
 
 let useSetQueryParams = (
-  ~useParseQueryParams: useParseQueryParamsFn<'queryParams>,
+  ~parseQueryParams: parseQueryParamsFn<'queryParams>,
   ~applyQueryParams: applyQueryParamsFn<'queryParams>,
 ): setQueryParamsFn<'queryParams> => {
   let router = RelayRouter__Context.useRouterContext()
@@ -61,10 +61,7 @@ let useSetQueryParams = (
       ~shallow=true,
     ) => {
       let {search} = router.history->RelayRouter__History.getLocation
-      let newParams = React.useMemo(
-        () => setter(search->useParseQueryParams),
-        (setter, search, useParseQueryParams),
-      )
+      let newParams = search->RelayRouter__Bindings.QueryParams.parse->parseQueryParams->setter
 
       switch onAfterParamsSet {
       | None => ()
@@ -81,7 +78,7 @@ let useSetQueryParams = (
     }
 
     fn
-  }, (useParseQueryParams, applyQueryParams, router))
+  }, (parseQueryParams, applyQueryParams, router))
 }
 
 type makeNewQueryParamsMakerFn<'queryParams> = 'queryParams => 'queryParams
@@ -89,7 +86,7 @@ type makeNewQueryParamsMakerFn<'queryParams> = 'queryParams => 'queryParams
 type makeNewQueryParamsFn<'queryParams> = makeNewQueryParamsMakerFn<'queryParams> => string
 
 let useMakeLinkWithPreservedPath = (
-  ~useParseQueryParams: useParseQueryParamsFn<'queryParams>,
+  ~parseQueryParams: parseQueryParamsFn<'queryParams>,
   ~applyQueryParams: applyQueryParamsFn<'queryParams>,
 ): makeNewQueryParamsFn<'queryParams> => {
   let router = RelayRouter__Context.useRouterContext()
@@ -98,7 +95,8 @@ let useMakeLinkWithPreservedPath = (
       let location = router.history->RelayRouter__History.getLocation
       let newQueryParams =
         location.search
-        ->useParseQueryParams
+        ->RelayRouter__Bindings.QueryParams.parse
+        ->parseQueryParams
         ->makeNewQueryParams
 
       open RelayRouter__Bindings
@@ -106,7 +104,7 @@ let useMakeLinkWithPreservedPath = (
       queryParams->applyQueryParams(~newParams=newQueryParams)
       location.pathname ++ queryParams->QueryParams.toString
     }
-  }, (router, useParseQueryParams, applyQueryParams))
+  }, (router, parseQueryParams, applyQueryParams))
 }
 
 type pathMatch = {params: dict<string>}

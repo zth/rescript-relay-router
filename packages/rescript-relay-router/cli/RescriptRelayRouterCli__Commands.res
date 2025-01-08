@@ -111,6 +111,7 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
       Codegen.getPathParamsTypeDefinition(route) ++
       Codegen.getQueryParamTypeDefinition(route) ++
       "module Internal = {\n" ++
+      Codegen.getQueryParamParser(route) ++
       Codegen.getPrepareTypeDefinitions(route) ++
       "}\n\n" ++
       Codegen.getQueryParamAssets(route) ++
@@ -121,7 +122,9 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
       "\n\n" ++
       Codegen.getUsePathParamsHook(route) ++
       "\n\n" ++
-      Codegen.getPrepareAssets()
+      Codegen.getPrepareAssets() ++
+      "\n\n" ++
+      Codegen.getParseRoute(route)
 
     Fs.writeFileIfChanged(
       Utils.pathInGeneratedFolder(

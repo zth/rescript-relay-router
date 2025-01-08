@@ -150,7 +150,7 @@ let makeLinkFromQueryParams = (`->addToStr
 
     `
 @live
-let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~useParseQueryParams, ~applyQueryParams)
+let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams)
 `->addToStr
   }
 
@@ -206,13 +206,20 @@ let getQueryParamAssets = (route: printableRoute) => {
       str.contents ++
       `@live\nlet useParseQueryParams = (search: string): queryParams => {
   open RelayRouter.Bindings
-  let queryParams = React.useMemo(() => QueryParams.parse(search), [search])
-  {${queryParamEntries
+  let search__ = search
+  let queryParams__ = React.useMemo(() => QueryParams.parse(search__), [search__])
+${queryParamEntries
         ->Array.map(((key, queryParam)) => {
-          `\n    ${key}: ${queryParam->Utils.queryParamToQueryParamDecoder(~key)}`
+          `  let ${key} = ${queryParam->Utils.queryParamToQueryParamDecoderInHook(~key)}`
         })
-        ->Array.join("")}
-  }
+        ->Array.join("\n")}
+  React.useMemo(() => {
+${queryParamEntries
+        ->Array.map(((key, _)) => {
+          `    ${key}: ${key}`
+        })
+        ->Array.join(",\n")}    
+  }, [search__])
 }
 
 @live
@@ -257,13 +264,11 @@ type useQueryParamsReturn = {
 @live
 let useQueryParams = (): useQueryParamsReturn => {
   let {search} = RelayRouter.Utils.useLocation()
-  let currentQueryParams = React.useMemo(() => {
-    search->useParseQueryParams
-  }, [search])
+  let currentQueryParams = useParseQueryParams(search)
 
   {
     queryParams: currentQueryParams,
-    setParams: RelayRouter__Internal.useSetQueryParams(~useParseQueryParams, ~applyQueryParams),
+    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams),
   }
 }`
     str.contents
@@ -401,13 +406,20 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
     // before we cast it to an abstract type (which we do to save bundle size).
     str.contents =
       str.contents ++
+      if hasQueryParams {
+        `  let queryParams = Route__${route.name->RouteName.getFullRouteName}_route.Internal.parseQueryParams(queryParams)\n`
+      } else {
+        ""
+      } ++
       `  let prepareProps: Route__${route.name->RouteName.getFullRouteName}_route.Internal.prepareProps = `
+  } else if hasQueryParams {
+    str.contents = str.contents ++ `  let queryParams = parseQueryParams(queryParams)\n`
   }
 
   str.contents =
-    str.contents ++ "  {
-    environment: environment,\n
-    location: location,\n"
+    str.contents ++ `  {
+    environment: environment,
+    location: location,\n`
 
   if childParams->Array.length > 0 {
     str.contents = str.contents ++ "    childParams: Obj.magic(pathParams),\n"
@@ -419,14 +431,13 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   if hasQueryParams {
     route.queryParams
     ->Dict.toArray
-    ->Array.forEach(((key, param)) => {
+    ->Array.forEach(((key, _param)) => {
       let safeParam = QueryParam(key)->SafeParam.makeSafeParamName(~params=route.params)
 
       str.contents =
         str.contents ++
-        `    ${safeParam->SafeParam.getSafeKey}: ${param->Utils.queryParamToQueryParamDecoder(
-            ~key=safeParam->SafeParam.getOriginalKey,
-          )}`
+        `    ${safeParam->SafeParam.getSafeKey}: queryParams.${safeParam->SafeParam.getSafeKey},
+`
     })
   }
 
@@ -510,6 +521,29 @@ let getUsePathParamsHook = (route: printableRoute) => {
   }
 
   str.contents
+}
+
+let getQueryParamParser = (route: printableRoute) => {
+  let queryParamEntries = route.queryParams->Dict.toArray
+
+  if queryParamEntries->Array.length > 0 {
+    `
+  let parseQueryParams = (queryParams: RelayRouter.Bindings.QueryParams.t): queryParams => {
+    open RelayRouter.Bindings
+    {
+${queryParamEntries
+      ->Array.map(((key, queryParam)) => {
+        `      ${key}: queryParams->QueryParams.${queryParam->Utils.queryParamToQueryParamDecoder(
+            ~key,
+          )}`
+      })
+      ->Array.join("")}    }
+  }
+
+`
+  } else {
+    ""
+  }
 }
 
 let getPrepareTypeDefinitions = (route: printableRoute) => {
@@ -736,4 +770,71 @@ let getActiveRouteAssets = (route: RescriptRelayRouterCli__Types.printableRoute)
   str->Utils.add(getActiveSubRouteFn(route))
 
   str.contents
+}
+
+let getParseRoute = (route: RescriptRelayRouterCli__Types.printableRoute) => {
+  let hasQueryParams = route.queryParams->Dict.keysToArray->Array.length > 0
+  let hasPathParams = route.params->Array.length > 0
+  if hasQueryParams && hasPathParams {
+    `
+@live 
+let parseRoute = (route: string, ~exact=false): option<(
+  pathParams,
+  queryParams,
+)> => {
+  switch route->String.split("?") {
+  | [pathName, search] =>
+    RelayRouter.Internal.matchPathWithOptions(
+      {"path": routePattern, "end": exact},
+      pathName,
+    )->Option.map(({params}) => {
+      let params: pathParams = Obj.magic(params)
+      let queryParams =
+        search
+        ->RelayRouter.Bindings.QueryParams.parse
+        ->Internal.parseQueryParams
+      (params, queryParams)
+    })
+  | _ => None
+  }
+}
+\n`
+  } else if hasQueryParams {
+    `
+@live 
+let parseRoute = (route: string, ~exact=false): option<queryParams> => {
+  switch route->String.split("?") {
+  | [pathName, search] =>
+    RelayRouter.Internal.matchPathWithOptions(
+      {"path": routePattern, "end": exact},
+      pathName,
+    )->Option.map((_) => {
+      search
+      ->RelayRouter.Bindings.QueryParams.parse
+      ->Internal.parseQueryParams
+    })
+  | _ => None
+  }
+}
+\n`
+  } else if hasPathParams {
+    `
+@live
+let parseRoute = (route: string, ~exact=false): option<pathParams> => {
+  switch route->String.split("?") {
+  | [pathName, _search] =>
+    RelayRouter.Internal.matchPathWithOptions(
+      {"path": routePattern, "end": exact},
+      pathName,
+    )->Option.map(({params}) => {
+      let params: pathParams = Obj.magic(params)
+      params
+    })
+  | _ => None
+  }
+}
+\n`
+  } else {
+    ""
+  }
 }

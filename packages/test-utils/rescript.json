@@ -1,6 +1,6 @@
 {
-  "name": "@rescript-relay-router/utils",
-  "namespace": "rescript-relay-router-utils",
+  "name": "@rescript-relay-router/test-utils",
+  "namespace": "rescript-relay-router-test-utils",
   "uncurried": true,
   "jsx": {
     "version": 4,

@@ -10,6 +10,14 @@ type queryParams = {
 }
 
 module Internal = {
+
+  let parseQueryParams = (queryParams: RelayRouter.Bindings.QueryParams.t): queryParams => {
+    open RelayRouter.Bindings
+    {
+      statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+    }
+  }
+
   @live
   type prepareProps = {
     environment: RescriptRelay.Environment.t,
@@ -41,15 +49,12 @@ module Internal = {
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter.History.location,
   ): prepareProps => {
+    let queryParams = parseQueryParams(queryParams)
     {
       environment: environment,
-  
       location: location,
       byStatus: pathParams->Dict.getUnsafe("byStatus")->Obj.magic,
-      statuses: {
-        let param = queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
-        React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param])
-      },
+      statuses: queryParams.statuses,
     }
   }
 
@@ -58,14 +63,15 @@ module Internal = {
 @live
 let useParseQueryParams = (search: string): queryParams => {
   open RelayRouter.Bindings
-  let queryParams = React.useMemo(() => QueryParams.parse(search), [search])
-  {
-    statuses: {
-      let param = queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
-      React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param])
-    },
-
+  let search__ = search
+  let queryParams__ = React.useMemo(() => QueryParams.parse(search__), [search__])
+  let statuses = {
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
+    React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param->Option.getOr([])->Array.join(" | ")])
   }
+  React.useMemo(() => {
+    statuses: statuses    
+  }, [search__])
 }
 
 @live
@@ -94,13 +100,11 @@ type useQueryParamsReturn = {
 @live
 let useQueryParams = (): useQueryParamsReturn => {
   let {search} = RelayRouter.Utils.useLocation()
-  let currentQueryParams = React.useMemo(() => {
-    search->useParseQueryParams
-  }, [search])
+  let currentQueryParams = useParseQueryParams(search)
 
   {
     queryParams: currentQueryParams,
-    setParams: RelayRouter__Internal.useSetQueryParams(~useParseQueryParams, ~applyQueryParams),
+    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams),
   }
 }
 
@@ -123,7 +127,7 @@ let makeLinkFromQueryParams = (~byStatus: [#"completed" | #"notCompleted"], quer
 }
 
 @live
-let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~useParseQueryParams, ~applyQueryParams)
+let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams)
 
 
 @live
@@ -155,3 +159,27 @@ external makeRenderer: (
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
 ) => Internal.renderers<'prepared> = ""
+
+
+@live 
+let parseRoute = (route: string, ~exact=false): option<(
+  pathParams,
+  queryParams,
+)> => {
+  switch route->String.split("?") {
+  | [pathName, search] =>
+    RelayRouter.Internal.matchPathWithOptions(
+      {"path": routePattern, "end": exact},
+      pathName,
+    )->Option.map(({params}) => {
+      let params: pathParams = Obj.magic(params)
+      let queryParams =
+        search
+        ->RelayRouter.Bindings.QueryParams.parse
+        ->Internal.parseQueryParams
+      (params, queryParams)
+    })
+  | _ => None
+  }
+}
+

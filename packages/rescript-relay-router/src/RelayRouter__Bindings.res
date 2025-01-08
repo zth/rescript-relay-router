@@ -34,7 +34,7 @@ module QueryParams = {
 
   let printValue = value =>
     value
-    ->Array.map(v => encodeURIComponent(v->String.trim))
+    ->Array.map(v => encodeURIComponent(v))
     ->Array.join(",")
 
   let printKeyValue = (key, value) => key ++ "=" ++ printValue(value)

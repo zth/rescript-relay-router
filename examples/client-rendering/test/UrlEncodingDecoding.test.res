@@ -1,6 +1,6 @@
 open RescriptRelayRouterTestUtils
 open Vitest
-open TestingLibraryReactHooks
+open TestingLibraryReact
 
 describe("makeLink", () => {
   test("should generate link with statuses", _t => {
@@ -84,6 +84,7 @@ describe("parsing", () => {
         )
       },
     )
+    let firstStatuses = result.current["useQueryParams"].queryParams.statuses
     expect(result.current["useQueryParams"].queryParams.byValue->Option.getUnsafe)->Expect.toBe(
       "/incorrect value, for url",
     )
@@ -94,6 +95,7 @@ describe("parsing", () => {
         )
       },
     )
+    let followingStatuses = [result.current["useQueryParams"].queryParams.statuses]
     expect(result.current["useQueryParams"].queryParams.byValue->Option.getUnsafe)->Expect.toBe(
       "/new value",
     )
@@ -102,11 +104,7 @@ describe("parsing", () => {
         result.current["push"]("?statuses=completed,not-completed")
       },
     )
-    let allRes = result.all->Array.sliceToEnd(~start=1)
-    expect(allRes->Array.length)->Expect.toBe(3)
-    let firstStatuses = (allRes->Array.getUnsafe(1))["useQueryParams"].queryParams.statuses
-    allRes->Array.forEach(
-      res => expect(res["useQueryParams"].queryParams.statuses)->Expect.toBe(firstStatuses),
-    )
+    Array.push(followingStatuses, result.current["useQueryParams"].queryParams.statuses)
+    followingStatuses->Array.forEach(statuses => statuses->expect->Expect.toBe(firstStatuses))
   })
 })

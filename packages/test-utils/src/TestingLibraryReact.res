@@ -1,4 +1,4 @@
-type renderHookResult<'res> = private {current: 'res, all: array<'res>}
+type renderHookResult<'res> = private {current: 'res}
 
 type renderHookResultWrapper<'res> = private {
   result: renderHookResult<'res>,
@@ -12,9 +12,9 @@ module Wrapper = {
 
 type renderHooksOptions = {wrapper: Wrapper.t}
 
-@module("@testing-library/react-hooks")
+@module("@testing-library/react")
 external renderHook: (unit => 'a, ~options: renderHooksOptions=?) => renderHookResultWrapper<'a> =
   "renderHook"
 
-@module("@testing-library/react-hooks")
+@module("@testing-library/react")
 external act: (unit => unit) => unit = "act"

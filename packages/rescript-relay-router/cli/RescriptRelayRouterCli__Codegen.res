@@ -395,14 +395,7 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
     // before we cast it to an abstract type (which we do to save bundle size).
     str.contents =
       str.contents ++
-      if hasQueryParams {
-        `  let queryParams = Route__${route.name->RouteName.getFullRouteName}_route.Internal.parseQueryParams(queryParams)\n`
-      } else {
-        ""
-      } ++
       `  let prepareProps: Route__${route.name->RouteName.getFullRouteName}_route.Internal.prepareProps = `
-  } else if hasQueryParams {
-    str.contents = str.contents ++ `  let queryParams = parseQueryParams(queryParams)\n`
   }
 
   str.contents =
@@ -420,13 +413,14 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   if hasQueryParams {
     route.queryParams
     ->Dict.toArray
-    ->Array.forEach(((key, _param)) => {
+    ->Array.forEach(((key, param)) => {
       let safeParam = QueryParam(key)->SafeParam.makeSafeParamName(~params=route.params)
 
       str.contents =
         str.contents ++
-        `    ${safeParam->SafeParam.getSafeKey}: queryParams.${safeParam->SafeParam.getSafeKey},
-`
+        `    ${safeParam->SafeParam.getSafeKey}: queryParams->RelayRouter.Bindings.QueryParams.${param->Utils.queryParamToQueryParamDecoder(
+            ~key=safeParam->SafeParam.getOriginalKey,
+          )}`
     })
   }
 

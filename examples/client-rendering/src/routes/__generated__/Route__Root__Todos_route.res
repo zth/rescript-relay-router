@@ -55,14 +55,13 @@ module Internal = {
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
     ~location: RelayRouter.History.location,
   ): prepareProps => {
-    let queryParams = parseQueryParams(queryParams)
     {
       environment: environment,
       location: location,
       childParams: Obj.magic(pathParams),
-      statuses: queryParams.statuses,
-      statusWithDefault: queryParams.statusWithDefault,
-      byValue: queryParams.byValue,
+      statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+      statusWithDefault: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+      byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
     }
   }
 

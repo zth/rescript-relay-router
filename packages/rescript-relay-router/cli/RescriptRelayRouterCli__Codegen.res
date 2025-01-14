@@ -200,29 +200,7 @@ let getQueryParamAssets = (route: printableRoute) => {
   let queryParamEntries = route.queryParams->Dict.toArray
 
   if queryParamEntries->Array.length > 0 {
-    let str = ref("")
-
-    str.contents =
-      str.contents ++
-      `@live\nlet useParseQueryParams = (search: string): queryParams => {
-  open RelayRouter.Bindings
-  let search__ = search
-  let queryParams__ = React.useMemo(() => QueryParams.parse(search__), [search__])
-${queryParamEntries
-        ->Array.map(((key, queryParam)) => {
-          `  let ${key} = ${queryParam->Utils.queryParamToQueryParamDecoderInHook(~key)}`
-        })
-        ->Array.join("\n")}
-  React.useMemo(() => {
-${queryParamEntries
-        ->Array.map(((key, _)) => {
-          `    ${key}: ${key}`
-        })
-        ->Array.join(",\n")}    
-  }, [search__])
-}
-
-@live
+    `@live
 let applyQueryParams = (
   queryParams: RelayRouter__Bindings.QueryParams.t,
   ~newParams: queryParams,
@@ -230,23 +208,23 @@ let applyQueryParams = (
   open RelayRouter__Bindings
 
   ${queryParamEntries
-        ->Array.map(((key, queryParam)) => {
-          switch queryParam {
-          | Array(queryParam) =>
-            `\n  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${key}->Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
-                ~variableName=key,
-              )})))`
-          | CustomModule({required: true}) =>
-            `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
-                ~variableName=`newParams.${key}`,
-              )})`
-          | queryParam =>
-            `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
-                ~variableName=key,
-              )}))`
-          }
-        })
-        ->Array.join("")}
+      ->Array.map(((key, queryParam)) => {
+        switch queryParam {
+        | Array(queryParam) =>
+          `\n  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${key}->Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+              ~variableName=key,
+            )})))`
+        | CustomModule({required: true}) =>
+          `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
+              ~variableName=`newParams.${key}`,
+            )})`
+        | queryParam =>
+          `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+              ~variableName=key,
+            )}))`
+        }
+      })
+      ->Array.join("")}
 }
 
 @live
@@ -263,15 +241,26 @@ type useQueryParamsReturn = {
 
 @live
 let useQueryParams = (): useQueryParamsReturn => {
-  let {search} = RelayRouter.Utils.useLocation()
-  let currentQueryParams = useParseQueryParams(search)
+  let {search: search__} = RelayRouter.Utils.useLocation()
+  let queryParams__ = React.useMemo(() => RelayRouter.Bindings.QueryParams.parse(search__), [search__])
+${queryParamEntries
+      ->Array.map(((key, queryParam)) => {
+        `  let ${key} = ${queryParam->Utils.queryParamToQueryParamDecoderInHook(~key)}`
+      })
+      ->Array.join("\n")}
+  let currentQueryParams = React.useMemo(() => {
+${queryParamEntries
+      ->Array.map(((key, _)) => {
+        `    ${key}: ${key}`
+      })
+      ->Array.join(",\n")}    
+  }, [search__])
 
   {
     queryParams: currentQueryParams,
     setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams),
   }
 }`
-    str.contents
   } else {
     ""
   }

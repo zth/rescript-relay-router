@@ -68,29 +68,6 @@ module Internal = {
 }
 
 @live
-let useParseQueryParams = (search: string): queryParams => {
-  open RelayRouter.Bindings
-  let search__ = search
-  let queryParams__ = React.useMemo(() => QueryParams.parse(search__), [search__])
-  let statuses = {
-    let param = queryParams__->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
-    React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param->Option.getOr([])->Array.join(" | ")])
-  }
-  let showMore = {
-    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")
-    React.useMemo(() => param->Option.flatMap(value => switch value {
-      | "true" => Some(true)
-      | "false" => Some(false)
-      | _ => None
-      }), [param])
-  }
-  React.useMemo(() => {
-    statuses: statuses,
-    showMore: showMore    
-  }, [search__])
-}
-
-@live
 let applyQueryParams = (
   queryParams: RelayRouter__Bindings.QueryParams.t,
   ~newParams: queryParams,
@@ -116,8 +93,24 @@ type useQueryParamsReturn = {
 
 @live
 let useQueryParams = (): useQueryParamsReturn => {
-  let {search} = RelayRouter.Utils.useLocation()
-  let currentQueryParams = useParseQueryParams(search)
+  let {search: search__} = RelayRouter.Utils.useLocation()
+  let queryParams__ = React.useMemo(() => RelayRouter.Bindings.QueryParams.parse(search__), [search__])
+  let statuses = {
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
+    React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param->Option.getOr([])->Array.join(" | ")])
+  }
+  let showMore = {
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")
+    React.useMemo(() => param->Option.flatMap(value => switch value {
+      | "true" => Some(true)
+      | "false" => Some(false)
+      | _ => None
+      }), [param])
+  }
+  let currentQueryParams = React.useMemo(() => {
+    statuses: statuses,
+    showMore: showMore    
+  }, [search__])
 
   {
     queryParams: currentQueryParams,

@@ -69,30 +69,6 @@ module Internal = {
 }
 
 @live
-let useParseQueryParams = (search: string): queryParams => {
-  open RelayRouter.Bindings
-  let search__ = search
-  let queryParams__ = React.useMemo(() => QueryParams.parse(search__), [search__])
-  let statuses = {
-    let param = queryParams__->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
-    React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param->Option.getOr([])->Array.join(" | ")])
-  }
-  let statusWithDefault = {
-    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")
-    React.useMemo(() => param->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue), [param])
-  }
-  let byValue = {
-    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")
-    React.useMemo(() => param->Option.flatMap(value => Some(value)), [param])
-  }
-  React.useMemo(() => {
-    statuses: statuses,
-    statusWithDefault: statusWithDefault,
-    byValue: byValue    
-  }, [search__])
-}
-
-@live
 let applyQueryParams = (
   queryParams: RelayRouter__Bindings.QueryParams.t,
   ~newParams: queryParams,
@@ -119,8 +95,25 @@ type useQueryParamsReturn = {
 
 @live
 let useQueryParams = (): useQueryParamsReturn => {
-  let {search} = RelayRouter.Utils.useLocation()
-  let currentQueryParams = useParseQueryParams(search)
+  let {search: search__} = RelayRouter.Utils.useLocation()
+  let queryParams__ = React.useMemo(() => RelayRouter.Bindings.QueryParams.parse(search__), [search__])
+  let statuses = {
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
+    React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param->Option.getOr([])->Array.join(" | ")])
+  }
+  let statusWithDefault = {
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")
+    React.useMemo(() => param->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue), [param])
+  }
+  let byValue = {
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")
+    React.useMemo(() => param->Option.flatMap(value => Some(value)), [param])
+  }
+  let currentQueryParams = React.useMemo(() => {
+    statuses: statuses,
+    statusWithDefault: statusWithDefault,
+    byValue: byValue    
+  }, [search__])
 
   {
     queryParams: currentQueryParams,

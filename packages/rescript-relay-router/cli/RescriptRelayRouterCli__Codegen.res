@@ -791,7 +791,7 @@ let parseRoute: (
   string,
   ~exact: bool=?,
 ) => option<pathParams> = RelayRouter.Internal.parseRoute(
-  PathParams({routePattern}),
+  PathParams({routePattern: routePattern}),
 )
 \n`
   } else {

@@ -7,7 +7,7 @@ describe("makeLink", () => {
     let link = Routes.Root.Todos.Route.makeLink(
       ~statuses=[TodoStatus.Completed, TodoStatus.NotCompleted],
     )
-    expect(link)->Expect.toBe("/todos?statuses=completed,not-completed")
+    expect(link)->Expect.toBe("/todos?statuses=completed&statuses=not-completed")
   })
 
   test("should generate link without statuses", _t => {
@@ -17,7 +17,7 @@ describe("makeLink", () => {
 
   test("should generate link correctly URI encoded", _t => {
     let link = Routes.Root.Todos.Route.makeLink(~byValue="/incorrect value, for url")
-    expect(link)->Expect.toBe("/todos?byValue=%2Fincorrect%20value%2C%20for%20url")
+    expect(link)->Expect.toBe("/todos?byValue=%2Fincorrect+value%2C+for+url")
   })
 
   test("should omit query param when value is default value", _t => {
@@ -27,6 +27,48 @@ describe("makeLink", () => {
 })
 
 describe("parsing", () => {
+  test("parseRoute correctly decode query params", _t => {
+    let queryParams =
+      Routes.Root.Todos.Route.parseRoute(
+        "/todos?byValue=%2Fincorrect+value%2C+for+url",
+      )->Option.getExn
+
+    expect(queryParams.byValue->Option.getUnsafe)->Expect.toBe("/incorrect value, for url")
+  })
+
+  test("parseRoute correctly decode path params", _t => {
+    let pathParams =
+      Routes.Root.PathParamsOnly.Route.parseRoute(
+        "/other/%2Fincorrect%20value%2C%20for%20url",
+      )->Option.getExn
+
+    expect(pathParams.pageSlug)->Expect.toBe("/incorrect value, for url")
+  })
+
+  test("query params can decode standard multiple query params", _t => {
+    let queryParams =
+      Routes.Root.Todos.Route.parseRoute(
+        "/todos?statuses=completed&statuses=not-completed&byValue=beware%2C%20a%20comma!",
+      )->Option.getExn
+    expect(queryParams.statuses->Option.getUnsafe)->Expect.toStrictEqual([
+      TodoStatus.Completed,
+      TodoStatus.NotCompleted,
+    ])
+    expect(queryParams.byValue->Option.getUnsafe)->Expect.toBe("beware, a comma!")
+  })
+
+  test("query params still allow comma separated values decoded", _t => {
+    let queryParams =
+      Routes.Root.Todos.Route.parseRoute(
+        "/todos?statuses=completed,not-completed&byValue=beware%2C%20a%20comma!",
+      )->Option.getExn
+    expect(queryParams.statuses->Option.getUnsafe)->Expect.toStrictEqual([
+      TodoStatus.Completed,
+      TodoStatus.NotCompleted,
+    ])
+    expect(queryParams.byValue->Option.getUnsafe)->Expect.toBe("beware, a comma!")
+  })
+
   test("parseRoute correctly decode path and query params", _t => {
     let (pathParams, queryParams) =
       Routes.Root.Todos.Single.Route.parseRoute("/todos/123?showMore=false")->Option.getExn
@@ -80,7 +122,7 @@ describe("parsing", () => {
     act(
       () => {
         result.current["push"](
-          "?statuses=completed,not-completed&byValue=%2Fincorrect%20value%2C%20for%20url",
+          "?statuses=completed&statuses=not-completed&byValue=%2Fincorrect+value%2C+for+url",
         )
       },
     )
@@ -101,7 +143,7 @@ describe("parsing", () => {
     )
     act(
       () => {
-        result.current["push"]("?statuses=completed,not-completed")
+        result.current["push"]("?statuses=completed&statuses=not-completed")
       },
     )
     Array.push(followingStatuses, result.current["useQueryParams"].queryParams.statuses)

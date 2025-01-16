@@ -35,4 +35,14 @@ module Root = {
 
     }
   }
+  /** [See route renderer](./Root__PathParamsOnly_route_renderer.res)*/
+  module PathParamsOnly = {
+    module Route = Route__Root__PathParamsOnly_route
+
+  }
+  /** [See route renderer](./Root__Home_route_renderer.res)*/
+  module Home = {
+    module Route = Route__Root__Home_route
+
+  }
 }

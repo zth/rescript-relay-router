@@ -1,77 +1,51 @@
 module QueryParams = {
-  type t = dict<array<string>>
+  type t
 
-  let make = () => Dict.make()
+  @new external make: unit => t = "URLSearchParams"
+  @new external fromString: string => t = "URLSearchParams"
 
-  let deleteParam = (dict, key) => Dict.delete(Obj.magic(dict), key)
+  @send external deleteParam: (t, string) => unit = "delete"
 
-  let setParam = (dict, ~key, ~value) => dict->Dict.set(key, [value])
-  let setParamOpt = (dict, ~key, ~value) =>
+  @send external setParam: (t, ~key: string, ~value: 'value) => unit = "set"
+
+  @send external append: (t, ~key: string, ~value: string) => unit = "append"
+
+  let setParamOpt = (t, ~key, ~value) =>
     switch value {
-    | Some(value) => dict->Dict.set(key, [value])
-    | None => dict->deleteParam(key)
+    | Some(value) => t->setParam(~key, ~value)
+    | None => t->deleteParam(key)
     }
 
-  let setParamInt = (dict, ~key, ~value) =>
-    dict->setParamOpt(~key, ~value=value->Option.map(v => Int.toString(v)))
+  let setParamInt = setParamOpt
 
-  let setParamBool = (dict, ~key, ~value) =>
-    dict->setParamOpt(
-      ~key,
-      ~value=switch value {
-      | Some(false) => Some("false")
-      | Some(true) => Some("true")
-      | _ => None
-      },
-    )
+  let setParamBool = setParamOpt
 
-  let setParamArray = (dict, ~key, ~value) => dict->Dict.set(key, value)
-  let setParamArrayOpt = (dict, ~key, ~value) =>
+  let setParamArray = (t, ~key, ~value) => {
+    t->deleteParam(key)
+    value->Array.forEach(value => t->append(~key, ~value))
+  }
+  let setParamArrayOpt = (t, ~key, ~value) =>
     switch value {
-    | Some(value) => dict->Dict.set(key, value)
-    | None => dict->deleteParam(key)
+    | Some(value) => t->setParamArray(~key, ~value)
+    | None => t->deleteParam(key)
     }
 
-  let printValue = value =>
-    value
-    ->Array.map(v => encodeURIComponent(v))
-    ->Array.join(",")
+  @send external toString: t => string = "toString"
 
-  let printKeyValue = (key, value) => key ++ "=" ++ printValue(value)
+  @send external sort: t => unit = "sort"
 
-  let toString = raw => {
-    let parts =
-      raw
-      ->Dict.toArray
-      ->Array.map(((key, value)) => {
-        printKeyValue(key, value)
-      })
+  let toString = t => {
+    let search = t->toString
 
-    switch parts->Array.length {
-    | 0 => ""
-    | _ => "?" ++ parts->Array.join("&")
+    switch search {
+    | "" => ""
+    | _ => "?" ++ search
     }
   }
 
-  let toStringStable = raw => {
-    let parts =
-      raw
-      ->Dict.toArray
-      ->Array.toSorted(((a, _), (b, _)) =>
-        if a->String.localeCompare(b) > 0. {
-          1.0
-        } else {
-          -1.0
-        }
-      )
-      ->Array.map(((key, value)) => {
-        printKeyValue(key, value)
-      })
-
-    switch parts->Array.length {
-    | 0 => ""
-    | _ => "?" ++ parts->Array.join("&")
-    }
+  let toStringStable = t => {
+    t->sort
+    t->toString
   }
 
   let decodeValue = value => {
@@ -79,31 +53,41 @@ module QueryParams = {
   }
 
   let parse = search => {
-    let dict = Dict.make()
+    if search->String.includes(",") {
+      let t = make()
 
-    let search = if search->String.startsWith("?") {
-      search->String.sliceToEnd(~start=1)
-    } else {
-      search
-    }
-
-    let parts = search->String.split("&")
-
-    parts->Array.forEach(part => {
-      let keyValue = part->String.split("=")
-      switch (keyValue->Array.get(0), keyValue->Array.get(1)) {
-      | (Some(key), Some(value)) => dict->Dict.set(key, decodeValue(value))
-      | _ => ()
+      let search = if search->String.startsWith("?") {
+        search->String.sliceToEnd(~start=1)
+      } else {
+        search
       }
-    })
 
-    dict
+      let parts = search->String.split("&")
+
+      parts->Array.forEach(part => {
+        let keyValue = part->String.split("=")
+        switch (keyValue->Array.get(0), keyValue->Array.get(1)) {
+        | (Some(key), Some(value)) => t->setParamArray(~key, ~value=decodeValue(value))
+        | _ => ()
+        }
+      })
+
+      t
+    } else {
+      fromString(search)
+    }
   }
 
-  let getParamByKey = (parsedParams, key) =>
-    parsedParams->Dict.get(key)->Option.getOr([])->Array.get(0)
+  @return(nullable) @send
+  external getParamByKey: (t, string) => option<string> = "get"
 
-  let getArrayParamByKey = (parsedParams, key) => parsedParams->Dict.get(key)
+  @send
+  external getArrayParamByKey: (t, string) => array<string> = "getAll"
+  let getArrayParamByKey = (t, key) =>
+    switch t->getArrayParamByKey(key) {
+    | [] => None
+    | array => Some(array)
+    }
 
   let getParamInt = (parsedParams, key) =>
     switch parsedParams->getParamByKey(key) {

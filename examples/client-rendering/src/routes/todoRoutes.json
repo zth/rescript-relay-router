@@ -28,5 +28,13 @@
         "children": []
       }
     ]
+  },
+  {
+    "path": "other/:pageSlug",
+    "name": "PathParamsOnly"
+  },
+  {
+    "path": "home",
+    "name": "Home"
   }
 ]

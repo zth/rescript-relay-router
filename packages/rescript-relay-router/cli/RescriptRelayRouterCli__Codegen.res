@@ -150,7 +150,7 @@ let makeLinkFromQueryParams = (`->addToStr
 
     `
 @live
-let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams, ~applyQueryParams)
+let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams)
 `->addToStr
   }
 
@@ -200,24 +200,7 @@ let getQueryParamAssets = (route: printableRoute) => {
   let queryParamEntries = route.queryParams->Dict.toArray
 
   if queryParamEntries->Array.length > 0 {
-    let str = ref("")
-
-    str.contents =
-      str.contents ++
-      `@live\nlet parseQueryParams = (search: string): queryParams => {
-  open RelayRouter.Bindings
-  let queryParams = QueryParams.parse(search)
-  {${queryParamEntries
-        ->Array.map(((key, queryParam)) => {
-          `\n    ${key}: queryParams->QueryParams.${queryParam->Utils.queryParamToQueryParamDecoder(
-              ~key,
-            )}`
-        })
-        ->Array.join("")}
-  }
-}
-
-@live
+    `@live
 let applyQueryParams = (
   queryParams: RelayRouter__Bindings.QueryParams.t,
   ~newParams: queryParams,
@@ -225,23 +208,23 @@ let applyQueryParams = (
   open RelayRouter__Bindings
 
   ${queryParamEntries
-        ->Array.map(((key, queryParam)) => {
-          switch queryParam {
-          | Array(queryParam) =>
-            `\n  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${key}->Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
-                ~variableName=key,
-              )})))`
-          | CustomModule({required: true}) =>
-            `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
-                ~variableName=`newParams.${key}`,
-              )})`
-          | queryParam =>
-            `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
-                ~variableName=key,
-              )}))`
-          }
-        })
-        ->Array.join("")}
+      ->Array.map(((key, queryParam)) => {
+        switch queryParam {
+        | Array(queryParam) =>
+          `\n  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${key}->Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+              ~variableName=key,
+            )})))`
+        | CustomModule({required: true}) =>
+          `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
+              ~variableName=`newParams.${key}`,
+            )})`
+        | queryParam =>
+          `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+              ~variableName=key,
+            )}))`
+        }
+      })
+      ->Array.join("")}
 }
 
 @live
@@ -258,17 +241,26 @@ type useQueryParamsReturn = {
 
 @live
 let useQueryParams = (): useQueryParamsReturn => {
-  let {search} = RelayRouter.Utils.useLocation()
+  let {search: search__} = RelayRouter.Utils.useLocation()
+  let queryParams__ = React.useMemo(() => RelayRouter.Bindings.QueryParams.parse(search__), [search__])
+${queryParamEntries
+      ->Array.map(((key, queryParam)) => {
+        `  let ${key} = ${queryParam->Utils.queryParamToQueryParamDecoderInHook(~key)}`
+      })
+      ->Array.join("\n")}
   let currentQueryParams = React.useMemo(() => {
-    search->parseQueryParams
-  }, [search])
+${queryParamEntries
+      ->Array.map(((key, _)) => {
+        `    ${key}: ${key}`
+      })
+      ->Array.join(",\n")}    
+  }, [search__])
 
   {
     queryParams: currentQueryParams,
-    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams, ~applyQueryParams),
+    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams),
   }
 }`
-    str.contents
   } else {
     ""
   }
@@ -407,9 +399,9 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   }
 
   str.contents =
-    str.contents ++ "  {
-    environment: environment,\n
-    location: location,\n"
+    str.contents ++ `  {
+    environment: environment,
+    location: location,\n`
 
   if childParams->Array.length > 0 {
     str.contents = str.contents ++ "    childParams: Obj.magic(pathParams),\n"
@@ -512,6 +504,29 @@ let getUsePathParamsHook = (route: printableRoute) => {
   }
 
   str.contents
+}
+
+let getQueryParamParser = (route: printableRoute) => {
+  let queryParamEntries = route.queryParams->Dict.toArray
+
+  if queryParamEntries->Array.length > 0 {
+    `
+  let parseQueryParams = (queryParams: RelayRouter.Bindings.QueryParams.t): queryParams => {
+    open RelayRouter.Bindings
+    {
+${queryParamEntries
+      ->Array.map(((key, queryParam)) => {
+        `      ${key}: queryParams->QueryParams.${queryParam->Utils.queryParamToQueryParamDecoder(
+            ~key,
+          )}`
+      })
+      ->Array.join("")}    }
+  }
+
+`
+  } else {
+    ""
+  }
 }
 
 let getPrepareTypeDefinitions = (route: printableRoute) => {
@@ -738,4 +753,48 @@ let getActiveRouteAssets = (route: RescriptRelayRouterCli__Types.printableRoute)
   str->Utils.add(getActiveSubRouteFn(route))
 
   str.contents
+}
+
+let getParseRoute = (route: RescriptRelayRouterCli__Types.printableRoute) => {
+  let hasQueryParams = route.queryParams->Dict.keysToArray->Array.length > 0
+  let hasPathParams = route.params->Array.length > 0
+  if hasQueryParams && hasPathParams {
+    `
+@live 
+let parseRoute: (
+  string,
+  ~exact: bool=?,
+) => option<(pathParams, queryParams)> = RelayRouter.Internal.parseRoute(
+  PathAndQueryParams({
+    routePattern,
+    parseQueryParams: Internal.parseQueryParams,
+  }),
+)
+\n`
+  } else if hasQueryParams {
+    `
+@live 
+let parseRoute: (
+  string,
+  ~exact: bool=?,
+) => option<queryParams> = RelayRouter.Internal.parseRoute(
+  QueryParams({
+    routePattern,
+    parseQueryParams: Internal.parseQueryParams,
+  }),
+)
+\n`
+  } else if hasPathParams {
+    `
+@live
+let parseRoute: (
+  string,
+  ~exact: bool=?,
+) => option<pathParams> = RelayRouter.Internal.parseRoute(
+  PathParams({routePattern}),
+)
+\n`
+  } else {
+    ""
+  }
 }

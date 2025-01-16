@@ -16,7 +16,7 @@ type setQueryParamsFn<'queryParams> = (
   ~shallow: bool=?,
 ) => unit
 
-type parseQueryParamsFn<'queryParams> = string => 'queryParams
+type parseQueryParamsFn<'queryParams> = RelayRouter__Bindings.QueryParams.t => 'queryParams
 type applyQueryParamsFn<'queryParams> = (
   RelayRouter__Bindings.QueryParams.t,
   ~newParams: 'queryParams,
@@ -28,7 +28,7 @@ let useSetQueryParams = (
 ): setQueryParamsFn<'queryParams> => {
   let router = RelayRouter__Context.useRouterContext()
 
-  let setQueryParamsFn = React.useCallback3(
+  let setQueryParamsFn = React.useCallback(
     ({applyQueryParams, currentSearch, navigationMode_, removeNotControlledParams, shallow}) => {
       open RelayRouter__Bindings
 
@@ -49,10 +49,10 @@ let useSetQueryParams = (
       | Replace => router.history->RelayRouter__History.replace(queryParams->QueryParams.toString)
       }
     },
-    (router, parseQueryParams, applyQueryParams),
+    (router, applyQueryParams),
   )
 
-  React.useMemo3(() => {
+  React.useMemo(() => {
     let fn: setQueryParamsFn<'queryParams> = (
       ~setter,
       ~onAfterParamsSet=?,
@@ -61,7 +61,7 @@ let useSetQueryParams = (
       ~shallow=true,
     ) => {
       let {search} = router.history->RelayRouter__History.getLocation
-      let newParams = setter(search->parseQueryParams)
+      let newParams = search->RelayRouter__Bindings.QueryParams.parse->parseQueryParams->setter
 
       switch onAfterParamsSet {
       | None => ()
@@ -90,11 +90,12 @@ let useMakeLinkWithPreservedPath = (
   ~applyQueryParams: applyQueryParamsFn<'queryParams>,
 ): makeNewQueryParamsFn<'queryParams> => {
   let router = RelayRouter__Context.useRouterContext()
-  React.useMemo3(() => {
+  React.useMemo(() => {
     (makeNewQueryParams: 'queryParams => 'queryParams) => {
       let location = router.history->RelayRouter__History.getLocation
       let newQueryParams =
         location.search
+        ->RelayRouter__Bindings.QueryParams.parse
         ->parseQueryParams
         ->makeNewQueryParams
 
@@ -205,3 +206,51 @@ module RouterTransitionContext = {
 
   let use = (): transitionFn => React.useContext(context)
 }
+
+type rec routeKind<_> =
+  | QueryParams({
+      routePattern: string,
+      parseQueryParams: RelayRouter__Bindings.QueryParams.t => 'queryParams,
+    }): routeKind<'queryParams>
+  | PathAndQueryParams({
+      routePattern: string,
+      parseQueryParams: RelayRouter__Bindings.QueryParams.t => 'queryParams,
+    }): routeKind<('pathParams, 'queryParams)>
+  | PathParams({routePattern: string}): routeKind<'pathParams>
+
+let parseRoute:
+  type params. routeKind<params> => (string, ~exact: bool=?) => option<params> =
+  routeKind => (route, ~exact=false) =>
+    switch routeKind {
+    | PathAndQueryParams({routePattern, parseQueryParams}) =>
+      switch route->String.split("?") {
+      | [pathName, search] =>
+        matchPathWithOptions({"path": routePattern, "end": exact}, pathName)->Option.map(({
+          params,
+        }) => {
+          let params = Obj.magic(params)
+          let queryParams =
+            search
+            ->RelayRouter__Bindings.QueryParams.parse
+            ->parseQueryParams
+          (params, queryParams)
+        })
+      | _ => None
+      }
+    | QueryParams({routePattern, parseQueryParams}) =>
+      matchPathWithOptions({"path": routePattern, "end": exact}, route)->Option.map(_ => {
+        route
+        ->RelayRouter__Bindings.QueryParams.parse
+        ->parseQueryParams
+      })
+    | PathParams({routePattern}) =>
+      switch route->String.split("?") {
+      | [pathName, _search] =>
+        matchPathWithOptions({"path": routePattern, "end": exact}, pathName)->Option.map(({
+          params,
+        }) => {
+          Obj.magic(params)
+        })
+      | _ => None
+      }
+    }

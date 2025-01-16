@@ -31,7 +31,7 @@
     "rescript-relay-router",
     "@rescript/core"
   ],
-  "bs-dev-dependencies": ["@rescript-relay-router/utils"],
+  "bs-dev-dependencies": ["@rescript-relay-router/test-utils"],
   "bsc-flags": ["-open RescriptCore"],
   "pinned-dependencies": ["rescript-relay-router"]
 }

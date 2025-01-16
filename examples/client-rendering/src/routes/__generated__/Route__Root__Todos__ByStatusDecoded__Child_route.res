@@ -12,6 +12,16 @@ type queryParams = {
 }
 
 module Internal = {
+
+  let parseQueryParams = (queryParams: RelayRouter.Bindings.QueryParams.t): queryParams => {
+    open RelayRouter.Bindings
+    {
+      statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
+      statusWithDefault: queryParams->QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
+      byValue: queryParams->QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
+    }
+  }
+
   @live
   type prepareProps = {
     environment: RescriptRelay.Environment.t,
@@ -45,7 +55,6 @@ module Internal = {
   ): prepareProps => {
     {
       environment: environment,
-  
       location: location,
       byStatusDecoded: pathParams->Dict.getUnsafe("byStatusDecoded")->((byStatusDecodedRawAsString: string) => (byStatusDecodedRawAsString :> TodoStatusPathParam.t)),
       statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
@@ -54,20 +63,6 @@ module Internal = {
     }
   }
 
-}
-
-@live
-let parseQueryParams = (search: string): queryParams => {
-  open RelayRouter.Bindings
-  let queryParams = QueryParams.parse(search)
-  {
-    statuses: queryParams->QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
-
-    statusWithDefault: queryParams->QueryParams.getParamByKey("statusWithDefault")->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue),
-
-    byValue: queryParams->QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
-
-  }
 }
 
 @live
@@ -97,14 +92,29 @@ type useQueryParamsReturn = {
 
 @live
 let useQueryParams = (): useQueryParamsReturn => {
-  let {search} = RelayRouter.Utils.useLocation()
+  let {search: search__} = RelayRouter.Utils.useLocation()
+  let queryParams__ = React.useMemo(() => RelayRouter.Bindings.QueryParams.parse(search__), [search__])
+  let statuses = {
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")
+    React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param->Option.getOr([])->Array.join(" | ")])
+  }
+  let statusWithDefault = {
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")
+    React.useMemo(() => param->Option.flatMap(value => value->TodoStatus.parse)->Option.getOr(TodoStatus.defaultValue), [param])
+  }
+  let byValue = {
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")
+    React.useMemo(() => param->Option.flatMap(value => Some(value)), [param])
+  }
   let currentQueryParams = React.useMemo(() => {
-    search->parseQueryParams
-  }, [search])
+    statuses: statuses,
+    statusWithDefault: statusWithDefault,
+    byValue: byValue    
+  }, [search__])
 
   {
     queryParams: currentQueryParams,
-    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams, ~applyQueryParams),
+    setParams: RelayRouter__Internal.useSetQueryParams(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams),
   }
 }
 
@@ -137,7 +147,7 @@ let makeLinkFromQueryParams = (~byStatusDecoded: TodoStatusPathParam.t, queryPar
 }
 
 @live
-let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams, ~applyQueryParams)
+let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams)
 
 
 @live
@@ -166,3 +176,16 @@ external makeRenderer: (
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
 ) => Internal.renderers<'prepared> = ""
+
+
+@live 
+let parseRoute: (
+  string,
+  ~exact: bool=?,
+) => option<(pathParams, queryParams)> = RelayRouter.Internal.parseRoute(
+  PathAndQueryParams({
+    routePattern,
+    parseQueryParams: Internal.parseQueryParams,
+  }),
+)
+

@@ -1,5 +1,5 @@
 {
-  "name": "@rescript-relay-router/utils",
+  "name": "@rescript-relay-router/test-utils",
   "version": "0.0.1",
   "private": true,
   "engines": {

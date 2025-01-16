@@ -40,7 +40,6 @@ module Internal = {
     ignore(queryParams)
     {
       environment: environment,
-  
       location: location,
       childParams: Obj.magic(pathParams),
     }
@@ -97,3 +96,4 @@ external makeRenderer: (
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
 ) => Internal.renderers<'prepared> = ""
+

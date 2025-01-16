@@ -1,4 +1,4 @@
-open RescriptRelayRouterUtils.Vitest
+open RescriptRelayRouterTestUtils.Vitest
 open RescriptRelayRouterCli__Types
 
 module U = RescriptRelayRouterCli__Utils

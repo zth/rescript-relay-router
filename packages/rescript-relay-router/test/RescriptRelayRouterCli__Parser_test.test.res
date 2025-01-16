@@ -1,5 +1,5 @@
 open RescriptRelayRouterCli__Types
-open RescriptRelayRouterUtils.Vitest
+open RescriptRelayRouterTestUtils.Vitest
 module P = RescriptRelayRouterCli__Parser
 module Bindings = RescriptRelayRouterCli__Bindings
 

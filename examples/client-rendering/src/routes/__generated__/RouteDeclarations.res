@@ -21,7 +21,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
     ignore(queryParams)
     let prepareProps: Route__Root_route.Internal.prepareProps =   {
       environment: environment,
-  
       location: location,
       childParams: Obj.magic(pathParams),
     }
@@ -89,7 +88,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       ): prepareProps => {
         let prepareProps: Route__Root__Todos_route.Internal.prepareProps =   {
           environment: environment,
-      
           location: location,
           childParams: Obj.magic(pathParams),
           statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
@@ -161,7 +159,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             ): prepareProps => {
               let prepareProps: Route__Root__Todos__ByStatus_route.Internal.prepareProps =   {
                 environment: environment,
-            
                 location: location,
                 byStatus: pathParams->Dict.getUnsafe("byStatus")->Obj.magic,
                 statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
@@ -235,7 +232,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             ): prepareProps => {
               let prepareProps: Route__Root__Todos__ByStatusDecoded_route.Internal.prepareProps =   {
                 environment: environment,
-            
                 location: location,
                 childParams: Obj.magic(pathParams),
                 byStatusDecoded: pathParams->Dict.getUnsafe("byStatusDecoded")->((byStatusDecodedRawAsString: string) => (byStatusDecodedRawAsString :> TodoStatusPathParam.t)),
@@ -307,7 +303,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                     ): prepareProps => {
                       let prepareProps: Route__Root__Todos__ByStatusDecoded__Child_route.Internal.prepareProps =   {
                         environment: environment,
-                    
                         location: location,
                         byStatusDecoded: pathParams->Dict.getUnsafe("byStatusDecoded")->((byStatusDecodedRawAsString: string) => (byStatusDecodedRawAsString :> TodoStatusPathParam.t)),
                         statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
@@ -383,7 +378,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             ): prepareProps => {
               let prepareProps: Route__Root__Todos__ByStatusDecodedExtra_route.Internal.prepareProps =   {
                 environment: environment,
-            
                 location: location,
                 byStatusDecoded: pathParams->Dict.getUnsafe("byStatusDecoded")->((byStatusDecodedRawAsString: string) => (byStatusDecodedRawAsString :> TodoStatusPathParam.t)),
                 statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
@@ -457,7 +451,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
             ): prepareProps => {
               let prepareProps: Route__Root__Todos__Single_route.Internal.prepareProps =   {
                 environment: environment,
-            
                 location: location,
                 todoId: pathParams->Dict.getUnsafe("todoId"),
                 statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),

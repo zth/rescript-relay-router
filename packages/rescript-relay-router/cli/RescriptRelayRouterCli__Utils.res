@@ -312,6 +312,32 @@ let queryParamToQueryParamDecoder = (param, ~key) => {
   }
 }
 
+let queryParamToQueryParamDecoderInHook = (param, ~key) => {
+  switch param {
+  | Array(param) =>
+    `{
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getArrayParamByKey("${key}")
+    React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => ${param->QueryParams.toParser(
+        ~variableName="value",
+      )})), [param->Option.getOr([])->Array.join(" | ")])
+  }`
+  | CustomModule({required: true, moduleName}) =>
+    `{
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("${key}")
+    React.useMemo(() => param->Option.flatMap(value => ${param->QueryParams.toParser(
+        ~variableName="value",
+      )})->Option.getOr(${moduleName}.defaultValue), [param])
+  }`
+  | param =>
+    `{
+    let param = queryParams__->RelayRouter.Bindings.QueryParams.getParamByKey("${key}")
+    React.useMemo(() => param->Option.flatMap(value => ${param->QueryParams.toParser(
+        ~variableName="value",
+      )}), [param])
+  }`
+  }
+}
+
 let maybePluralize = (text, ~count) =>
   text ++ if count == 1 {
     ""

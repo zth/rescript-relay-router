@@ -51,3 +51,16 @@ module RouterTransitionContext: {
     let make: React.component<React.Context.props<transitionFn>>
   }
 }
+
+type rec routeKind<_> =
+  | QueryParams({
+      routePattern: string,
+      parseQueryParams: RelayRouter__Bindings.QueryParams.t => 'queryParams,
+    }): routeKind<'queryParams>
+  | PathAndQueryParams({
+      routePattern: string,
+      parseQueryParams: RelayRouter__Bindings.QueryParams.t => 'queryParams,
+    }): routeKind<('pathParams, 'queryParams)>
+  | PathParams({routePattern: string}): routeKind<'pathParams>
+
+let parseRoute: routeKind<'params> => (string, ~exact: bool=?) => option<'params>

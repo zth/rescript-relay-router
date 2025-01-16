@@ -761,61 +761,38 @@ let getParseRoute = (route: RescriptRelayRouterCli__Types.printableRoute) => {
   if hasQueryParams && hasPathParams {
     `
 @live 
-let parseRoute = (route: string, ~exact=false): option<(
-  pathParams,
-  queryParams,
-)> => {
-  switch route->String.split("?") {
-  | [pathName, search] =>
-    RelayRouter.Internal.matchPathWithOptions(
-      {"path": routePattern, "end": exact},
-      pathName,
-    )->Option.map(({params}) => {
-      let params: pathParams = Obj.magic(params)
-      let queryParams =
-        search
-        ->RelayRouter.Bindings.QueryParams.parse
-        ->Internal.parseQueryParams
-      (params, queryParams)
-    })
-  | _ => None
-  }
-}
+let parseRoute: (
+  string,
+  ~exact: bool=?,
+) => option<(pathParams, queryParams)> = RelayRouter.Internal.parseRoute(
+  PathAndQueryParams({
+    routePattern,
+    parseQueryParams: Internal.parseQueryParams,
+  }),
+)
 \n`
   } else if hasQueryParams {
     `
 @live 
-let parseRoute = (route: string, ~exact=false): option<queryParams> => {
-  switch route->String.split("?") {
-  | [pathName, search] =>
-    RelayRouter.Internal.matchPathWithOptions(
-      {"path": routePattern, "end": exact},
-      pathName,
-    )->Option.map((_) => {
-      search
-      ->RelayRouter.Bindings.QueryParams.parse
-      ->Internal.parseQueryParams
-    })
-  | _ => None
-  }
-}
+let parseRoute: (
+  string,
+  ~exact: bool=?,
+) => option<queryParams> = RelayRouter.Internal.parseRoute(
+  QueryParams({
+    routePattern,
+    parseQueryParams: Internal.parseQueryParams,
+  }),
+)
 \n`
   } else if hasPathParams {
     `
 @live
-let parseRoute = (route: string, ~exact=false): option<pathParams> => {
-  switch route->String.split("?") {
-  | [pathName, _search] =>
-    RelayRouter.Internal.matchPathWithOptions(
-      {"path": routePattern, "end": exact},
-      pathName,
-    )->Option.map(({params}) => {
-      let params: pathParams = Obj.magic(params)
-      params
-    })
-  | _ => None
-  }
-}
+let parseRoute: (
+  string,
+  ~exact: bool=?,
+) => option<pathParams> = RelayRouter.Internal.parseRoute(
+  PathParams({routePattern}),
+)
 \n`
   } else {
     ""

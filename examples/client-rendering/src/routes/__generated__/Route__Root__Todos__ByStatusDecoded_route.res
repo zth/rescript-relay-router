@@ -207,24 +207,13 @@ external makeRenderer: (
 
 
 @live 
-let parseRoute = (route: string, ~exact=false): option<(
-  pathParams,
-  queryParams,
-)> => {
-  switch route->String.split("?") {
-  | [pathName, search] =>
-    RelayRouter.Internal.matchPathWithOptions(
-      {"path": routePattern, "end": exact},
-      pathName,
-    )->Option.map(({params}) => {
-      let params: pathParams = Obj.magic(params)
-      let queryParams =
-        search
-        ->RelayRouter.Bindings.QueryParams.parse
-        ->Internal.parseQueryParams
-      (params, queryParams)
-    })
-  | _ => None
-  }
-}
+let parseRoute: (
+  string,
+  ~exact: bool=?,
+) => option<(pathParams, queryParams)> = RelayRouter.Internal.parseRoute(
+  PathAndQueryParams({
+    routePattern,
+    parseQueryParams: Internal.parseQueryParams,
+  }),
+)
 

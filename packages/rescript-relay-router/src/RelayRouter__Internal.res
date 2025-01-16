@@ -206,3 +206,51 @@ module RouterTransitionContext = {
 
   let use = (): transitionFn => React.useContext(context)
 }
+
+type rec routeKind<_> =
+  | QueryParams({
+      routePattern: string,
+      parseQueryParams: RelayRouter__Bindings.QueryParams.t => 'queryParams,
+    }): routeKind<'queryParams>
+  | PathAndQueryParams({
+      routePattern: string,
+      parseQueryParams: RelayRouter__Bindings.QueryParams.t => 'queryParams,
+    }): routeKind<('pathParams, 'queryParams)>
+  | PathParams({routePattern: string}): routeKind<'pathParams>
+
+let parseRoute:
+  type params. routeKind<params> => (string, ~exact: bool=?) => option<params> =
+  routeKind => (route, ~exact=false) =>
+    switch routeKind {
+    | PathAndQueryParams({routePattern, parseQueryParams}) =>
+      switch route->String.split("?") {
+      | [pathName, search] =>
+        matchPathWithOptions({"path": routePattern, "end": exact}, pathName)->Option.map(({
+          params,
+        }) => {
+          let params = Obj.magic(params)
+          let queryParams =
+            search
+            ->RelayRouter__Bindings.QueryParams.parse
+            ->parseQueryParams
+          (params, queryParams)
+        })
+      | _ => None
+      }
+    | QueryParams({routePattern, parseQueryParams}) =>
+      matchPathWithOptions({"path": routePattern, "end": exact}, route)->Option.map(_ => {
+        route
+        ->RelayRouter__Bindings.QueryParams.parse
+        ->parseQueryParams
+      })
+    | PathParams({routePattern}) =>
+      switch route->String.split("?") {
+      | [pathName, _search] =>
+        matchPathWithOptions({"path": routePattern, "end": exact}, pathName)->Option.map(({
+          params,
+        }) => {
+          Obj.magic(params)
+        })
+      | _ => None
+      }
+    }

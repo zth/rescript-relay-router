@@ -27,6 +27,22 @@ describe("makeLink", () => {
 })
 
 describe("parsing", () => {
+  test("parseRoute correctly decode query params", _t => {
+    let queryParams =
+      Routes.Root.Todos.Route.parseRoute(
+        "/todos?byValue=%2Fincorrect%20value%2C%20for%20url",
+      )->Option.getExn
+
+    expect(queryParams.byValue->Option.getUnsafe)->Expect.toBe("/incorrect value, for url")
+  })
+  test("parseRoute correctly decode path params", _t => {
+    let pathParams =
+      Routes.Root.PathParamsOnly.Route.parseRoute(
+        "/other/%2Fincorrect%20value%2C%20for%20url",
+      )->Option.getExn
+
+    expect(pathParams.pageSlug)->Expect.toBe("/incorrect value, for url")
+  })
   test("parseRoute correctly decode path and query params", _t => {
     let (pathParams, queryParams) =
       Routes.Root.Todos.Single.Route.parseRoute("/todos/123?showMore=false")->Option.getExn

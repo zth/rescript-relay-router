@@ -220,37 +220,40 @@ type rec routeKind<_> =
 
 let parseRoute:
   type params. routeKind<params> => (string, ~exact: bool=?) => option<params> =
-  routeKind => (route, ~exact=false) =>
+  routeKind =>
     switch routeKind {
     | PathAndQueryParams({routePattern, parseQueryParams}) =>
-      switch route->String.split("?") {
-      | [pathName, search] =>
-        matchPathWithOptions({"path": routePattern, "end": exact}, pathName)->Option.map(({
-          params,
-        }) => {
-          let params = Obj.magic(params)
-          let queryParams =
+      (route, ~exact=false) =>
+        switch route->String.split("?") {
+        | [pathName, search] =>
+          matchPathWithOptions({"path": routePattern, "end": exact}, pathName)->Option.map(({
+            params,
+          }) => {
+            let pathParams = Obj.magic(params)
+            let queryParams =
+              search
+              ->RelayRouter__Bindings.QueryParams.parse
+              ->parseQueryParams
+            (pathParams, queryParams)
+          })
+        | _ => None
+        }
+    | QueryParams({routePattern, parseQueryParams}) =>
+      (route, ~exact=false) =>
+        switch route->String.split("?") {
+        | [pathName, search] =>
+          matchPathWithOptions({"path": routePattern, "end": exact}, pathName)->Option.map(_ => {
             search
             ->RelayRouter__Bindings.QueryParams.parse
             ->parseQueryParams
-          (params, queryParams)
-        })
-      | _ => None
-      }
-    | QueryParams({routePattern, parseQueryParams}) =>
-      matchPathWithOptions({"path": routePattern, "end": exact}, route)->Option.map(_ => {
-        route
-        ->RelayRouter__Bindings.QueryParams.parse
-        ->parseQueryParams
-      })
+          })
+        | _ => None
+        }
     | PathParams({routePattern}) =>
-      switch route->String.split("?") {
-      | [pathName, _search] =>
-        matchPathWithOptions({"path": routePattern, "end": exact}, pathName)->Option.map(({
+      (route, ~exact=false) =>
+        matchPathWithOptions({"path": routePattern, "end": exact}, route)->Option.map(({
           params,
         }) => {
           Obj.magic(params)
         })
-      | _ => None
-      }
     }

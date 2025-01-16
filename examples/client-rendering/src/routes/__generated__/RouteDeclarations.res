@@ -520,6 +520,147 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
               }
             }],
         }
+      },
+      {
+        let routeName = "Root__PathParamsOnly"
+        let loadRouteRenderer = () => (() => import(Root__PathParamsOnly_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+        let makePrepareProps = (. 
+        ~environment: RescriptRelay.Environment.t,
+        ~pathParams: dict<string>,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t,
+        ~location: RelayRouter.History.location,
+      ): prepareProps => {
+        ignore(queryParams)
+        let prepareProps: Route__Root__PathParamsOnly_route.Internal.prepareProps =   {
+          environment: environment,
+          location: location,
+          pageSlug: pathParams->Dict.getUnsafe("pageSlug"),
+        }
+        prepareProps->unsafe_toPrepareProps
+      }
+      
+        {
+          path: "other/:pageSlug",
+          name: routeName,
+          chunk: "Root__PathParamsOnly_route_renderer",
+          loadRouteRenderer,
+          preloadCode: (
+            ~environment: RescriptRelay.Environment.t,
+            ~pathParams: dict<string>,
+            ~queryParams: RelayRouter.Bindings.QueryParams.t,
+            ~location: RelayRouter.History.location,
+          ) => preloadCode(
+            ~loadedRouteRenderers,
+            ~routeName,
+            ~loadRouteRenderer,
+            ~environment,
+            ~location,
+            ~makePrepareProps,
+            ~pathParams,
+            ~queryParams,
+          ),
+          prepare: (
+            ~environment: RescriptRelay.Environment.t,
+            ~pathParams: dict<string>,
+            ~queryParams: RelayRouter.Bindings.QueryParams.t,
+            ~location: RelayRouter.History.location,
+            ~intent: RelayRouter.Types.prepareIntent,
+          ) => prepareRoute(
+            ~environment,
+            ~pathParams,
+            ~queryParams,
+            ~location,
+            ~getPrepared,
+            ~loadRouteRenderer,
+            ~makePrepareProps,
+            ~makeRouteKey=(
+        ~pathParams: dict<string>,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t
+      ): string => {
+        ignore(queryParams)
+      
+        "Root__PathParamsOnly:"
+          ++ pathParams->Dict.get("pageSlug")->Option.getOr("")
+      
+      }
+      
+      ,
+            ~routeName,
+            ~intent
+          ),
+          children: [],
+        }
+      },
+      {
+        let routeName = "Root__Home"
+        let loadRouteRenderer = () => (() => import(Root__Home_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
+        let makePrepareProps = (. 
+        ~environment: RescriptRelay.Environment.t,
+        ~pathParams: dict<string>,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t,
+        ~location: RelayRouter.History.location,
+      ): prepareProps => {
+        ignore(pathParams)
+        ignore(queryParams)
+        let prepareProps: Route__Root__Home_route.Internal.prepareProps =   {
+          environment: environment,
+          location: location,
+        }
+        prepareProps->unsafe_toPrepareProps
+      }
+      
+        {
+          path: "home",
+          name: routeName,
+          chunk: "Root__Home_route_renderer",
+          loadRouteRenderer,
+          preloadCode: (
+            ~environment: RescriptRelay.Environment.t,
+            ~pathParams: dict<string>,
+            ~queryParams: RelayRouter.Bindings.QueryParams.t,
+            ~location: RelayRouter.History.location,
+          ) => preloadCode(
+            ~loadedRouteRenderers,
+            ~routeName,
+            ~loadRouteRenderer,
+            ~environment,
+            ~location,
+            ~makePrepareProps,
+            ~pathParams,
+            ~queryParams,
+          ),
+          prepare: (
+            ~environment: RescriptRelay.Environment.t,
+            ~pathParams: dict<string>,
+            ~queryParams: RelayRouter.Bindings.QueryParams.t,
+            ~location: RelayRouter.History.location,
+            ~intent: RelayRouter.Types.prepareIntent,
+          ) => prepareRoute(
+            ~environment,
+            ~pathParams,
+            ~queryParams,
+            ~location,
+            ~getPrepared,
+            ~loadRouteRenderer,
+            ~makePrepareProps,
+            ~makeRouteKey=(
+        ~pathParams: dict<string>,
+        ~queryParams: RelayRouter.Bindings.QueryParams.t
+      ): string => {
+        ignore(pathParams)
+        ignore(queryParams)
+      
+        "Root__Home:"
+      
+      
+      }
+      
+      ,
+            ~routeName,
+            ~intent
+          ),
+          children: [],
+        }
       }],
     }
   }

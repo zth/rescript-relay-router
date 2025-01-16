@@ -513,6 +513,8 @@ Here's a few more advanced things you can utilize the router for.
 
 ### Linking when you just want to change one or a few query params, preserving the rest
 
+#### With `makeLinkFromQueryParams`
+
 In addition to `makeLink`, there's also a `makeLinkFromQueryParams` function generated to simplify the use case of changing just one or a few of a large set of query params. `makeLinkFromQueryParams` lets you create a link by supplying your new query params as a record rather than each individual query param as a distinct labelled argument. It enables a few neat things:
 
 ```rescript
@@ -524,6 +526,17 @@ let otherOrgSameViewLink = Routes.Organization.Members.Route.makeLinkFromQueryPa
 
 // Scenario 2: Changing a single query parameter without caring about the rest
 let changingASingleQueryParam = Routes.Organization.Members.Route.makeLinkFromQueryParams(~orgSlug=currentOrgSlug, {...queryParams, showDetails: Some(true)})
+```
+
+#### With `useMakeLinkWithPreservedPath`
+
+In case you don't already have the current value of the path and query parameters and only want to update the query params, you can use `useMakeLinkWithPreservedPath` to generate a new link:
+
+```rescript
+let makeNewLink = Routes.Organization.Members.Route.useMakeLinkWithPreservedPath()
+
+// Changing a single query parameter without caring about the rest
+let changingASingleQueryParam = makeNewLink(queryParams => {...queryParams, showDetails: Some(true)})
 ```
 
 ### Checking if a route or a sub route is active
@@ -574,6 +587,18 @@ let routeActive = RelayRouter.Utils.isRouteActive(
   ~routePattern="/some/thing/:id",
   ~exact=true,
 )
+```
+
+#### Extracting the parameters of a route is active in a generic way (`parseRoute`)
+
+If you want to check if a link matches a given route (that is not the active one) and want to extract its parameters, you can use `parseRoute`:
+
+```rescript
+switch Routes.Organization.Members.Route.parseRoute(link){
+  | Some((_pathParams, {showDetails: true})) => // do something here
+  | Some(_) => // do something else
+  | None => // the link is not matched by the given route
+}
 ```
 
 #### Checking whether a direct sub route of a route is active (for tabs, etc)

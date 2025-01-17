@@ -1,5 +1,24 @@
 # rescript-relay-router
 
+## 2.0.0
+
+### Major Changes
+
+- 0a1281d: use `dict` instead of `Dict.t`, requires rescript >= v11.1.0
+- 104c199: remove the unused `href` parameter from `RelayRouter.Utils.useIsRouteActive`
+
+### Minor Changes
+
+- 31a300e: useMemo for every query params when parsing URL
+- 0add510: use URLSearchParams to decode and encode query params
+- 1ea570a: remove query param from URL when its value is default
+- 0a1281d: remove Belt and Js and use Core (bundle CLI/vite plugins so they can be used with any suffix)
+
+### Patch Changes
+
+- ea3ae28: remove double en/decodeURIComponent for query params
+- 0add510: fix parseRoute for routes with only query params or only path params
+
 ## 1.7.2
 
 ### Patch Changes

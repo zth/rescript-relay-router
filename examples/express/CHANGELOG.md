@@ -1,5 +1,30 @@
 # @rescript-relay-router-example/express
 
+## 1.0.0
+
+### Major Changes
+
+- 0a1281d: use `dict` instead of `Dict.t`, requires rescript >= v11.1.0
+
+### Minor Changes
+
+- 31a300e: useMemo for every query params when parsing URL
+- 1ea570a: remove query param from URL when its value is default
+- 0a1281d: remove Belt and Js and use Core (bundle CLI/vite plugins so they can be used with any suffix)
+
+### Patch Changes
+
+- ea3ae28: remove double en/decodeURIComponent for query params
+- Updated dependencies [0a1281d]
+- Updated dependencies [ea3ae28]
+- Updated dependencies [31a300e]
+- Updated dependencies [0add510]
+- Updated dependencies [0add510]
+- Updated dependencies [1ea570a]
+- Updated dependencies [0a1281d]
+- Updated dependencies [104c199]
+  - rescript-relay-router@2.0.0
+
 ## 0.0.32
 
 ### Patch Changes

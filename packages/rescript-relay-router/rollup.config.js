@@ -18,7 +18,7 @@ export default [
       format: "esm",
       name: "RescriptRelayVitePlugin",
     },
-    plugins: [resolve({ resolveOnly: [/^@rescript\/.*$/] })],
+    plugins: [resolve({ resolveOnly: ["@rescript/core", "rescript"] })],
     external: ["fsevents"],
   },
   {
@@ -28,7 +28,7 @@ export default [
       format: "esm",
       name: "RescriptRelayServerVitePlugin",
     },
-    plugins: [resolve({ resolveOnly: [/^@rescript\/.*$/] })],
+    plugins: [resolve({ resolveOnly: ["@rescript/core", "rescript"] })],
     external: ["fsevents", "vite"],
   },
 ];

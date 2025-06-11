@@ -320,7 +320,7 @@ let runCli = args => {
                                                             | Example: find-route /todos/123`)
     Done
   | list{"scaffold-route-renderers", ...options} =>
-    let deleteRemoved = options->List.has("-delete-removed", \"=")
+    let deleteRemoved = options->List.has("-delete-removed", String.equal)
     let config = Utils.Config.load()
 
     Utils.ensureRouteStructure(config.routesFolderPath)
@@ -334,9 +334,10 @@ let runCli = args => {
     }
     Done
   | list{"generate", ...options} => {
-      let scaffoldAfterGenerating = options->List.has("-scaffold-renderers", \"=")
-      let deleteRemoved = options->List.has("-delete-removed", \"=")
-      let shouldWatch = options->List.has("-w", \"=") || options->List.has("--watch", \"=")
+      let scaffoldAfterGenerating = options->List.has("-scaffold-renderers", String.equal)
+      let deleteRemoved = options->List.has("-delete-removed", String.equal)
+      let shouldWatch =
+        options->List.has("-w", String.equal) || options->List.has("--watch", String.equal)
 
       let config = Utils.Config.load()
 
@@ -389,7 +390,7 @@ let runCli = args => {
 
   | list{"lsp", ...options} =>
     let config = Utils.Config.load()
-    let mode = if options->List.has("-stdio", \"=") {
+    let mode = if options->List.has("-stdio", String.equal) {
       Lsp.Stdio
     } else {
       NodeRpc

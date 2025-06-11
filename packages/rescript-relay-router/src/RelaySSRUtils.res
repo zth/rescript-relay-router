@@ -18,8 +18,8 @@ external unsafe_initialRelayData: window => option<array<streamedEntry>> = "__RE
 
 let deleteKey = (dict, key) => Dict.delete(Obj.magic(dict), key)
 
-let streamedPreCache: dict<array<streamedEntry>> = Dict.make()
-let replaySubjects: dict<RelayReplaySubject.t> = Dict.make()
+let streamedPreCache: dict<array<streamedEntry>> = dict{}
+let replaySubjects: dict<RelayReplaySubject.t> = dict{}
 
 let cleanupId = id => {
   Console.log("[debug] Cleaning up id \"" ++ id ++ "\"")
@@ -201,15 +201,7 @@ let makeServerFetchFunction = (
           // Relay is using is_final and haven't adapted to the spec yet
           // because it's not quite finalized.
           ~final=switch payload {
-          | Object(obj) =>
-            switch obj->Dict.get("hasNext") {
-            | None => true
-            | Some(hasNext) =>
-              switch hasNext {
-              | Boolean(true) => false
-              | _ => true
-              }
-            }
+          | Object(dict{"hasNext": JSON.Boolean(true)}) => false
           | _ => true
           }->Some,
         )

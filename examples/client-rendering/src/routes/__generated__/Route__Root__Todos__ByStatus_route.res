@@ -139,7 +139,7 @@ let makeLink = (~byStatus: [#"completed" | #"not-completed"], ~statuses: option<
     | None => ()
     | Some(byValue) => queryParams->QueryParams.setParam(~key="byValue", ~value=byValue)
   }
-  RelayRouter.Bindings.generatePath(routePattern, Dict.fromArray([("byStatus", (byStatus :> string)->encodeURIComponent)])) ++ queryParams->QueryParams.toString
+  RelayRouter.Bindings.generatePath(routePattern, dict{"byStatus": (byStatus :> string)->encodeURIComponent}) ++ queryParams->QueryParams.toString
 }
 @live
 let makeLinkFromQueryParams = (~byStatus: [#"completed" | #"not-completed"], queryParams: queryParams) => {

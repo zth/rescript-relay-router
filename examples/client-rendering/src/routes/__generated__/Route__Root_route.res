@@ -55,7 +55,7 @@ let routePattern = "/"
 
 @live
 let makeLink = () => {
-  RelayRouter.Bindings.generatePath(routePattern, Dict.fromArray([]))
+  RelayRouter.Bindings.generatePath(routePattern, dict{})
 }
 
 @live

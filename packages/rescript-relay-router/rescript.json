@@ -33,7 +33,7 @@
     }
   ],
   "suffix": ".res.mjs",
-  "bs-dependencies": ["@rescript/react", "rescript-relay", "@rescript/core"],
+  "bs-dependencies": ["@rescript/react", "rescript-relay"],
   "bs-dev-dependencies": ["@rescript-relay-router/test-utils"],
-  "bsc-flags": ["-open RescriptCore"]
+  "bsc-flags": []
 }

@@ -24,7 +24,7 @@ let isAsyncIterable: parts => bool = %raw(`function isAsyncIterable(input) {
 let decodeEachChunk: (
   parts,
   JSON.t => unit,
-  Exn.t => unit,
+  JsExn.t => unit,
 ) => promise<unit> = %raw(`async function(parts, onNext, onError) {
     for await (const part of parts) {
 			if (!part.json) {
@@ -63,7 +63,7 @@ let getChunks = (response: response, ~onNext, ~onError, ~onComplete): promise<un
           Promise.resolve()
         })
       } catch {
-      | Exn.Error(err) =>
+      | JsExn(err) =>
         onError(err)
         Promise.resolve()
       }

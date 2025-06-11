@@ -84,7 +84,7 @@ module Router = {
     })
 
     let nextId = ref(0)
-    let subscribers = Dict.make()
+    let subscribers = dict{}
     let nextNavigationIsShallow = ref(false)
 
     let cleanup = history->RelayRouter__History.listen(({location}) => {
@@ -290,6 +290,6 @@ let useRegisterPreloadedAsset = asset => {
       asset->preloadAsset(~priority=Default)
     }
   } catch {
-  | Exn.Error(_) => ()
+  | JsExn(_) => ()
   }
 }

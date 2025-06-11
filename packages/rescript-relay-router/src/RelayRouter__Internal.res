@@ -69,7 +69,7 @@ let useSetQueryParams = (
       }
 
       setQueryParamsFn({
-        applyQueryParams: applyQueryParams(~newParams, ...),
+        applyQueryParams: queryParams => applyQueryParams(~newParams, queryParams),
         currentSearch: search,
         navigationMode_,
         removeNotControlledParams,

@@ -334,7 +334,7 @@ module CurrentContext: {
   type t
   let make: (
     ~config: config,
-    ~getRouteFileContents: string => result<string, Exn.t>,
+    ~getRouteFileContents: string => result<string, JsExn.t>,
     ~routeRenderersCache: dict<string>,
   ) => t
   let isValidRouteFile: (t, string) => bool
@@ -396,7 +396,7 @@ let start = (~mode, ~config: config) => {
       try {
         Ok(Bindings.Fs.readFileSync(Utils.pathInRoutesFolder(~config, ~fileName)))
       } catch {
-      | Exn.Error(exn) => Error(exn)
+      | JsExn(exn) => Error(exn)
       }
     }
   }
@@ -632,7 +632,7 @@ let start = (~mode, ~config: config) => {
             ->send
           } else {
             shutdownRequestAlreadyReceived := true
-            routeFilesWatcher->Bindings.Chokidar.Watcher.close->Promise.done
+            routeFilesWatcher->Bindings.Chokidar.Watcher.close->Promise.ignore
             Message.Response.make(~id=msg->Message.getId, ~result=Message.Result.null())
             ->Message.Response.asMessage
             ->send
@@ -773,7 +773,7 @@ let start = (~mode, ~config: config) => {
                       }
                     }
                   })
-                  ->Promise.done
+                  ->Promise.ignore
                 }
               }
 
@@ -845,7 +845,7 @@ let start = (~mode, ~config: config) => {
                   }
                 }
               })
-              ->Promise.done
+              ->Promise.ignore
             }
           | RescriptRelayRouterRoutesMatchingUrl([url]) =>
             let urlObj = Bindings.URL.make(

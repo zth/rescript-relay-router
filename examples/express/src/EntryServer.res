@@ -91,15 +91,15 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
     stream :=
       ReactDOMServer.renderToPipeableStream(
         <App environment routerContext />,
-        ReactDOMServer.renderToPipeableStreamOptions(
-          // This renders as React is ready to start hydrating, and ensures that
-          // if the client side bundle has already been downloaded, it starts
-          // hydrating right away. If not, it lets the client bundle know that
-          // React is ready to hydrate, and the client bundle starts hydration
-          // as soon as it loads.
-          ~bootstrapScriptContent="window.__READY_TO_BOOT ? window.__BOOT() : (window.__READY_TO_BOOT = true)",
-          ~bootstrapModules,
-          ~onShellReady=() => {
+        ~options=// This renders as React is ready to start hydrating, and ensures that
+        // if the client side bundle has already been downloaded, it starts
+        // hydrating right away. If not, it lets the client bundle know that
+        // React is ready to hydrate, and the client bundle starts hydration
+        // as soon as it loads.
+        {
+          bootstrapScriptContent: "window.__READY_TO_BOOT ? window.__BOOT() : (window.__READY_TO_BOOT = true)",
+          bootstrapModules,
+          onShellReady: () => {
             response->Express.Response.setHeader("Content-Type", "text/html")
 
             response->Express.Response.setStatus(didError.contents ? 500 : 200)
@@ -116,17 +116,16 @@ let handleRequest = (~request, ~response, ~manifest: RelayRouter.Manifest.t) => 
 
             resolve(ignore())
           },
-          ~onShellError=err => {
+          onShellError: err => {
             cleanup()
             reject(err)
           },
-          ~onError=err => {
+          onError: err => {
             cleanup()
             didError := true
             Console.error(err)
           },
-          (),
-        ),
+        },
       )->Some
   })
 }

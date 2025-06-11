@@ -9,4 +9,4 @@ let make: (~middlewareMode: middlewareMode) => Promise.t<t>
 
 @send external transformIndexHtml: (t, string, string) => Promise.t<string> = "transformIndexHtml"
 
-@send external ssrFixStacktrace: (t, Exn.t) => unit = "ssrFixStackTrace"
+@send external ssrFixStacktrace: (t, JsExn.t) => unit = "ssrFixStackTrace"

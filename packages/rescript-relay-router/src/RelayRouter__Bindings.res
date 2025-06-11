@@ -138,7 +138,7 @@ module RelayReplaySubject = {
   external complete: t => unit = "complete"
 
   @send
-  external error: (t, Exn.t) => unit = "error"
+  external error: (t, JsExn.t) => unit = "error"
 
   @send
   external next: (t, JSON.t) => unit = "next"

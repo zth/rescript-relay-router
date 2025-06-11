@@ -67,7 +67,7 @@ switch NodeJs.isProduction {
           },
         )
       } catch {
-      | Exn.Error(err) => {
+      | JsExn(err) => {
           vite->ssrFixStacktrace(err)
           Console.log("[debug] got error")
           Console.log(err)

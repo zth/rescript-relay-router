@@ -116,34 +116,42 @@ external matchPath: (string, string) => option<pathMatch> = "matchPath"
 external matchPathWithOptions: ({"path": string, "end": bool}, string) => option<pathMatch> =
   "matchPath"
 
+type prepared
+external toObject: Type.Classify.object => {..} = "%identity"
+external objectToPreparedArrayUnsafe: Type.Classify.object => array<prepared> = "%identity"
+
 // This will extract all dispose functions from anything you feed it.
-let extractDisposables = %raw(`function extractDisposables_(s, disposables = [], seen = new Set()) {
-  if (s == null || seen.has(s)) {
-    return disposables;
-  }
-  
-  seen.add(s);
-
-  if (Array.isArray(s)) {
-    s.forEach(function (o) {
-      extractDisposables_(o, disposables, seen);
-    });
-    return disposables;
-  }
-
-  if (typeof s === "object") {
-    if (s.hasOwnProperty("dispose") && typeof s.dispose === "function") {
-      disposables.push(s.dispose);
+let extractDisposables = prepared => {
+  let rec aux = (s, disposables, seen) => {
+    switch Type.Classify.classify(s) {
+    | Object(object) =>
+      if !(seen->Set.has(s)) {
+        seen->Set.add(s)
+        if Array.isArray(object) {
+          let array = objectToPreparedArrayUnsafe(object)
+          array->Array.forEach(o => aux(o, disposables, seen))
+        } else {
+          let object = toObject(object)
+          if (
+            object->Object.hasOwnProperty("dispose") && Type.typeof(object["dispose"]) === #function
+          ) {
+            disposables->Array.push(object["dispose"])
+          }
+          object
+          ->Object.keysToArray
+          ->Array.forEach(key => {
+            let o = object->Object.get(key)
+            o->Option.forEach(o => aux(o, disposables, seen))
+          })
+        }
+      }
+    | _ => ()
     }
-
-    Object.keys(s).forEach(function (key) {
-      var o = s[key];
-      extractDisposables_(o, disposables, seen);
-    });
   }
-
-  return disposables;
-}`)
+  let disposables = []
+  aux(prepared, disposables, Set.make())
+  disposables
+}
 
 type requestIdleCallbackId
 

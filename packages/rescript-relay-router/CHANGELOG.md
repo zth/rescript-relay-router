@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 2.0.1
+
+### Patch Changes
+
+- 496ebe9: Make rescript-relay-router compatible with rescript v12
+
 ## 2.0.0
 
 ### Major Changes

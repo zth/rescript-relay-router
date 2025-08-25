@@ -35,7 +35,8 @@ external matchPath: (string, string) => option<pathMatch> = "matchPath"
 external matchPathWithOptions: ({"path": string, "end": bool}, string) => option<pathMatch> =
   "matchPath"
 
-let extractDisposables: 'any => array<unit => unit>
+type prepared
+let extractDisposables: prepared => array<unit => unit>
 
 let runAtPriority: (
   RelayRouter__Types.callback,

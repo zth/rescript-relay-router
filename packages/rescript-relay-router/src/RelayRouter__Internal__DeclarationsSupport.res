@@ -3,7 +3,7 @@
 exception Route_loading_failed(string)
 
 type prepareProps
-type prepared
+type prepared = RelayRouter.Internal.prepared
 type renderProps
 
 //  This works because the render props for a route is always the prepared props

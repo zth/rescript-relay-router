@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 3.0.0
+
+### Major Changes
+
+- 0f2bf63: Require Rescript v12 and remove usage of Core
+
 ## 2.0.1
 
 ### Patch Changes

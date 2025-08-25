@@ -1,5 +1,16 @@
 # @rescript-relay-router-example/client-rendering
 
+## 2.0.0
+
+### Major Changes
+
+- 0f2bf63: Require Rescript v12 and remove usage of Core
+
+### Patch Changes
+
+- Updated dependencies [0f2bf63]
+  - rescript-relay-router@3.0.0
+
 ## 1.0.1
 
 ### Patch Changes

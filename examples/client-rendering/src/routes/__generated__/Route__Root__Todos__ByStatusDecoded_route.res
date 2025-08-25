@@ -147,7 +147,7 @@ let makeLink = (~byStatusDecoded: TodoStatusPathParam.t, ~statuses: option<array
     | None => ()
     | Some(byValue) => queryParams->QueryParams.setParam(~key="byValue", ~value=byValue)
   }
-  RelayRouter.Bindings.generatePath(routePattern, Dict.fromArray([("byStatusDecoded", (byStatusDecoded :> string)->encodeURIComponent)])) ++ queryParams->QueryParams.toString
+  RelayRouter.Bindings.generatePath(routePattern, dict{"byStatusDecoded": (byStatusDecoded :> string)->encodeURIComponent}) ++ queryParams->QueryParams.toString
 }
 @live
 let makeLinkFromQueryParams = (~byStatusDecoded: TodoStatusPathParam.t, queryParams: queryParams) => {

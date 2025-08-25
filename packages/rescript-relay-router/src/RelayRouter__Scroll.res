@@ -24,14 +24,14 @@ external castToPositionsShape: JSON.t => dict<int> = "%identity"
 
 let scrollPositionsY = ref(
   if RelaySSRUtils.ssr {
-    Dict.make()
+    dict{}
   } else {
     try {
       getScrollPositions()
       ->Option.map(positionsRaw => positionsRaw->JSON.parseExn->castToPositionsShape)
-      ->Option.getOr(Dict.make())
+      ->Option.getOr(dict{})
     } catch {
-    | Exn.Error(_) => Dict.make()
+    | JsExn(_) => dict{}
     }
   },
 )

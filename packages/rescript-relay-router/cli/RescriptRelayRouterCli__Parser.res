@@ -7,7 +7,7 @@ open RescriptRelayRouterCli__Types
 type parserContext = {
   routeFileNames: array<string>,
   routeFiles: dict<loadedRouteFile>,
-  getRouteFileContents: string => result<string, Exn.t>,
+  getRouteFileContents: string => result<string, JsExn.t>,
 }
 
 type currentFileContext = {
@@ -332,7 +332,7 @@ module Path = {
 
         switch currentCtx.paramName->String.length {
         | 0 =>
-          switch %re(`/[a-z]/`)->RegExp.test(char) {
+          switch /[a-z]/->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -341,7 +341,7 @@ module Path = {
             )
           }
         | _ =>
-          switch %re(`/[A-Za-z0-9_]/`)->RegExp.test(char) {
+          switch /[A-Za-z0-9_]/->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -359,7 +359,7 @@ module Path = {
 
         switch currentCtx.paramName->String.length {
         | 0 =>
-          switch %re(`/[A-Z]/`)->RegExp.test(char) {
+          switch /[A-Z]/->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -368,7 +368,7 @@ module Path = {
             )
           }
         | _ =>
-          switch %re(`/[A-Za-z0-9_\.]/`)->RegExp.test(char) {
+          switch /[A-Za-z0-9_\.]/->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -386,7 +386,7 @@ module Path = {
 
         switch currentCtx.currentMatchParam->String.length {
         | 0 =>
-          switch %re(`/[a-zA-Z]/`)->RegExp.test(char) {
+          switch /[a-zA-Z]/->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -395,7 +395,7 @@ module Path = {
             )
           }
         | _ =>
-          switch %re(`/[A-Za-z0-9_\-]/`)->RegExp.test(char) {
+          switch /[A-Za-z0-9_\-]/->RegExp.test(char) {
           | true => ()
           | false =>
             ctx.addDecodeError(
@@ -618,7 +618,7 @@ module Validators = {
         Some({loc, name: "_"})
       | routeName =>
         switch (
-          %re(`/^[A-Z][a-zA-Z0-9_]+$/`)->RegExp.test(routeName),
+          /^[A-Z][a-zA-Z0-9_]+$/->RegExp.test(routeName),
           siblings->routeWithNameAlreadyExists(~routeName),
         ) {
         | (true, false) => Some({loc, name: routeName})

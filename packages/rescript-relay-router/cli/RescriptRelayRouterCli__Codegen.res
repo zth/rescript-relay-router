@@ -90,9 +90,9 @@ let routePattern = "${route.path->RoutePath.toPattern}"
   ") => {\n"->addToStr
 
   let pathParamNames = route.params->Array.map(Utils.printablePathParamToParamName)
-  let pathParamsAsJsDict = `Dict.fromArray([${pathParamNames
-    ->Array.map(paramName => `("${paramName}", (${paramName} :> string)->encodeURIComponent)`)
-    ->Array.join(",")}])`
+  let pathParamsAsDict = `dict{${pathParamNames
+    ->Array.map(paramName => `"${paramName}": (${paramName} :> string)->encodeURIComponent`)
+    ->Array.join(",")}}`
 
   if hasQueryParams {
     `  open RelayRouter.Bindings\n  let queryParams = QueryParams.make()`->addToStr
@@ -112,7 +112,7 @@ let routePattern = "${route.path->RoutePath.toPattern}"
     })
   }
 
-  `  RelayRouter.Bindings.generatePath(routePattern, ${pathParamsAsJsDict})`->addToStr
+  `  RelayRouter.Bindings.generatePath(routePattern, ${pathParamsAsDict})`->addToStr
 
   if hasQueryParams {
     " ++ queryParams->QueryParams.toString"->addToStr

@@ -21,7 +21,7 @@ module Config: {
         let routesFolderPath = switch config->Dict.get("routesFolderPath") {
         | Some(routesFolderPath) => routesFolderPath->resolveFullPath
         | None =>
-          raise(
+          throw(
             Invalid_config(
               "You must set 'routesFolderPath', a relative path to where your routing code will be located.",
             ),
@@ -42,7 +42,7 @@ module Config: {
       }
 
     | _ =>
-      raise(
+      throw(
         Invalid_config(
           "Could not find router config. Please make sure you've defined a router config either in 'rescriptRelayRouter' in package.json, rescriptRelayRouter.json, or in rescriptRelayRouter.config.js/rescriptRelayRouter.config.cjs",
         ),
@@ -221,13 +221,13 @@ let readRouteStructure = (config): (
       try {
         Ok(Fs.readFileSync(pathInRoutesFolder(~config, ~fileName)))
       } catch {
-      | Exn.Error(exn) => Error(exn)
+      | JsExn(exn) => Error(exn)
       }
     },
   )
 
   if errors->Array.length > 0 {
-    raise(Decode_error(routeStructure))
+    throw(Decode_error(routeStructure))
   }
 
   let printable = routeChildrenToPrintable(result)

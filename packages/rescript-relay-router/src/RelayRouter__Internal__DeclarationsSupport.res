@@ -85,7 +85,7 @@ let preloadCode = (
       switch loadedRouteRenderers->Map.get(routeName) {
       | Some(Loaded(routeRenderer)) => routeRenderer->apply->Promise.resolve
       | _ =>
-        raise(
+        throw(
           Route_loading_failed(
             "Invalid state after loading route renderer. Please report this error.",
           ),
@@ -176,7 +176,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
       // the new query refs have had a chance to be used by React.
       let {disposables: oldDisposables} = preparedEntry
 
-      let _ = RescriptCore.setTimeout(() => {
+      let _ = Stdlib.setTimeout(() => {
         oldDisposables->Array.forEach(dispose => {
           dispose()
         })
@@ -290,7 +290,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
           switch loadedRouteRenderers->Map.get(routeName) {
           | Some(Loaded(routeRenderer)) => doPrepare(routeRenderer)->Promise.resolve
           | _ =>
-            raise(
+            throw(
               Route_loading_failed(
                 "Route renderer not in loaded state even though it should be. This should be impossible, please report this error.",
               ),
@@ -322,7 +322,7 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
                 // In short, we need this expire to run after the route renderer
                 // has been unmounted, or Relay gives us a "using preloaded
                 // query that was disposed" error.
-                let _ = RescriptCore.setTimeout(
+                let _ = Stdlib.setTimeout(
                   () => {
                     expirePrepared(~routeKey)
                   },

@@ -52,7 +52,7 @@ let routePattern = "/other/:pageSlug"
 
 @live
 let makeLink = (~pageSlug: string) => {
-  RelayRouter.Bindings.generatePath(routePattern, Dict.fromArray([("pageSlug", (pageSlug :> string)->encodeURIComponent)]))
+  RelayRouter.Bindings.generatePath(routePattern, dict{"pageSlug": (pageSlug :> string)->encodeURIComponent})
 }
 
 @live

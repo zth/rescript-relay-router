@@ -24,9 +24,8 @@
   "bs-dependencies": [
     "@rescript/react",
     "rescript-relay",
-    "rescript-relay-router",
-    "@rescript/core"
+    "rescript-relay-router"
   ],
-  "bsc-flags": ["-open RescriptCore"],
+  "bsc-flags": [],
   "pinned-dependencies": ["rescript-relay-router"]
 }

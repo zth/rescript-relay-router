@@ -16,4 +16,4 @@ let make = (~middlewareMode) => make({server: {middlewareMode: middlewareMode}})
 
 @send external transformIndexHtml: (t, string, string) => promise<string> = "transformIndexHtml"
 
-@send external ssrFixStacktrace: (t, Exn.t) => unit = "ssrFixStackTrace"
+@send external ssrFixStacktrace: (t, JsExn.t) => unit = "ssrFixStackTrace"

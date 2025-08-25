@@ -165,7 +165,7 @@ let makeLink = (~todoId: string, ~statuses: option<array<TodoStatus.t>>=?, ~stat
     | None => ()
     | Some(showMore) => queryParams->QueryParams.setParam(~key="showMore", ~value=switch showMore { | true => "true" | false => "false" })
   }
-  RelayRouter.Bindings.generatePath(routePattern, Dict.fromArray([("todoId", (todoId :> string)->encodeURIComponent)])) ++ queryParams->QueryParams.toString
+  RelayRouter.Bindings.generatePath(routePattern, dict{"todoId": (todoId :> string)->encodeURIComponent}) ++ queryParams->QueryParams.toString
 }
 @live
 let makeLinkFromQueryParams = (~todoId: string, queryParams: queryParams) => {

@@ -9,6 +9,6 @@ external fetch: (string, 'fetchOpts) => promise<response> = "fetch"
 let getChunks: (
   response,
   ~onNext: JSON.t => unit,
-  ~onError: Exn.t => unit,
+  ~onError: JsExn.t => unit,
   ~onComplete: unit => unit,
 ) => promise<unit>

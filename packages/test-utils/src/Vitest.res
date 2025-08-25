@@ -13,11 +13,7 @@ type expected<'a>
 
 @module("vitest") external expect: 'a => expected<'a> = "expect"
 
-%%private(
-  external cast_expeceted: expected<'a> => expected<'b> = "%identity"
-  external unwrap: expected<'a> => 'a = "%identity"
-  external wrap: 'a => expected<'a> = "%identity"
-)
+%%private(external cast_expected: expected<'a> => expected<'b> = "%identity")
 
 type benchOptions = {
   time: option<int>,
@@ -784,7 +780,7 @@ module Matchers = (
 
   @send external toBeFalsy: expected<'a> => Config.return<'a> = "toBeFalsy"
 
-  @send external toBeNull: expected<null<'a>> => Config.return<'a> = "toBeNull"
+  @send external toBeNull: expected<Null.t<'a>> => Config.return<'a> = "toBeNull"
 
   // @send external toBeInstanceOf: (expected<'a>, ?) => Config.return<'a> = "toBeInstanceOf"
 
@@ -792,7 +788,7 @@ module Matchers = (
 
   @inline
   let toBeSome = (~some=?, expected: expected<option<'a>>) => {
-    expected->cast_expeceted->not->toBeUndefined->ignore
+    expected->cast_expected->not->toBeUndefined->ignore
     switch some {
     | Some(id) => expected->toEqual(id)
     | None => Config.emptyReturn
@@ -801,7 +797,7 @@ module Matchers = (
 
   @inline
   let toBeNone = (expected: expected<option<'a>>) => {
-    expected->cast_expeceted->toBeUndefined
+    expected->cast_expected->toBeUndefined
   }
 
   @send external toStrictEqual: (expected<'a>, 'a) => Config.return<'a> = "toStrictEqual"
@@ -876,23 +872,6 @@ module Matchers = (
     @send external toHaveLength: (expected<array<'a>>, int) => Config.return<'a> = "toHaveLength"
 
     @send external toMatch: (expected<array<'a>>, array<'a>) => Config.return<'a> = "toMatchObject"
-  }
-
-  module List = {
-    @inline
-    let toContain = (expected, item) => {
-      expected->unwrap->List.toArray->wrap->Array.toContain(item)
-    }
-
-    @inline
-    let toHaveLength = (expected, length) => {
-      expected->unwrap->List.toArray->wrap->Array.toHaveLength(length)
-    }
-
-    @inline
-    let toMatch = (expected, list) => {
-      expected->unwrap->List.toArray->wrap->Array.toMatch(list->List.toArray)
-    }
   }
 
   module Dict = {
@@ -980,6 +959,6 @@ module Vi = {
   @send external restoreCurrentDate: (t, Date.t) => t = "restoreCurrentDate"
   @inline let restoreCurrentDate = date => vi_obj->restoreCurrentDate(date)
 
-  @send external getMockedDate: t => null<Date.t> = "getMockedDate"
+  @send external getMockedDate: t => Null.t<Date.t> = "getMockedDate"
   @inline let getMockedDate = () => vi_obj->getMockedDate->Null.toOption
 }

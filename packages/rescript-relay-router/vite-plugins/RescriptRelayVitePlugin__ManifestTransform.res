@@ -1,5 +1,6 @@
 @module("fs") external readFileSync: (string, string) => string = "readFileSync"
-@module("fs") external writeFileSync: (string, string, string) => unit = "writeFileSync"
+@module("fs")
+external writeFileSync: (~path: string, string, ~encoding: string) => unit = "writeFileSync"
 
 module ViteManifest = {
   type chunk = {
@@ -41,8 +42,8 @@ let viteManifestToRelayRouterManifest: ViteManifest.t => RelayRouter.Manifest.t 
     ->Array.filterMap(((source, chunk)) => {
       open RelayRouter.Manifest
       // The isEntry or isDynamicEntry field is only ever present when it's `true`.
-      switch !(chunk.isEntry->Nullable.isNullable) || !(chunk.isDynamicEntry->Nullable.isNullable) {
-      | true =>
+      switch (chunk.isEntry, chunk.isDynamicEntry) {
+      | (Value(_), _) | (_, Value(_)) =>
         Some((
           source->getFile,
           {
@@ -51,7 +52,7 @@ let viteManifestToRelayRouterManifest: ViteManifest.t => RelayRouter.Manifest.t 
             assets: chunk.assets->orEmptyArray,
           },
         ))
-      | false => None
+      | _ => None
       }
     })
     ->Dict.fromArray,
@@ -66,7 +67,7 @@ let loadViteManifest = path => {
 }
 
 let writeRouterManifest = (path, manifest: RelayRouter.Manifest.t) => {
-  manifest->(RelayRouter.Manifest.stringifyWithSpace(_, 2))->(writeFileSync(path, _, "utf-8"))
+  manifest->RelayRouter.Manifest.stringify(~space=2)->writeFileSync(~path, ~encoding="utf-8")
 }
 
 let transformManifest = (inPath, outPath) => {

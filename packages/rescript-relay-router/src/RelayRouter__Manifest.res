@@ -19,6 +19,5 @@ type t = {
 }
 
 @scope("JSON") @val external parse: string => t = "parse"
-@scope("JSON") @val external stringify: t => string = "stringify"
-@scope("JSON") @val external stringifyWithSpace: (t, null<unit>, int) => string = "stringify"
-let stringifyWithSpace = (t, int) => stringifyWithSpace(t, Null.null, int)
+@scope("JSON") @val
+external stringify: (t, @as(json`null`) _, ~space: int=?) => string = "stringify"

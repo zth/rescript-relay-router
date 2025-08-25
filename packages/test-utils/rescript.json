@@ -20,6 +20,5 @@
     }
   ],
   "suffix": ".res.mjs",
-  "bs-dependencies": ["@rescript/core"],
-  "bsc-flags": ["-open RescriptCore"]
+  "bsc-flags": []
 }

@@ -3,28 +3,19 @@
 // (comprehensive) example application we're going to build eventually.
 let preloadFromResponse = (part: JSON.t, ~preloadAsset: RelayRouter__Types.preloadAssetFn) => {
   switch part {
-  | Object(obj) =>
-    switch obj->Dict.get("extensions") {
-    // todo: use pattern matching on dict once we move to rescript v12
-    | Some(Object(extensions)) =>
-      let images = switch extensions->Dict.get("preloadableImages") {
-      | Some(Array(images)) =>
-        images->Array.filterMap(item =>
-          switch item {
-          | String(url) => Some(url)
-          | _ => None
-          }
-        )
-      | _ => []
-      }
-      images->Array.forEach(imgUrl => {
+  | Object(dict{"extensions": JSON.Object(dict{"preloadableImages": JSON.Array(images)})}) =>
+    images->Array.forEach(item =>
+      switch item {
+      | String(imgUrl) =>
         preloadAsset(~priority=RelayRouter.Types.Default, RelayRouter.Types.Image({url: imgUrl}))
-      })
-    | _ => ()
-    }
+      | _ => ()
+      }
+    )
   | _ => ()
   }
 }
+
+external toOldExnUnsafe: JsExn.t => Exn.t = "%identity"
 
 // The client and server fetch query are currently copied, but one could easily
 // set them up so that they use the same base, and just take whatever config
@@ -37,7 +28,7 @@ let makeFetchQuery = (~preloadAsset) =>
       "http://0.0.0.0:4000/graphql",
       {
         "method": "POST",
-        "headers": Dict.fromArray([("content-type", "application/json")]),
+        "headers": dict{"content-type": "application/json"},
         "body": {"query": operation.text, "variables": variables}
         ->JSON.stringifyAny
         ->Option.getOr(""),
@@ -50,14 +41,14 @@ let makeFetchQuery = (~preloadAsset) =>
           sink.next(part)
         },
         ~onError=err => {
-          sink.error(err)
+          err->toOldExnUnsafe->sink.error
         },
         ~onComplete=() => {
           sink.complete()
         },
       )
     })
-    ->ignore
+    ->Promise.ignore
 
     None
   })

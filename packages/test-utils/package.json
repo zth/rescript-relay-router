@@ -11,6 +11,6 @@
     "build": "rescript"
   },
   "dependencies": {
-    "rescript": "12.0.0-alpha.13"
+    "rescript": "12.0.0-beta.11"
   }
 }

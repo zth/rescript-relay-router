@@ -178,7 +178,8 @@ let make = (
       doPreloadDataAndCode(Some(High))
     }}
     onMouseEnter={_ => onIntent(None)}
-    onFocus={_ => onIntent(None)}>
+    onFocus={_ => onIntent(None)}
+  >
     children
   </a>
 }

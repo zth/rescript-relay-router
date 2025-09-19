@@ -57,7 +57,7 @@ module QueryParams = {
       let t = make()
 
       let search = if search->String.startsWith("?") {
-        search->String.sliceToEnd(~start=1)
+        search->String.slice(~start=1)
       } else {
         search
       }

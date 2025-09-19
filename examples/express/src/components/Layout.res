@@ -12,7 +12,7 @@ let make = (~queryRef, ~children) => {
 
   <div>
     <h1> {React.string("My fine site")} </h1>
-    <div style={ReactDOM.Style.make(~display="flex", ~flexDirection="row", ())}>
+    <div style={{display: "flex", flexDirection: "row"}}>
       {links
       ->Array.map(((label, link)) =>
         <RelayRouter.Link key=label to_=link> {React.string(label)} </RelayRouter.Link>

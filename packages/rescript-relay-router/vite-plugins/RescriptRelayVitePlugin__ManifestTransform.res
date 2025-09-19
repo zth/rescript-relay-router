@@ -63,7 +63,7 @@ let viteManifestToRelayRouterManifest: ViteManifest.t => RelayRouter.Manifest.t 
  * Load our client manifest.
  */
 let loadViteManifest = path => {
-  readFileSync(path, "utf-8")->JSON.parseExn->ViteManifest.objToManifest
+  readFileSync(path, "utf-8")->JSON.parseOrThrow->ViteManifest.objToManifest
 }
 
 let writeRouterManifest = (path, manifest: RelayRouter.Manifest.t) => {

@@ -29,9 +29,9 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "rescript build -with-deps && yarn bundle",
+    "build": "rescript --dev && yarn bundle",
     "bundle": "rollup --config",
-    "dev": "yarn build -w",
+    "dev": "yarn rescript watch --dev",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "release": "yarn npm publish"
@@ -58,7 +58,7 @@
   "devDependencies": {
     "@rescript-relay-router/test-utils": "workspace:^",
     "@rollup/plugin-node-resolve": "^16.0.0",
-    "rescript": "12.0.0-alpha.13",
+    "rescript": "12.0.0-beta.11",
     "rollup": "^4.29.1",
     "vitest": "^2.1.8"
   }

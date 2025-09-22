@@ -297,7 +297,10 @@ export let rescriptRelayVitePlugin = ({
     /**
      * Close bundle is used to transform Vite's client manifest into the ReScript Relay Router specific manifest.
      */
-    closeBundle() {
+    closeBundle(error) {
+      if (error) {
+        return;
+      }
       // We only transform the manifest at the end of the client build (since that's when it gets created)
       // and skip this step for the SSR build.
       if (config.build.ssr) {
@@ -307,7 +310,7 @@ export let rescriptRelayVitePlugin = ({
       const manifestName =
         typeof config.build.manifest === "string"
           ? config.build.manifest
-          : "manifest.json";
+          : ".vite/manifest.json";
       const inPath = path.join(cwd, config.build.outDir, manifestName);
       const outPath = path.join(cwd, config.build.outDir, ROUTER_MANIFEST_NAME);
 

@@ -13,7 +13,7 @@ const ROUTER_MANIFEST_NAME = "routerManifest.json";
  * @typedef {import("vite").ResolvedConfig} ResolvedConfig
  */
 
-// Expected to run in vite.config.js folder, right next to bsconfig.
+// Expected to run in vite.config.js folder, right next to rescript.json.
 let cwd = process.cwd();
 
 let findGeneratedModule = (moduleName) => {
@@ -333,12 +333,12 @@ function replaceAsyncWithMagicString(string, searchValue, replacer) {
   }
   try {
     var values = [];
-    String.prototype.replace.call(string, searchValue, function () {
+    String.prototype.replace.call(string, searchValue, function() {
       values.push(replacer.apply(undefined, arguments));
       return "";
     });
     let mapTrackingString = new MagicString(string);
-    return Promise.all(values).then(function (resolvedValues) {
+    return Promise.all(values).then(function(resolvedValues) {
       // Call replace again, this time on the string that tracks a sourcemap.
       // We use the replacerFunction so each occurrence can be replaced by the
       // previously resolved value for that index.

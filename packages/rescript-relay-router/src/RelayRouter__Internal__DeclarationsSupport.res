@@ -351,6 +351,9 @@ let makePrepareAssets = (~loadedRouteRenderers, ~prepareDisposeTimeout): prepare
               preparedProps,
             ),
           )
+        | (Some(Pending(promise)), Loaded(_)) =>
+          suspend(promise)
+          React.null
         | _ =>
           Console.log("Warning: Invalid state")
           React.null

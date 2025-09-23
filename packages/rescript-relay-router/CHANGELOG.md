@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 3.0.1
+
+### Patch Changes
+
+- 470e89c: fix prepare route when route renderer still pending
+
 ## 3.0.0
 
 ### Major Changes

@@ -31,7 +31,7 @@ describe("parsing", () => {
     let queryParams =
       Routes.Root.Todos.Route.parseRoute(
         "/todos?byValue=%2Fincorrect+value%2C+for+url",
-      )->Option.getExn
+      )->Option.getOrThrow
 
     expect(queryParams.byValue->Option.getUnsafe)->Expect.toBe("/incorrect value, for url")
   })
@@ -40,7 +40,7 @@ describe("parsing", () => {
     let pathParams =
       Routes.Root.PathParamsOnly.Route.parseRoute(
         "/other/%2Fincorrect%20value%2C%20for%20url",
-      )->Option.getExn
+      )->Option.getOrThrow
 
     expect(pathParams.pageSlug)->Expect.toBe("/incorrect value, for url")
   })
@@ -49,7 +49,7 @@ describe("parsing", () => {
     let queryParams =
       Routes.Root.Todos.Route.parseRoute(
         "/todos?statuses=completed&statuses=not-completed&byValue=beware%2C%20a%20comma!",
-      )->Option.getExn
+      )->Option.getOrThrow
     expect(queryParams.statuses->Option.getUnsafe)->Expect.toStrictEqual([
       TodoStatus.Completed,
       TodoStatus.NotCompleted,
@@ -61,7 +61,7 @@ describe("parsing", () => {
     let queryParams =
       Routes.Root.Todos.Route.parseRoute(
         "/todos?statuses=completed,not-completed&byValue=beware%2C%20a%20comma!",
-      )->Option.getExn
+      )->Option.getOrThrow
     expect(queryParams.statuses->Option.getUnsafe)->Expect.toStrictEqual([
       TodoStatus.Completed,
       TodoStatus.NotCompleted,
@@ -71,7 +71,7 @@ describe("parsing", () => {
 
   test("parseRoute correctly decode path and query params", _t => {
     let (pathParams, queryParams) =
-      Routes.Root.Todos.Single.Route.parseRoute("/todos/123?showMore=false")->Option.getExn
+      Routes.Root.Todos.Single.Route.parseRoute("/todos/123?showMore=false")->Option.getOrThrow
     expect(pathParams.todoId)->Expect.toBe("123")
     expect(queryParams)->Expect.toStrictEqual({
       statuses: None,
@@ -82,7 +82,9 @@ describe("parsing", () => {
   })
   test("parseRoute correctly decode path and query params with wrong query params", _t => {
     let (pathParams, queryParams) =
-      Routes.Root.Todos.Single.Route.parseRoute("/todos/123?byValue=hmm&else=false")->Option.getExn
+      Routes.Root.Todos.Single.Route.parseRoute(
+        "/todos/123?byValue=hmm&else=false",
+      )->Option.getOrThrow
     expect(pathParams.todoId)->Expect.toBe("123")
     expect(queryParams)->Expect.toStrictEqual({
       statuses: None,

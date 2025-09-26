@@ -95,7 +95,7 @@ module RoutePath: {
     if p->String.includesFrom(":", 1) {
       ":" ++
       p
-      ->String.sliceToEnd(~start=1)
+      ->String.slice(~start=1)
       ->String.split(":")
       ->Array.get(0)
       ->Option.getOr("")

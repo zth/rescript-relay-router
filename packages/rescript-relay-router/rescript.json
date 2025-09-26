@@ -1,10 +1,8 @@
 {
   "name": "rescript-relay-router",
   "jsx": {
-    "version": 4,
-    "mode": "automatic"
+    "version": 4
   },
-  "uncurried": true,
   "version": "0.0.17",
   "sources": [
     {
@@ -33,7 +31,6 @@
     }
   ],
   "suffix": ".res.mjs",
-  "bs-dependencies": ["@rescript/react", "rescript-relay"],
-  "bs-dev-dependencies": ["@rescript-relay-router/test-utils"],
-  "bsc-flags": []
+  "dependencies": ["@rescript/react", "rescript-relay"],
+  "dev-dependencies": ["@rescript-relay-router/test-utils"]
 }

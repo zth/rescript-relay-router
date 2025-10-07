@@ -494,9 +494,9 @@ let getUsePathParamsHook = (route: printableRoute) => {
   | [] => ()
   | _ =>
     str :=
-      str.contents ++ `@live\nlet usePathParams = (): option<pathParams> => {
+      str.contents ++ `@live\nlet usePathParams = (~exact=false): option<pathParams> => {
   let {pathname} = RelayRouter.Utils.useLocation()
-  switch RelayRouter.Internal.matchPath(routePattern, pathname) {
+  switch RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname) {
   | Some({params}) => Some(Obj.magic(params))
   | None => None
   }

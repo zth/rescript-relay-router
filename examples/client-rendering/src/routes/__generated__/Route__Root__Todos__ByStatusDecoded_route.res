@@ -190,9 +190,9 @@ let useActiveSubRoute = (): option<[#Child]> => {
 }
 
 @live
-let usePathParams = (): option<pathParams> => {
+let usePathParams = (~exact=false): option<pathParams> => {
   let {pathname} = RelayRouter.Utils.useLocation()
-  switch RelayRouter.Internal.matchPath(routePattern, pathname) {
+  switch RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname) {
   | Some({params}) => Some(Obj.magic(params))
   | None => None
   }

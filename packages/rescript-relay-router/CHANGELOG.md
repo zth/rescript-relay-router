@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 3.0.2
+
+### Patch Changes
+
+- 61d1fde: Add `exact` (defaulting to `false`) arg to route `usePathParams` fns.
+
 ## 3.0.1
 
 ### Patch Changes

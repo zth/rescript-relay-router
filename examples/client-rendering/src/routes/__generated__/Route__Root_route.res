@@ -69,13 +69,15 @@ let useIsRouteActive = (~exact=false) => {
   React.useMemo(() => location->isRouteActive(~exact), (location, exact))
 }
 @live
-type subRoute = [#Todos | #Home]
+type subRoute = [#Todos | #PathParamsOnly | #Home]
 
 @live
-let getActiveSubRoute = (location: RelayRouter.History.location): option<[#Todos | #Home]> => {
+let getActiveSubRoute = (location: RelayRouter.History.location): option<[#Todos | #PathParamsOnly | #Home]> => {
   let {pathname} = location
   if RelayRouter.Internal.matchPath("/todos", pathname)->Option.isSome {
       Some(#Todos)
+    } else if RelayRouter.Internal.matchPath("/other/:pageSlug", pathname)->Option.isSome {
+      Some(#PathParamsOnly)
     } else if RelayRouter.Internal.matchPath("/home", pathname)->Option.isSome {
       Some(#Home)
     } else {
@@ -84,7 +86,7 @@ let getActiveSubRoute = (location: RelayRouter.History.location): option<[#Todos
 }
 
 @live
-let useActiveSubRoute = (): option<[#Todos | #Home]> => {
+let useActiveSubRoute = (): option<[#Todos | #PathParamsOnly | #Home]> => {
   let location = RelayRouter.Utils.useLocation()
   React.useMemo(() => {
     getActiveSubRoute(location)

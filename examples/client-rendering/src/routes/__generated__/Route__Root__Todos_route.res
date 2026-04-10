@@ -163,15 +163,17 @@ let useIsRouteActive = (~exact=false) => {
   React.useMemo(() => location->isRouteActive(~exact), (location, exact))
 }
 @live
-type subRoute = [#ByStatus | #ByStatusDecoded | #Single]
+type subRoute = [#ByStatus | #ByStatusDecoded | #ByStatusDecodedExtra | #Single]
 
 @live
-let getActiveSubRoute = (location: RelayRouter.History.location): option<[#ByStatus | #ByStatusDecoded | #Single]> => {
+let getActiveSubRoute = (location: RelayRouter.History.location): option<[#ByStatus | #ByStatusDecoded | #ByStatusDecodedExtra | #Single]> => {
   let {pathname} = location
   if RelayRouter.Internal.matchPath("/todos/:byStatus(completed|not-completed)", pathname)->Option.isSome {
       Some(#ByStatus)
     } else if RelayRouter.Internal.matchPath("/todos/:byStatusDecoded", pathname)->Option.isSome {
       Some(#ByStatusDecoded)
+    } else if RelayRouter.Internal.matchPath("/todos/extra/:byStatusDecoded", pathname)->Option.isSome {
+      Some(#ByStatusDecodedExtra)
     } else if RelayRouter.Internal.matchPath("/todos/:todoId", pathname)->Option.isSome {
       Some(#Single)
     } else {
@@ -180,7 +182,7 @@ let getActiveSubRoute = (location: RelayRouter.History.location): option<[#BySta
 }
 
 @live
-let useActiveSubRoute = (): option<[#ByStatus | #ByStatusDecoded | #Single]> => {
+let useActiveSubRoute = (): option<[#ByStatus | #ByStatusDecoded | #ByStatusDecodedExtra | #Single]> => {
   let location = RelayRouter.Utils.useLocation()
   React.useMemo(() => {
     getActiveSubRoute(location)

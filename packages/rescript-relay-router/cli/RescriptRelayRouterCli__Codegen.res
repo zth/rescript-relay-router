@@ -689,19 +689,14 @@ let routeNameAsPolyvariant = (route: RescriptRelayRouterCli__Types.printableRout
   "#" ++ route.name->RouteName.getRouteName
 
 let getActiveSubRouteFn = (route: RescriptRelayRouterCli__Types.printableRoute) => {
-  // We count sub routes as anything that's _one_ path element below the current
-  // path. So, the parent "todos" with child route "active" is a valid sub route
-  // here, but "todos" with the child route "something-else/:id" is not, because
-  // it's more than one path element.
-  let elgibleChildren =
-    route.children->Array.filter(route =>
-      !(route.path->RoutePath.getPathSegment->String.includes("/"))
-    )
+  // A sub route is any immediate child in the route tree, even if that child
+  // path spans multiple URL segments such as "c/:channelSlug".
+  let eligibleChildren = route.children
 
-  if elgibleChildren->Array.length == 0 {
+  if eligibleChildren->Array.length == 0 {
     ""
   } else {
-    let subRouteType = `[${elgibleChildren
+    let subRouteType = `[${eligibleChildren
       ->Array.map(routeNameAsPolyvariant)
       ->Array.join(" | ")}]`
     `
@@ -711,7 +706,7 @@ type subRoute = ${subRouteType}
 @live
 let getActiveSubRoute = (location: RelayRouter.History.location): option<${subRouteType}> => {
   let {pathname} = location
-  ${elgibleChildren
+  ${eligibleChildren
       ->Array.mapWithIndex((child, index) => {
         let checkStr = `RelayRouter.Internal.matchPath("${child.path->RoutePath.toPattern}", pathname)->Option.isSome`
         let str = ref("")

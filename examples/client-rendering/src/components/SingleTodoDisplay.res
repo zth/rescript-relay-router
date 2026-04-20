@@ -46,7 +46,8 @@ let make = (~todo) => {
               },
             },
           )
-        }}>
+        }}
+      >
         {React.string(completed ? "Uncomplete" : "Complete")}
       </button>
     } else {
@@ -64,7 +65,8 @@ let make = (~todo) => {
               })
             },
           )
-        }}>
+        }}
+      >
         {React.string("Show more")}
       </button>
     }}

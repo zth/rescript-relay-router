@@ -55,7 +55,7 @@ let prettyPrintDiagnostic = (~lines, ~diagnostic: decodeError, ~sourceFile) => {
           modifiers.bold.red(
             line->String.slice(~start=highlightStartOffset, ~end=highlightEndOffset),
           ) ++
-          line->String.sliceToEnd(~start=highlightEndOffset)
+          line->String.slice(~start=highlightEndOffset)
 
         Console.log(
           `  ${modifiers.bold.red(

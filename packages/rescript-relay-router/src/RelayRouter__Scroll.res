@@ -28,7 +28,7 @@ let scrollPositionsY = ref(
   } else {
     try {
       getScrollPositions()
-      ->Option.map(positionsRaw => positionsRaw->JSON.parseExn->castToPositionsShape)
+      ->Option.map(positionsRaw => positionsRaw->JSON.parseOrThrow->castToPositionsShape)
       ->Option.getOr(dict{})
     } catch {
     | JsExn(_) => dict{}
@@ -164,7 +164,7 @@ module ScrollRestoration = {
           | (Some(targetElement), Some(y)) => targetElement->scrollToYOnElement(~y)
           | (Some(targetElement), None) =>
             // If there's a hash, we'll try to scroll to it. If not, we'll scroll to top
-            switch location.hash->String.sliceToEnd(~start=1)->getElementById {
+            switch location.hash->String.slice(~start=1)->getElementById {
             | None =>
               // No hash, scroll to top
               targetElement->scrollToYOnElement(~y=0)

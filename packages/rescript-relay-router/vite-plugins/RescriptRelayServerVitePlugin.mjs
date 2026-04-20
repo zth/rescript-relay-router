@@ -13,7 +13,7 @@ const ROUTER_MANIFEST_NAME = "routerManifest.json";
  * @typedef {import("vite").ResolvedConfig} ResolvedConfig
  */
 
-// Expected to run in vite.config.js folder, right next to bsconfig.
+// Expected to run in vite.config.js folder, right next to rescript.json.
 let cwd = process.cwd();
 
 let findGeneratedModule = (moduleName) => {
@@ -297,7 +297,10 @@ export let rescriptRelayVitePlugin = ({
     /**
      * Close bundle is used to transform Vite's client manifest into the ReScript Relay Router specific manifest.
      */
-    closeBundle() {
+    closeBundle(error) {
+      if (error) {
+        return;
+      }
       // We only transform the manifest at the end of the client build (since that's when it gets created)
       // and skip this step for the SSR build.
       if (config.build.ssr) {
@@ -307,7 +310,7 @@ export let rescriptRelayVitePlugin = ({
       const manifestName =
         typeof config.build.manifest === "string"
           ? config.build.manifest
-          : "manifest.json";
+          : ".vite/manifest.json";
       const inPath = path.join(cwd, config.build.outDir, manifestName);
       const outPath = path.join(cwd, config.build.outDir, ROUTER_MANIFEST_NAME);
 
@@ -333,12 +336,12 @@ function replaceAsyncWithMagicString(string, searchValue, replacer) {
   }
   try {
     var values = [];
-    String.prototype.replace.call(string, searchValue, function () {
+    String.prototype.replace.call(string, searchValue, function() {
       values.push(replacer.apply(undefined, arguments));
       return "";
     });
     let mapTrackingString = new MagicString(string);
-    return Promise.all(values).then(function (resolvedValues) {
+    return Promise.all(values).then(function(resolvedValues) {
       // Call replace again, this time on the string that tracks a sourcemap.
       // We use the replacerFunction so each occurrence can be replaced by the
       // previously resolved value for that index.

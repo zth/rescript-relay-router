@@ -1,10 +1,9 @@
 {
-  "name": "main",
-  "uncurried": true,
+  "name": "@rescript-relay-router-example/express",
   "jsx": {
-    "version": 4,
-    "mode": "automatic"
+    "version": 4
   },
+  "namespace": true,
   "version": "0.1.0",
   "sources": [
     {
@@ -21,11 +20,5 @@
   ],
   "suffix": ".res.mjs",
   "ppx-flags": [["rescript-relay/ppx", "-uncurried"]],
-  "bs-dependencies": [
-    "@rescript/react",
-    "rescript-relay",
-    "rescript-relay-router"
-  ],
-  "bsc-flags": [],
-  "pinned-dependencies": ["rescript-relay-router"]
+  "dependencies": ["@rescript/react", "rescript-relay", "rescript-relay-router"]
 }

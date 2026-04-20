@@ -1,9 +1,9 @@
 {
-  "name": "rescript-relay-router-monorepo",
+  "name": "monorepo",
   "version": "0.0.0",
   "type": "module",
   "license": "MIT",
-  "packageManager": "yarn@1.22.19",
+  "packageManager": "yarn@4.10.2",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -11,8 +11,8 @@
   ],
   "scripts": {
     "build": "yarn build:libs && yarn build:examples",
-    "build:libs": "yarn workspaces foreach -v --topological --include 'rescript-relay-router' --include '@rescript-relay-router/*' run build",
-    "build:examples": "yarn workspaces foreach -v --topological --include '@rescript-relay-router-example/*' run build",
+    "build:libs": "yarn workspaces foreach --all -v --topological --include 'rescript-relay-router' --include '@rescript-relay-router/*' run build",
+    "build:examples": "yarn workspaces foreach --all -v --topological --include '@rescript-relay-router-example/*' run build",
     "preview": "yarn workspaces foreach -v -pi --include '@rescript-relay-router-example/*' run preview",
     "start": "yarn workspaces foreach -v -pi --include '@rescript-relay-router-example/*' run start",
     "dev": "yarn workspaces foreach -v -pi --include '@rescript-relay-router-example/*' run dev",
@@ -21,6 +21,7 @@
     "release": "yarn build && yarn changeset publish"
   },
   "dependencies": {
-    "@changesets/cli": "^2.23.1"
+    "@changesets/cli": "^2.23.1",
+    "rescript": "12.0.0-beta.11"
   }
 }

@@ -15,7 +15,10 @@
   "type": "module",
   "license": "MIT",
   "author": "Gabriel Nordeborn",
-  "repository": "https://github.com/zth/rescript-relay-router",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zth/rescript-relay-router.git"
+  },
   "description": "A ReScript web router for RescriptRelay.",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
@@ -36,7 +39,9 @@
     "test:watch": "vitest watch",
     "release": "yarn npm publish"
   },
-  "bin": "cli/RescriptRelayRouterCli.bundle.mjs",
+  "bin": {
+    "rescript-relay-router": "cli/RescriptRelayRouterCli.bundle.mjs"
+  },
   "peerDependencies": {
     "@rescript/react": ">=0.13.0",
     "react": ">=18.2.0",

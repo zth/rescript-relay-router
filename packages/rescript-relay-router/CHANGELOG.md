@@ -1,5 +1,15 @@
 # rescript-relay-router
 
+## 3.1.0
+
+### Minor Changes
+
+- 74252a7: Add command to dump expanded routes as JSON.
+
+### Patch Changes
+
+- 8d65e02: Include subroutes with params in activeSubroute.
+
 ## 3.0.2
 
 ### Patch Changes

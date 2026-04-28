@@ -4,7 +4,8 @@ open RescriptRelayRouterCli__Types
 module U = RescriptRelayRouterCli__Utils
 module DumpRoutes = RescriptRelayRouterCli__DumpRoutes
 
-let stringifyDump = dumped => dumped->Array.map(route => JSON.Object(route))->JSON.Array->JSON.stringify
+let stringifyDump = dumped =>
+  dumped->Array.map(route => JSON.Object(route))->JSON.Array->JSON.stringify
 
 let testConfig = {
   generatedPath: "src/routes/__generated__",
@@ -129,22 +130,21 @@ describe("Dump routes", () => {
       }
     ]`)
 
-    let dumped =
-      DumpRoutes.dump(
-        ~routes=result->U.routeChildrenToPrintable,
-        ~config=testConfig,
-        ~options={
-          includeQueryParams: false,
-          includeName: false,
-          includeRouteRendererPath: false,
-          includeRouteFilePath: false,
-          sortOrder: DefinitionOrder,
-        },
-      )
-
-    expect(dumped->stringifyDump)->Expect.toBe(
-      `[{"url":"/organization/:slug"},{"url":"/organization/:slug/members"},{"url":"/"},{"url":"/admin"}]`,
+    let dumped = DumpRoutes.dump(
+      ~routes=result->U.routeChildrenToPrintable,
+      ~config=testConfig,
+      ~options={
+        includeQueryParams: false,
+        includeName: false,
+        includeRouteRendererPath: false,
+        includeRouteFilePath: false,
+        sortOrder: DefinitionOrder,
+      },
     )
+
+    expect(
+      dumped->stringifyDump,
+    )->Expect.toBe(`[{"url":"/organization/:slug"},{"url":"/organization/:slug/members"},{"url":"/"},{"url":"/admin"}]`)
   })
 
   test("can sort routes alphabetically by URL", _t => {
@@ -169,22 +169,21 @@ describe("Dump routes", () => {
       }
     ]`)
 
-    let dumped =
-      DumpRoutes.dump(
-        ~routes=result->U.routeChildrenToPrintable,
-        ~config=testConfig,
-        ~options={
-          includeQueryParams: false,
-          includeName: false,
-          includeRouteRendererPath: false,
-          includeRouteFilePath: false,
-          sortOrder: Alphabetic,
-        },
-      )
-
-    expect(dumped->stringifyDump)->Expect.toBe(
-      `[{"url":"/"},{"url":"/admin"},{"url":"/organization/:slug"},{"url":"/organization/:slug/members"}]`,
+    let dumped = DumpRoutes.dump(
+      ~routes=result->U.routeChildrenToPrintable,
+      ~config=testConfig,
+      ~options={
+        includeQueryParams: false,
+        includeName: false,
+        includeRouteRendererPath: false,
+        includeRouteFilePath: false,
+        sortOrder: Alphabetic,
+      },
     )
+
+    expect(
+      dumped->stringifyDump,
+    )->Expect.toBe(`[{"url":"/"},{"url":"/admin"},{"url":"/organization/:slug"},{"url":"/organization/:slug/members"}]`)
   })
 
   test("includes query params and requested metadata", _t => {
@@ -201,21 +200,20 @@ describe("Dump routes", () => {
       }
     ]`)
 
-    let dumped =
-      DumpRoutes.dump(
-        ~routes=result->U.routeChildrenToPrintable,
-        ~config=testConfig,
-        ~options={
-          includeQueryParams: true,
-          includeName: true,
-          includeRouteRendererPath: true,
-          includeRouteFilePath: true,
-          sortOrder: Alphabetic,
-        },
+    let dumped = DumpRoutes.dump(
+      ~routes=result->U.routeChildrenToPrintable,
+      ~config=testConfig,
+      ~options={
+        includeQueryParams: true,
+        includeName: true,
+        includeRouteRendererPath: true,
+        includeRouteFilePath: true,
+        sortOrder: Alphabetic,
+      },
     )
 
-    expect(dumped->stringifyDump)->Expect.toBe(
-      `[{"url":"/organization/:slug","queryParams":{"displayMode":":displayMode","expandDetails":":expandDetails"},"name":"Organization","routeRendererPath":"src/routes/Organization_route_renderer.res","routeFilePath":"src/routes/routes.json"},{"url":"/organization/:slug/members","queryParams":{"after":":after","displayMode":":displayMode","expandDetails":":expandDetails","first":":first"},"name":"Organization__Members","routeRendererPath":"src/routes/Organization__Members_route_renderer.res","routeFilePath":"src/routes/routes.json"}]`,
-    )
+    expect(
+      dumped->stringifyDump,
+    )->Expect.toBe(`[{"url":"/organization/:slug","queryParams":{"displayMode":":displayMode","expandDetails":":expandDetails"},"name":"Organization","routeRendererPath":"src/routes/Organization_route_renderer.res","routeFilePath":"src/routes/routes.json"},{"url":"/organization/:slug/members","queryParams":{"after":":after","displayMode":":displayMode","expandDetails":":expandDetails","first":":first"},"name":"Organization__Members","routeRendererPath":"src/routes/Organization__Members_route_renderer.res","routeFilePath":"src/routes/routes.json"}]`)
   })
 })

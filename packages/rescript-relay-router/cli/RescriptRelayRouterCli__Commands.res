@@ -243,9 +243,11 @@ let printRouteInfo = (~url, ~config) => {
 let rec dumpRoutesSortOrder = options => {
   switch options {
   | list{"--sort", "alphabetic", ..._}
-  | list{"--sort=alphabetic", ..._} => Types.Alphabetic
+  | list{"--sort=alphabetic", ..._} =>
+    Types.Alphabetic
   | list{"--sort", "definition", ..._}
-  | list{"--sort=definition", ..._} => Types.DefinitionOrder
+  | list{"--sort=definition", ..._} =>
+    Types.DefinitionOrder
   | list{_, ...rest} => dumpRoutesSortOrder(rest)
   | list{} => Types.DefinitionOrder
   }
@@ -258,9 +260,11 @@ let init = () => {
 
     Fs.writeFileSync(
       path,
-      `module.exports = ${JSON.Object(dict{
-          "routesFolderPath": JSON.String("./src/routes"),
-        })->JSON.stringify(~space=2)}`,
+      `module.exports = ${JSON.Object(
+          dict{
+            "routesFolderPath": JSON.String("./src/routes"),
+          },
+        )->JSON.stringify(~space=2)}`,
     )
 
     Console.log("[init] Config created at: " ++ path)
@@ -277,15 +281,19 @@ let init = () => {
       Fs.writeFileSync(
         routesJsonPath,
         JSON.Array([
-          JSON.Object(dict{
-            "path": JSON.String("/"),
-            "name": JSON.String("Root"),
-            "children": JSON.Array([]),
-          }),
-          JSON.Object(dict{
-            "path": JSON.String("*"),
-            "name": JSON.String("FourOhFour"),
-          }),
+          JSON.Object(
+            dict{
+              "path": JSON.String("/"),
+              "name": JSON.String("Root"),
+              "children": JSON.Array([]),
+            },
+          ),
+          JSON.Object(
+            dict{
+              "path": JSON.String("*"),
+              "name": JSON.String("FourOhFour"),
+            },
+          ),
         ])->JSON.stringify(~space=2),
       )
 

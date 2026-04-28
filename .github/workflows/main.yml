@@ -42,7 +42,11 @@ jobs:
         id: git_status
         shell: bash
         run: |
-          echo "status=$( git status --porcelain )" >> "$GITHUB_OUTPUT"
+          {
+            echo 'status<<__GIT_STATUS__'
+            git status --porcelain
+            echo '__GIT_STATUS__'
+          } >> "$GITHUB_OUTPUT"
       - name: Exit if routes have not been properly regenerated and committed, or if formatting is incorrect
         shell: bash
         run: |

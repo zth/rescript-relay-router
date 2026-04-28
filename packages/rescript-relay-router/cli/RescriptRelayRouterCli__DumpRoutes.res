@@ -23,8 +23,10 @@ let queryParamsObject = (route: printableRoute) => {
 }
 
 let routeRendererPath = (~config, route: printableRoute) =>
-  Utils.pathInRoutesFolder(~config, ~fileName=route.name->RouteName.getRouteRendererFileName)
-  ->pathRelativeToCwd
+  Utils.pathInRoutesFolder(
+    ~config,
+    ~fileName=route.name->RouteName.getRouteRendererFileName,
+  )->pathRelativeToCwd
 
 let routeFilePath = (~config, route: printableRoute) =>
   Utils.pathInRoutesFolder(~config, ~fileName=route.sourceFile)->pathRelativeToCwd
@@ -51,9 +53,7 @@ let sortRoutes = (routes, ~sortOrder) => {
   switch sortOrder {
   | DefinitionOrder => ()
   | Alphabetic =>
-    routes->Array.sort((a, b) =>
-      String.localeCompare(a->urlFromDumpedRoute, b->urlFromDumpedRoute)
-    )
+    routes->Array.sort((a, b) => String.localeCompare(a->urlFromDumpedRoute, b->urlFromDumpedRoute))
   }
 }
 

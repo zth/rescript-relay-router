@@ -37,6 +37,9 @@ module Path = {
   external dirname: string => string = "dirname"
 
   @module("path")
+  external relative: (string, string) => string = "relative"
+
+  @module("path")
   external basename: string => string = "basename"
 
   @module("path")

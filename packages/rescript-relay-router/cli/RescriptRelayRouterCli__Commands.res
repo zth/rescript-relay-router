@@ -2,6 +2,7 @@ module Codegen = RescriptRelayRouterCli__Codegen
 module Utils = RescriptRelayRouterCli__Utils
 module Types = RescriptRelayRouterCli__Types
 module Diagnostics = RescriptRelayRouterCli__Diagnostics
+module DumpRoutes = RescriptRelayRouterCli__DumpRoutes
 
 open RescriptRelayRouterCli__Bindings
 
@@ -239,8 +240,16 @@ let printRouteInfo = (~url, ~config) => {
   }
 }
 
-@val
-external stringifyFormatted: ('any, @as(json`null`) _, @as(json`2`) _) => string = "JSON.stringify"
+let rec dumpRoutesSortOrder = options => {
+  switch options {
+  | list{"--sort", "alphabetic", ..._}
+  | list{"--sort=alphabetic", ..._} => Types.Alphabetic
+  | list{"--sort", "definition", ..._}
+  | list{"--sort=definition", ..._} => Types.DefinitionOrder
+  | list{_, ...rest} => dumpRoutesSortOrder(rest)
+  | list{} => Types.DefinitionOrder
+  }
+}
 
 let init = () => {
   if !Utils.Config.exists() {
@@ -249,9 +258,9 @@ let init = () => {
 
     Fs.writeFileSync(
       path,
-      `module.exports = ${{
-          "routesFolderPath": "./src/routes",
-        }->stringifyFormatted}`,
+      `module.exports = ${JSON.Object(dict{
+          "routesFolderPath": JSON.String("./src/routes"),
+        })->JSON.stringify(~space=2)}`,
     )
 
     Console.log("[init] Config created at: " ++ path)
@@ -267,17 +276,17 @@ let init = () => {
       Console.log("[init] `routes.json` does not exist, creating...")
       Fs.writeFileSync(
         routesJsonPath,
-        (
-          {
-            "path": "/",
-            "name": "Root",
-            "children": [],
-          },
-          {
-            "path": "*",
-            "name": "FourOhFour",
-          },
-        )->stringifyFormatted,
+        JSON.Array([
+          JSON.Object(dict{
+            "path": JSON.String("/"),
+            "name": JSON.String("Root"),
+            "children": JSON.Array([]),
+          }),
+          JSON.Object(dict{
+            "path": JSON.String("*"),
+            "name": JSON.String("FourOhFour"),
+          }),
+        ])->JSON.stringify(~space=2),
       )
 
       Console.log("[init] Basic `routes.json` added at: " ++ routesJsonPath)
@@ -317,7 +326,14 @@ let runCli = args => {
                                                             |   have a route defined anymore.
 
   find-route <url>                                          | Shows what routes/components will render for a specific route.
-                                                            | Example: find-route /todos/123`)
+                                                            | Example: find-route /todos/123
+
+  dump-routes
+    [--sort definition|alphabetic]
+    [--include-query-params]
+    [--include-name]
+    [--include-route-renderer-path]
+    [--include-route-file-path]                             | Dumps all routes as JSON. Sorts by definition order by default.`)
     Done
   | list{"scaffold-route-renderers", ...options} =>
     let deleteRemoved = options->List.has("-delete-removed", String.equal)
@@ -383,6 +399,19 @@ let runCli = args => {
   | list{"find-route", route} =>
     let config = Utils.Config.load()
     printRouteInfo(~url=route, ~config)
+    Done
+  | list{"dump-routes", ...options} =>
+    let config = Utils.Config.load()
+    DumpRoutes.run(
+      ~config,
+      ~options={
+        includeQueryParams: options->List.has("--include-query-params", String.equal),
+        includeName: options->List.has("--include-name", String.equal),
+        includeRouteRendererPath: options->List.has("--include-route-renderer-path", String.equal),
+        includeRouteFilePath: options->List.has("--include-route-file-path", String.equal),
+        sortOrder: dumpRoutesSortOrder(options),
+      },
+    )
     Done
   | list{"init"} =>
     init()

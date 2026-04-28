@@ -609,6 +609,56 @@ switch Routes.Organization.Members.Route.parseRoute(link){
 let activeSubRoute = Routes.Organization.Route.useActiveSubRoute()
 ```
 
+## CLI utilities
+
+### Dumping routes
+
+You can dump all route URLs from your configured route tree:
+
+```bash
+yarn rescript-relay-router dump-routes
+```
+
+This prints a JSON array in route definition order:
+
+```json
+[
+  { "url": "/organization/:slug" },
+  { "url": "/organization/:slug/members" },
+  { "url": "/" }
+]
+```
+
+To sort alphabetically by `url`, pass `--sort alphabetic`.
+
+Use flags to include query params and route metadata:
+
+```bash
+yarn rescript-relay-router dump-routes \
+  --sort alphabetic \
+  --include-query-params \
+  --include-name \
+  --include-route-renderer-path \
+  --include-route-file-path
+```
+
+With metadata enabled, `url` is still emitted first:
+
+```json
+[
+  {
+    "url": "/organization/:slug/members",
+    "queryParams": {
+      "after": ":after",
+      "first": ":first"
+    },
+    "name": "Organization__Members",
+    "routeRendererPath": "src/routes/Organization__Members_route_renderer.res",
+    "routeFilePath": "src/routes/routes.json"
+  }
+]
+```
+
 ## FAQ
 
 - Check in or don't check in generated assets?

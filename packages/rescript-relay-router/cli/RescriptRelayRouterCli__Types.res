@@ -244,6 +244,16 @@ type config = {
   rescriptLibFolderPath: string,
 }
 
+type dumpRoutesSortOrder = DefinitionOrder | Alphabetic
+
+type dumpRoutesOptions = {
+  includeQueryParams: bool,
+  includeName: bool,
+  includeRouteRendererPath: bool,
+  includeRouteFilePath: bool,
+  sortOrder: dumpRoutesSortOrder,
+}
+
 type dependencyDeclaration = {
   dependsOn: Set.t<string>,
   dependents: Set.t<string>,

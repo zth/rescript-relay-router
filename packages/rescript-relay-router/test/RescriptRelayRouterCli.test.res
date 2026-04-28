@@ -2,6 +2,15 @@ open RescriptRelayRouterTestUtils.Vitest
 open RescriptRelayRouterCli__Types
 
 module U = RescriptRelayRouterCli__Utils
+module DumpRoutes = RescriptRelayRouterCli__DumpRoutes
+
+let stringifyDump = dumped => dumped->Array.map(route => JSON.Object(route))->JSON.Array->JSON.stringify
+
+let testConfig = {
+  generatedPath: "src/routes/__generated__",
+  routesFolderPath: "src/routes",
+  rescriptLibFolderPath: "lib/bs",
+}
 
 describe("Query params", () => {
   test("turns param type to string", _t => {
@@ -94,5 +103,119 @@ describe("Query params", () => {
         ~variableName="propName",
       ),
     )->Expect.toBe("propName->Array.map(value => value->SomeModule.parse)")
+  })
+})
+
+describe("Dump routes", () => {
+  test("returns all routes in definition order by default", _t => {
+    let {result} = TestUtils.parseMockContent(`[
+      {
+        "name": "Organization",
+        "path": "/organization/:slug",
+        "children": [
+          {
+            "name": "Members",
+            "path": "members"
+          }
+        ]
+      },
+      {
+        "name": "Root",
+        "path": "/"
+      },
+      {
+        "name": "Admin",
+        "path": "/admin"
+      }
+    ]`)
+
+    let dumped =
+      DumpRoutes.dump(
+        ~routes=result->U.routeChildrenToPrintable,
+        ~config=testConfig,
+        ~options={
+          includeQueryParams: false,
+          includeName: false,
+          includeRouteRendererPath: false,
+          includeRouteFilePath: false,
+          sortOrder: DefinitionOrder,
+        },
+      )
+
+    expect(dumped->stringifyDump)->Expect.toBe(
+      `[{"url":"/organization/:slug"},{"url":"/organization/:slug/members"},{"url":"/"},{"url":"/admin"}]`,
+    )
+  })
+
+  test("can sort routes alphabetically by URL", _t => {
+    let {result} = TestUtils.parseMockContent(`[
+      {
+        "name": "Organization",
+        "path": "/organization/:slug",
+        "children": [
+          {
+            "name": "Members",
+            "path": "members"
+          }
+        ]
+      },
+      {
+        "name": "Root",
+        "path": "/"
+      },
+      {
+        "name": "Admin",
+        "path": "/admin"
+      }
+    ]`)
+
+    let dumped =
+      DumpRoutes.dump(
+        ~routes=result->U.routeChildrenToPrintable,
+        ~config=testConfig,
+        ~options={
+          includeQueryParams: false,
+          includeName: false,
+          includeRouteRendererPath: false,
+          includeRouteFilePath: false,
+          sortOrder: Alphabetic,
+        },
+      )
+
+    expect(dumped->stringifyDump)->Expect.toBe(
+      `[{"url":"/"},{"url":"/admin"},{"url":"/organization/:slug"},{"url":"/organization/:slug/members"}]`,
+    )
+  })
+
+  test("includes query params and requested metadata", _t => {
+    let {result} = TestUtils.parseMockContent(`[
+      {
+        "name": "Organization",
+        "path": "/organization/:slug?expandDetails=bool&displayMode=string",
+        "children": [
+          {
+            "name": "Members",
+            "path": "members?after=string&first=int"
+          }
+        ]
+      }
+    ]`)
+
+    let dumped =
+      DumpRoutes.dump(
+        ~routes=result->U.routeChildrenToPrintable,
+        ~config=testConfig,
+        ~options={
+          includeQueryParams: true,
+          includeName: true,
+          includeRouteRendererPath: true,
+          includeRouteFilePath: true,
+          sortOrder: Alphabetic,
+        },
+    )
+
+    expect(dumped->stringifyDump)->Expect.toBe(
+      `[{"url":"/organization/:slug","queryParams":{"displayMode":":displayMode","expandDetails":":expandDetails"},"name":"Organization","routeRendererPath":"src/routes/Organization_route_renderer.res","routeFilePath":"src/routes/routes.json"},{"url":"/organization/:slug/members","queryParams":{"after":":after","displayMode":":displayMode","expandDetails":":expandDetails","first":":first"},"name":"Organization__Members","routeRendererPath":"src/routes/Organization__Members_route_renderer.res","routeFilePath":"src/routes/routes.json"}]`,
+    )
   })
 })

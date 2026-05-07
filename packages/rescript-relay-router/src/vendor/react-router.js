@@ -19,18 +19,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  * @see https://reactrouter.com/utils/match-routes
  */
 export function matchRoutes(routes, locationArg, basename = "/") {
+  return matchCompiledRoutes(compileRoutes(routes), locationArg, basename);
+}
+
+export function compileRoutes(routes) {
+  let branches = flattenRoutes(routes);
+  rankRouteBranches(branches);
+  return branches.map(compileRouteBranch);
+}
+
+export function matchCompiledRoutes(compiledRoutes, locationArg, basename = "/") {
   let location =
     typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
   let pathname = stripBasename(location.pathname || "/", basename);
   if (pathname == null) {
     return null;
   }
-  let branches = flattenRoutes(routes);
-  rankRouteBranches(branches);
   let matches = null;
-  for (let i = 0; matches == null && i < branches.length; ++i) {
+  for (let i = 0; matches == null && i < compiledRoutes.length; ++i) {
     matches = matchRouteBranch(
-      branches[i],
+      compiledRoutes[i],
       // Incoming pathnames are generally encoded from either window.location
       // or from router.navigate, but we want to match against the unencoded
       // paths in the route definitions.  Memory router locations won't be
@@ -41,6 +49,19 @@ export function matchRoutes(routes, locationArg, basename = "/") {
     );
   }
   return matches;
+}
+function compileRouteBranch(branch) {
+  return {
+    ...branch,
+    routesMeta: branch.routesMeta.map((meta, index) => {
+      let end = index === branch.routesMeta.length - 1;
+      return {
+        ...meta,
+        end,
+        compiledPath: compilePath(meta.relativePath, meta.caseSensitive, end),
+      };
+    }),
+  };
 }
 function flattenRoutes(
   routes,
@@ -162,10 +183,7 @@ function matchRouteBranch(branch, pathname) {
       matchedPathname === "/"
         ? pathname
         : pathname.slice(matchedPathname.length) || "/";
-    let match = matchPath(
-      { path: meta.relativePath, caseSensitive: meta.caseSensitive, end },
-      remainingPathname
-    );
+    let match = matchCompiledPath(meta, remainingPathname);
     if (!match) return null;
     Object.assign(matchedParams, match.params);
     let route = meta.route;
@@ -183,6 +201,39 @@ function matchRouteBranch(branch, pathname) {
     }
   }
   return matches;
+}
+function matchCompiledPath(compiledMeta, pathname) {
+  let [matcher, paramNames] = compiledMeta.compiledPath;
+  let match = pathname.match(matcher);
+  if (!match) return null;
+  let matchedPathname = match[0];
+  let pathnameBase = matchedPathname.replace(/(.)\/+$/, "$1");
+  let captureGroups = match.slice(1);
+  let params = paramNames.reduce((memo, paramName, index) => {
+    // We need to compute the pathnameBase here using the raw splat value
+    // instead of using params["*"] later because it will be decoded then
+    if (paramName === "*") {
+      let splatValue = captureGroups[index] || "";
+      pathnameBase = matchedPathname
+        .slice(0, matchedPathname.length - splatValue.length)
+        .replace(/(.)\/+$/, "$1");
+    }
+    memo[paramName] = safelyDecodeURIComponent(
+      captureGroups[index] || "",
+      paramName
+    );
+    return memo;
+  }, {});
+  return {
+    params,
+    pathname: matchedPathname,
+    pathnameBase,
+    pattern: {
+      path: compiledMeta.relativePath,
+      caseSensitive: compiledMeta.caseSensitive,
+      end: compiledMeta.end,
+    },
+  };
 }
 /**
  * Returns a path with params interpolated.
@@ -220,37 +271,15 @@ export function matchPath(pattern, pathname) {
   if (typeof pattern === "string") {
     pattern = { path: pattern, caseSensitive: false, end: true };
   }
-  let [matcher, paramNames] = compilePath(
-    pattern.path,
-    pattern.caseSensitive,
-    pattern.end
+  return matchCompiledPath(
+    {
+      relativePath: pattern.path,
+      caseSensitive: pattern.caseSensitive,
+      end: pattern.end,
+      compiledPath: compilePath(pattern.path, pattern.caseSensitive, pattern.end),
+    },
+    pathname
   );
-  let match = pathname.match(matcher);
-  if (!match) return null;
-  let matchedPathname = match[0];
-  let pathnameBase = matchedPathname.replace(/(.)\/+$/, "$1");
-  let captureGroups = match.slice(1);
-  let params = paramNames.reduce((memo, paramName, index) => {
-    // We need to compute the pathnameBase here using the raw splat value
-    // instead of using params["*"] later because it will be decoded then
-    if (paramName === "*") {
-      let splatValue = captureGroups[index] || "";
-      pathnameBase = matchedPathname
-        .slice(0, matchedPathname.length - splatValue.length)
-        .replace(/(.)\/+$/, "$1");
-    }
-    memo[paramName] = safelyDecodeURIComponent(
-      captureGroups[index] || "",
-      paramName
-    );
-    return memo;
-  }, {});
-  return {
-    params,
-    pathname: matchedPathname,
-    pathnameBase,
-    pattern,
-  };
 }
 function compilePath(path, caseSensitive = false, end = true) {
   warning(

@@ -3,6 +3,16 @@ open RescriptRelayRouterTestUtils.Vitest
 module P = RescriptRelayRouterCli__Parser
 module Bindings = RescriptRelayRouterCli__Bindings
 
+let parseRouteStructure = mockContent =>
+  P.readRouteStructure(
+    ~config={
+      generatedPath: "",
+      routesFolderPath: "",
+      rescriptLibFolderPath: "",
+    },
+    ~getRouteFileContents=_ => Ok(mockContent),
+  )
+
 let makeMockParserCtx = (
   ~content,
   ~routeFileName="routes.json",
@@ -80,5 +90,56 @@ describe("Parsing", () => {
       )->Expect.toEqual(["memberId", "slug"])
     | _ => ()
     }
+  })
+
+  test("allows separatelyRenderable on top-level routes", _t => {
+    let {errors, result} = parseRouteStructure(`[
+      {
+        "name": "Admin",
+        "path": "/admin",
+        "separatelyRenderable": true
+      }
+    ]`)
+
+    suite->assertions(2)
+    expect(errors)->Expect.Array.toHaveLength(0)
+    switch result {
+    | [RouteEntry({separatelyRenderable})] => expect(separatelyRenderable)->Expect.toBe(true)
+    | _ => ()
+    }
+  })
+
+  test("reports separatelyRenderable on nested routes", _t => {
+    let {errors} = parseRouteStructure(`[
+      {
+        "name": "Root",
+        "path": "/",
+        "children": [
+          {
+            "name": "Settings",
+            "path": "settings",
+            "separatelyRenderable": true
+          }
+        ]
+      }
+    ]`)
+
+    expect(errors->Array.map(error => error.message))->Expect.Array.toContain(
+      `"separatelyRenderable" can only be used on top-level routes.`,
+    )
+  })
+
+  test("reports non-boolean separatelyRenderable values", _t => {
+    let {errors} = parseRouteStructure(`[
+      {
+        "name": "Admin",
+        "path": "/admin",
+        "separatelyRenderable": "true"
+      }
+    ]`)
+
+    expect(errors->Array.map(error => error.message))->Expect.Array.toContain(
+      `"separatelyRenderable" needs to be a boolean. Found string("true").`,
+    )
   })
 })

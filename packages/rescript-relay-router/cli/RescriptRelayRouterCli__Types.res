@@ -158,6 +158,7 @@ and routeEntry = {
   routePath: RoutePath.t,
   pathParams: array<pathParam>,
   queryParams: array<queryParamNode>,
+  separatelyRenderable: bool,
   children: option<array<routeChild>>,
   sourceFile: string,
   parentRouteFiles: array<string>,
@@ -204,6 +205,7 @@ type parentContext = {
   seenPathParams: list<seenPathParam>,
   traversedRouteFiles: list<string>,
   parentRouteLoc: option<parentRouteLoc>,
+  routeDepth: int,
   routesByName: dict<routeEntry>,
 }
 
@@ -224,6 +226,7 @@ type rec printableRoute = {
   name: RouteName.t,
   children: array<printableRoute>,
   queryParams: dict<queryParam>,
+  separatelyRenderable: bool,
   sourceFile: string,
 }
 

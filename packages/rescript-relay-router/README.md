@@ -149,6 +149,36 @@ Route names must:
 
 Any routes put in another route's `children` is _nested_. In the example above, this means that the `Organization` route controls rendering of all of its child routes. This enables nested layouts, where layouts can stay rendered and untouched as URL changes in ways that does not affect them.
 
+Top-level routes can opt into being created as standalone route declaration entrypoints by setting `separatelyRenderable` to `true`. This is useful for multi-entry apps, admin surfaces, or embedded route trees where a router should match, preload, prepare, and render only one top-level tree.
+
+```json
+[
+  {
+    "name": "Root",
+    "path": "/"
+  },
+  {
+    "name": "Admin",
+    "path": "/admin",
+    "separatelyRenderable": true,
+    "children": [{ "name": "Users", "path": "users" }]
+  }
+]
+```
+
+The default generated `RouteDeclarations.make()` still returns all top-level route trees. Marked roots also get a generated module:
+
+```rescript
+let (_, routerContext) = RelayRouter.Router.make(
+  ~routes=RouteDeclarations.Admin.make(),
+  ~environment=RelayEnv.environment,
+  ~routerEnvironment=RelayRouter.RouterEnvironment.makeBrowserEnvironment(),
+  ~preloadAsset=RelayRouter.AssetPreloader.makeClientAssetPreloader(preparedAssetsMap),
+)
+```
+
+`separatelyRenderable` is only valid on top-level routes. A router built with `RouteDeclarations.Admin.make()` will not match or preload sibling root trees.
+
 To create a "catch all" route, use the `*`, character as the route path. Typically used for the "not found" route. Example:
 
 ```json

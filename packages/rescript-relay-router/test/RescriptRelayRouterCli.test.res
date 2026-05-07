@@ -3,6 +3,16 @@ open RescriptRelayRouterCli__Types
 
 module U = RescriptRelayRouterCli__Utils
 module DumpRoutes = RescriptRelayRouterCli__DumpRoutes
+module Bindings = RescriptRelayRouterCli__Bindings
+
+@module("os") external tmpdir: unit => string = "tmpdir"
+@module("fs") external mkdtempSync: string => string = "mkdtempSync"
+@module("fs") external mkdirRecursiveSync: (string, @as(json`{"recursive":true}`) _) => unit = "mkdirSync"
+@module("fs") external writeFileSync: (string, string) => unit = "writeFileSync"
+@module("fs") external readFileSync: (string, @as(json`"utf-8"`) _) => string = "readFileSync"
+@module("fs") external rmSync: (string, @as(json`{"recursive":true,"force":true}`) _) => unit = "rmSync"
+@send external indexOfFrom: (string, string, int) => int = "indexOf"
+@send external slice: (string, int, int) => string = "slice"
 
 let stringifyDump = dumped =>
   dumped->Array.map(route => JSON.Object(route))->JSON.Array->JSON.stringify
@@ -11,6 +21,45 @@ let testConfig = {
   generatedPath: "src/routes/__generated__",
   routesFolderPath: "src/routes",
   rescriptLibFolderPath: "lib/bs",
+}
+
+let withGeneratedRoutes = (routesJson, callback) => {
+  let rootPath = mkdtempSync(Bindings.Path.join([tmpdir(), "rrr-routes-"]))
+  let routesFolderPath = Bindings.Path.join([rootPath, "routes"])
+  let generatedPath = Bindings.Path.join([rootPath, "__generated__"])
+
+  mkdirRecursiveSync(routesFolderPath)
+  mkdirRecursiveSync(generatedPath)
+  writeFileSync(Bindings.Path.join([routesFolderPath, "routes.json"]), routesJson)
+
+  try {
+    RescriptRelayRouterCli__Commands.generateRoutes(
+      ~scaffoldAfter=false,
+      ~deleteRemoved=false,
+      ~config={
+        generatedPath,
+        routesFolderPath,
+        rescriptLibFolderPath: Bindings.Path.join([rootPath, "lib", "bs"]),
+      },
+    )
+
+    let result = callback(~generatedPath)
+    rmSync(rootPath)
+    result
+  } catch {
+  | exn =>
+    rmSync(rootPath)
+    throw(exn)
+  }
+}
+
+let readGeneratedFile = (~generatedPath, ~fileName) =>
+  readFileSync(Bindings.Path.join([generatedPath, fileName]))
+
+let sliceBetween = (content, ~startMarker, ~endMarker) => {
+  let start = content->String.indexOf(startMarker)
+  let end_ = content->indexOfFrom(endMarker, start + startMarker->String.length)
+  content->slice(start, end_)
 }
 
 describe("Query params", () => {
@@ -104,6 +153,98 @@ describe("Query params", () => {
         ~variableName="propName",
       ),
     )->Expect.toBe("propName->Array.map(value => value->SomeModule.parse)")
+  })
+})
+
+describe("Route declarations", () => {
+  test("generates standalone make modules only for top-level routes marked separatelyRenderable", _t => {
+    withGeneratedRoutes(
+      `[
+        {
+          "name": "Root",
+          "path": "/",
+          "children": [
+            {
+              "name": "Dashboard",
+              "path": "dashboard"
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "path": "/admin",
+          "separatelyRenderable": true,
+          "children": [
+            {
+              "name": "Users",
+              "path": "users"
+            }
+          ]
+        },
+        {
+          "name": "Embedded",
+          "path": "/embedded",
+          "separatelyRenderable": false
+        }
+      ]`,
+      (~generatedPath) => {
+        let routeDeclarations = readGeneratedFile(~generatedPath, ~fileName="RouteDeclarations.res")
+        let routeDeclarationsInterface = readGeneratedFile(
+          ~generatedPath,
+          ~fileName="RouteDeclarations.resi",
+        )
+
+        expect(routeDeclarations)->Expect.String.toContain("module Admin = {")
+        expect(routeDeclarations)->Expect.String.toContain(
+          "let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> =>",
+        )
+        let adminModule = routeDeclarations->sliceBetween(
+          ~startMarker="module Admin = {",
+          ~endMarker="\n\nlet make = (~prepareDisposeTimeout",
+        )
+        expect(adminModule)->Expect.String.toContain(`let routeName = "Admin"`)
+        expect(adminModule)->Expect.String.toContain(`let routeName = "Admin__Users"`)
+        expect(adminModule)->Expect.not->Expect.String.toContain(`let routeName = "Root"`)
+        expect(adminModule)->Expect.not->Expect.String.toContain(`let routeName = "Embedded"`)
+        expect(routeDeclarations)->Expect.String.toContain(
+          `let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> =>`,
+        )
+        expect(routeDeclarations)->Expect.not->Expect.String.toContain("module Root = {")
+        expect(routeDeclarations)->Expect.not->Expect.String.toContain("module Embedded = {")
+
+        expect(routeDeclarationsInterface)->Expect.String.toContain("module Admin: {")
+        expect(routeDeclarationsInterface)->Expect.String.toContain(
+          "let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>",
+        )
+        expect(routeDeclarationsInterface)->Expect.not->Expect.String.toContain("module Root:")
+        expect(routeDeclarationsInterface)->Expect.not->Expect.String.toContain("module Embedded:")
+      },
+    )
+  })
+
+  test("preserves the existing all-routes RouteDeclarations.make output", _t => {
+    withGeneratedRoutes(
+      `[
+        {
+          "name": "Root",
+          "path": "/"
+        },
+        {
+          "name": "Admin",
+          "path": "/admin",
+          "separatelyRenderable": true
+        }
+      ]`,
+      (~generatedPath) => {
+        let routeDeclarations = readGeneratedFile(~generatedPath, ~fileName="RouteDeclarations.res")
+
+        expect(routeDeclarations)->Expect.String.toContain(
+          `let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> =>`,
+        )
+        expect(routeDeclarations)->Expect.String.toContain(`let routeName = "Root"`)
+        expect(routeDeclarations)->Expect.String.toContain(`let routeName = "Admin"`)
+      },
+    )
   })
 })
 

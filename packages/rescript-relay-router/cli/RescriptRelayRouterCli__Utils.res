@@ -203,6 +203,7 @@ and parsedToPrintable = (routeEntry: routeEntry): printableRoute => {
   queryParams: routeEntry.queryParams
   ->Array.map(({name, queryParam: (_loc, queryParam)}) => (name.text, queryParam))
   ->Dict.fromArray,
+  separatelyRenderable: routeEntry.separatelyRenderable,
   sourceFile: routeEntry.sourceFile,
 }
 

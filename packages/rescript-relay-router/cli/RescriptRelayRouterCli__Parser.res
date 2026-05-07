@@ -668,6 +668,33 @@ module Validators = {
     | None => None
     }
   }
+
+  let validateSeparatelyRenderable = (
+    separatelyRenderableNode,
+    ~ctx,
+    ~parentContext: parentContext,
+  ) => {
+    switch separatelyRenderableNode {
+    | Some({loc, value: Boolean({value: true})}) =>
+      if parentContext.routeDepth === 0 {
+        true
+      } else {
+        ctx.addDecodeError(
+          ~loc,
+          ~message=`"separatelyRenderable" can only be used on top-level routes.`,
+        )
+        false
+      }
+    | Some({value: Boolean({value: false})}) => false
+    | Some({loc, value: node}) =>
+      ctx.addDecodeError(
+        ~loc,
+        ~message=`"separatelyRenderable" needs to be a boolean. Found ${nodeToString(node)}.`,
+      )
+      false
+    | None => false
+    }
+  }
 }
 
 module Decode = {
@@ -778,9 +805,14 @@ module Decode = {
         let pathProp = properties->findPropertyWithName(~name="path")
         let nameProp = properties->findPropertyWithName(~name="name")
         let children = properties->findPropertyWithName(~name="children")
+        let separatelyRenderableProp = properties->findPropertyWithName(~name="separatelyRenderable")
 
         let name = nameProp->Validators.validateName(~ctx, ~siblings)
         let path = pathProp->Validators.validatePath(~ctx, ~parentContext)
+        let separatelyRenderable = separatelyRenderableProp->Validators.validateSeparatelyRenderable(
+          ~ctx,
+          ~parentContext,
+        )
 
         // Params are inherited from all parent routes. This concatenates the
         // previously seen path params from the parents.
@@ -822,6 +854,7 @@ module Decode = {
               pathParams,
               routePath,
               queryParams: path.queryParams->Array.copy,
+              separatelyRenderable,
               children: None,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
@@ -841,6 +874,7 @@ module Decode = {
               pathParams,
               queryParams: [],
               routePath: RoutePath.empty(),
+              separatelyRenderable,
               children: None,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
@@ -872,6 +906,7 @@ module Decode = {
                   currentRoutePath: routePath,
                   currentRouteNamePath: thisRouteNamePath,
                   seenQueryParams: path.queryParams,
+                  routeDepth: parentContext.routeDepth + 1,
                   parentRouteLoc: Some({
                     childrenArray: loc,
                   }),
@@ -892,6 +927,7 @@ module Decode = {
               routePath,
               pathParams,
               queryParams: path.queryParams->Array.copy,
+              separatelyRenderable,
               children,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
@@ -1091,6 +1127,7 @@ let emptyParentCtx = (~routesByName) => {
   seenPathParams: list{},
   traversedRouteFiles: list{},
   parentRouteLoc: None,
+  routeDepth: 0,
   routesByName,
 }
 

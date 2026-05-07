@@ -294,6 +294,90 @@ describe("Route declarations", () => {
   })
 })
 
+describe("Route key codegen", () => {
+  test("emits path params through the collision-safe route key encoder", _t => {
+    let route = parseOnlyPrintableRoute(`[
+      {
+        "name": "Root",
+        "path": "/:first/:second"
+      }
+    ]`)
+
+    let generated = Codegen.getRouteDefinition(route, ~indentation=0)
+
+    generated->expectStringToContain(`RelayRouter.Internal.RouteKey.make("Root")`)
+    generated->expectStringToContain(
+      `RelayRouter.Internal.RouteKey.addPathParam(~name="first"`,
+    )
+    generated->expectStringToContain(
+      `RelayRouter.Internal.RouteKey.addPathParam(~name="second"`,
+    )
+  })
+
+  test("emits scalar query params with explicit missing versus empty encoding", _t => {
+    let route = parseOnlyPrintableRoute(`[
+      {
+        "name": "Root",
+        "path": "/?first=string&second=string"
+      }
+    ]`)
+
+    let generated = Codegen.getRouteDefinition(route, ~indentation=0)
+
+    generated->expectStringToContain(
+      `RelayRouter.Internal.RouteKey.addQueryParam(~name="first"`,
+    )
+    generated->expectStringToContain(
+      `~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("first")`,
+    )
+    generated->expectStringToContain(
+      `RelayRouter.Internal.RouteKey.addQueryParam(~name="second"`,
+    )
+    generated->expectStringToContain(
+      `~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("second")`,
+    )
+  })
+
+  test("emits array query params using all repeated values", _t => {
+    let route = parseOnlyPrintableRoute(`[
+      {
+        "name": "Root",
+        "path": "/?statuses=array<string>&after=string"
+      }
+    ]`)
+
+    let generated = Codegen.getRouteDefinition(route, ~indentation=0)
+
+    generated->expectStringToContain(
+      `RelayRouter.Internal.RouteKey.addQueryParamArray(~name="statuses"`,
+    )
+    generated->expectStringToContain(
+      `~values=queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")`,
+    )
+    generated->expectStringToContain(
+      `RelayRouter.Internal.RouteKey.addQueryParam(~name="after"`,
+    )
+  })
+
+  test("uses original URL param names when generated prop names need collision protection", _t => {
+    let route = parseOnlyPrintableRoute(`[
+      {
+        "name": "Root",
+        "path": "/:environment?pathParams=string"
+      }
+    ]`)
+
+    let generated = Codegen.getRouteDefinition(route, ~indentation=0)
+
+    generated->expectStringToContain(
+      `RelayRouter.Internal.RouteKey.addPathParam(~name="environment", ~value=pathParams->Dict.get("environment")->Option.getOr(""))`,
+    )
+    generated->expectStringToContain(
+      `RelayRouter.Internal.RouteKey.addQueryParam(~name="pathParams", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("pathParams"))`,
+    )
+  })
+})
+
 describe("Dump routes", () => {
   test("returns all routes in definition order by default", _t => {
     let {result} = TestUtils.parseMockContent(`[

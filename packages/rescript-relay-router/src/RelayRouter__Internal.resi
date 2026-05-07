@@ -36,6 +36,14 @@ external matchPathWithOptions: ({"path": string, "end": bool}, string) => option
   "matchPath"
 
 type prepared
+
+module RouteKey: {
+  let make: string => string
+  let addPathParam: (string, ~name: string, ~value: string) => string
+  let addQueryParam: (string, ~name: string, ~value: option<string>) => string
+  let addQueryParamArray: (string, ~name: string, ~values: option<array<string>>) => string
+}
+
 let extractDisposables: prepared => array<unit => unit>
 
 let runAtPriority: (

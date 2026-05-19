@@ -155,6 +155,134 @@ let makeLinkFromQueryParams = (~byStatusDecoded: TodoStatusPathParam.t, queryPar
 let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams)
 
 @live
+type target = {
+  byStatusDecoded: TodoStatusPathParam.t,
+  statuses: option<array<TodoStatus.t>>,
+  statusWithDefault: TodoStatus.t,
+  byValue: option<string>,
+}
+
+@live
+let targetFromMatchedRoute = (
+  matchedRoute: RelayRouter.Types.matchedRoute,
+  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+): option<target> =>
+  switch matchedRoute.routeName {
+  | "Root__Todos__ByStatusDecoded" =>
+    let decodedQueryParams = Internal.parseQueryParams(queryParams)
+    Some({
+      byStatusDecoded: matchedRoute.pathParams->Dict.getUnsafe("byStatusDecoded")->((byStatusDecodedRawAsString: string) => (byStatusDecodedRawAsString :> TodoStatusPathParam.t)),
+      statuses: decodedQueryParams.statuses,
+      statusWithDefault: decodedQueryParams.statusWithDefault,
+      byValue: decodedQueryParams.byValue,
+    })
+  | _ => None
+  }
+
+@live
+let targetFromLocation = (location: RelayRouter.History.location): option<target> => {
+  let queryParams = RelayRouter.Bindings.QueryParams.parse(location.search)
+  switch RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": true}, location.pathname) {
+  | Some({params}) =>
+    targetFromMatchedRoute({
+      routeName: "Root__Todos__ByStatusDecoded",
+      routeKey: "",
+      pathParams: params,
+      slots: [],
+      outlet: None,
+    }, ~queryParams)
+  | None => None
+  }
+}
+
+@live
+let targetToPath = (target: target): string =>
+  makeLink(~byStatusDecoded=target.byStatusDecoded, ~statuses=?target.statuses, ~statusWithDefault=target.statusWithDefault, ~byValue=?target.byValue)
+
+@live
+let targetKey = targetToPath
+
+@live
+let targetRouteName = "Root__Todos__ByStatusDecoded"
+
+module Target = {
+  @live
+  type t =
+    | Self(target)
+    | Child(Route__Root__Todos__ByStatusDecoded__Child_route.target)
+
+  let fromMatchedRoute = (
+    matchedRoute: RelayRouter.Types.matchedRoute,
+    ~queryParams: RelayRouter.Bindings.QueryParams.t,
+  ): option<t> =>
+    switch matchedRoute.routeName {
+    | "Root__Todos__ByStatusDecoded" =>
+      targetFromMatchedRoute(matchedRoute, ~queryParams)->Option.map(target =>
+        Self(target)
+      )
+    | "Root__Todos__ByStatusDecoded__Child" =>
+      Route__Root__Todos__ByStatusDecoded__Child_route.targetFromMatchedRoute(matchedRoute, ~queryParams)->Option.map(target =>
+        Child(target)
+      )
+    | _ => None
+    }
+
+  let fromEntryWithQueryParams = (
+    entry: RelayRouter.Types.currentRouterEntry,
+    ~queryParams: RelayRouter.Bindings.QueryParams.t,
+  ): option<t> =>
+    switch entry.matchedRoutes->Array.toReversed->Array.get(0) {
+    | Some(matchedRoute) => fromMatchedRoute(matchedRoute, ~queryParams)
+    | None => None
+    }
+
+  let fromEntry = (entry: RelayRouter.Types.currentRouterEntry): option<t> =>
+    fromEntryWithQueryParams(entry, ~queryParams=entry.queryParams)
+
+  let useCurrent = (): option<t> => {
+    let router = RelayRouter.useRouterContext()
+    let location = RelayRouter.Utils.useLocation()
+    let (entry, setEntry) = React.useState(() => router.get())
+
+    React.useEffect(() => {
+      let dispose = router.subscribe(nextEntry => setEntry(_ => nextEntry))
+      Some(dispose)
+    }, [router])
+
+    React.useMemo(() => {
+      let queryParams = RelayRouter.Bindings.QueryParams.parse(location.search)
+      fromEntryWithQueryParams(entry, ~queryParams)
+    }, (entry, location.search))
+  }
+
+  let fromLocation = (location: RelayRouter.History.location): option<t> =>
+    switch targetFromLocation(location) {
+    | Some(target) => Some(Self(target))
+    | None =>
+      switch Route__Root__Todos__ByStatusDecoded__Child_route.targetFromLocation(location) {
+      | Some(target) => Some(Child(target))
+      | None =>
+        None
+      }
+    }
+
+  let toPath = (target: t): string =>
+    switch target {
+    | Self(target) => targetToPath(target)
+    | Child(target) => Route__Root__Todos__ByStatusDecoded__Child_route.targetToPath(target)
+    }
+
+  let key = toPath
+
+  let routeName = (target: t): string =>
+    switch target {
+    | Self(_) => "Root__Todos__ByStatusDecoded"
+    | Child(_) => "Root__Todos__ByStatusDecoded__Child"
+    }
+
+}
+
+@live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
   RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Option.isSome
 }

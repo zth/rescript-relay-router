@@ -59,8 +59,18 @@ type preparedMatch = {
   render: renderRouteFn,
 }
 
+type matchedRoute = {
+  routeKey: string,
+  routeName: string,
+  pathParams: dict<string>,
+  slots: array<string>,
+  outlet: option<string>,
+}
+
 type currentRouterEntry = {
   location: RelayRouter__History.location,
+  queryParams: QueryParams.t,
+  matchedRoutes: array<matchedRoute>,
   preparedMatches: array<preparedMatch>,
   primaryMatches: array<preparedMatch>,
   slotContents: dict<React.element>,

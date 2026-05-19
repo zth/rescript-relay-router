@@ -275,12 +275,16 @@ let rec printNestedRouteModules = (route: printableRoute, ~indentation): string 
   let indentationStr = "  "->String.repeat(indentation)
   let innerIndentationStr = "  "->String.repeat(indentation + 1)
   let routeLine = `${innerIndentationStr}module Route = ${route.name->RouteName.toGeneratedRouteModuleName}`
+  let targetLine = `${innerIndentationStr}module Target = ${route.name->RouteName.toGeneratedRouteModuleName}.Target`
   let slotsLine = switch route.slots {
   | [] => ""
   | _slots =>
     `${innerIndentationStr}module Slots = ${route.name->RouteName.toGeneratedRouteModuleName}.Slots`
   }
-  let moduleLines = [routeLine, slotsLine]->Array.filter(line => line != "")->Array.join("\n")
+  let moduleLines =
+    [routeLine, targetLine, slotsLine]
+    ->Array.filter(line => line != "")
+    ->Array.join("\n")
   let childModules =
     route.children
     ->Array.map(route => route->printNestedRouteModules(~indentation=indentation + 1))

@@ -41,7 +41,7 @@
   "bin": "cli/RescriptRelayRouterCli.bundle.mjs",
   "peerDependencies": {
     "@rescript/react": ">=0.13.0",
-    "react": ">=19.2.0",
+    "react": ">=18.2.0",
     "rescript-relay": ">=3.0.0",
     "vite": ">=4.4.9"
   },

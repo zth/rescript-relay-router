@@ -5706,7 +5706,7 @@ __metadata:
     vscode-jsonrpc: ^5.0.1
   peerDependencies:
     "@rescript/react": ">=0.13.0"
-    react: ">=19.2.0"
+    react: ">=18.2.0"
     rescript-relay: ">=3.0.0"
     vite: ">=4.4.9"
   bin:

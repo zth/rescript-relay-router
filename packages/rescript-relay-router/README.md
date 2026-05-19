@@ -20,12 +20,13 @@ A router designed for scale, performance and ergonomics. Tailored for usage with
 The router requires the following:
 
 - `rescript@>=12.0.0`
-- `vite` for your project setup, `>2.8.0`.
+- `react@>=18.2.0`
+- `vite@>=4.4.9` for your project setup.
 - [`build: { target: "esnext" }`](https://vitejs.dev/config/#build-target) in your `vite.config.js`.
 - `"type": "module"` in your `package.json`, meaning you need to run in es modules mode.
 - Your Relay config named `relay.config.cjs`.
 - Preferably `yarn` for everything to work smoothly.
-- `rescript-relay@>=1.1.0`
+- `rescript-relay@>=3.0.0`
 
 Install the router and initialize it:
 
@@ -40,7 +41,7 @@ yarn rescript-relay-router init
 yarn rescript-relay-router generate -scaffold-renderers
 ```
 
-This will create all necessary assets to get started. Now, add the router to your `bsconfig.json`:
+This will create all necessary assets to get started. Now, add the router to your `rescript.json`:
 
 ```json
 "dependencies": [

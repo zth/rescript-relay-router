@@ -1,5 +1,29 @@
 # rescript-relay-router
 
+## 4.0.0
+
+### Major Changes
+
+- 200a6ae: Migrate the package to ReScript 12/Rewatch and remove the unused SSR streaming stack.
+
+  Projects must use ReScript 12, regenerate router output, and no longer import the removed `./server` package export or SSR streaming helpers. Removed APIs include the server Vite plugin, manifest transform, `RelayRouter.Manifest`, `RelayRouter.PreloadInsertingStream`, and the SSR preload insertion utilities.
+
+### Minor Changes
+
+- 3caf40b: Add route declaration entrypoints for top-level route trees.
+
+  Top-level routes can now set `entrypoint: true` in route config, which generates a standalone `RouteDeclarations.<RouteName>.make()` module for building a router from only that route tree.
+
+- 01b7117: Add typed route slots for rendering descendant route branches into named parent outlets.
+
+  Routes can now declare `slots`, descendant routes can target an ancestor slot with `outlet`, and generated route modules expose typed slot components such as `Routes.Root.Slots.Overlay`.
+
+### Patch Changes
+
+- 0d8fb0a: Centralize router location subscriptions so location-consuming hooks share the router's history listener and still update during shallow navigations.
+- 529cbaf: Generate collision-safe prepared route keys by length-prefixing route names, path params, query params, and repeated query param values.
+- c3c7b5f: Precompile route matching metadata once per router instance instead of flattening, ranking, and compiling path patterns for every match.
+
 ## 3.1.0
 
 ### Minor Changes

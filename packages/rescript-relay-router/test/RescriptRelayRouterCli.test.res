@@ -13,6 +13,8 @@ external mkdirRecursiveSync: (string, @as(json`{"recursive":true}`) _) => unit =
 @module("fs") external readFileSync: (string, @as(json`"utf-8"`) _) => string = "readFileSync"
 @module("fs")
 external rmSync: (string, @as(json`{"recursive":true,"force":true}`) _) => unit = "rmSync"
+@send external indexOfFrom: (string, string, int) => int = "indexOf"
+@send external slice: (string, int, int) => string = "slice"
 
 let stringifyDump = dumped =>
   dumped->Array.map(route => JSON.Object(route))->JSON.Array->JSON.stringify
@@ -55,6 +57,12 @@ let withGeneratedRoutes = (routesJson, callback) => {
 
 let readGeneratedFile = (~generatedPath, ~fileName) =>
   readFileSync(Bindings.Path.join([generatedPath, fileName]))
+
+let sliceBetween = (content, ~startMarker, ~endMarker) => {
+  let start = content->String.indexOf(startMarker)
+  let end_ = content->indexOfFrom(endMarker, start + startMarker->String.length)
+  content->slice(start, end_)
+}
 
 describe("Query params", () => {
   test("turns param type to string", _t => {
@@ -188,6 +196,99 @@ describe("Route slots", () => {
         )->Expect.String.toContain(`<RelayRouter.Slot routeName="Shell" slotName="Overlay" ?fallback />`)
         expect(routeDeclarations)->Expect.String.toContain(`slots: ["Overlay"]`)
         expect(routeDeclarations)->Expect.String.toContain(`outlet: Some("Overlay")`)
+      },
+    )
+  })
+})
+
+describe("Route declarations", () => {
+  test("generates standalone make modules only for top-level routes marked entrypoint", _t => {
+    withGeneratedRoutes(
+      `[
+        {
+          "name": "Root",
+          "path": "/",
+          "children": [
+            {
+              "name": "Dashboard",
+              "path": "dashboard"
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "path": "/admin",
+          "entrypoint": true,
+          "children": [
+            {
+              "name": "Users",
+              "path": "users"
+            }
+          ]
+        },
+        {
+          "name": "Embedded",
+          "path": "/embedded",
+          "entrypoint": false
+        }
+      ]`,
+      (~generatedPath) => {
+        let routeDeclarations = readGeneratedFile(~generatedPath, ~fileName="RouteDeclarations.res")
+        let routeDeclarationsInterface = readGeneratedFile(
+          ~generatedPath,
+          ~fileName="RouteDeclarations.resi",
+        )
+
+        expect(routeDeclarations)->Expect.String.toContain("module Admin = {")
+        expect(routeDeclarations)->Expect.String.toContain(
+          "let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> =>",
+        )
+        let adminModule =
+          routeDeclarations->sliceBetween(
+            ~startMarker="module Admin = {",
+            ~endMarker="\n\nlet make = (~prepareDisposeTimeout",
+          )
+        expect(adminModule)->Expect.String.toContain(`let routeName = "Admin"`)
+        expect(adminModule)->Expect.String.toContain(`let routeName = "Admin__Users"`)
+        expect(adminModule)->Expect.not->Expect.String.toContain(`let routeName = "Root"`)
+        expect(adminModule)->Expect.not->Expect.String.toContain(`let routeName = "Embedded"`)
+        expect(
+          routeDeclarations,
+        )->Expect.String.toContain(`let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> =>`)
+        expect(routeDeclarations)->Expect.not->Expect.String.toContain("module Root = {")
+        expect(routeDeclarations)->Expect.not->Expect.String.toContain("module Embedded = {")
+
+        expect(routeDeclarationsInterface)->Expect.String.toContain("module Admin: {")
+        expect(routeDeclarationsInterface)->Expect.String.toContain(
+          "let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>",
+        )
+        expect(routeDeclarationsInterface)->Expect.not->Expect.String.toContain("module Root:")
+        expect(routeDeclarationsInterface)->Expect.not->Expect.String.toContain("module Embedded:")
+      },
+    )
+  })
+
+  test("preserves the existing all-routes RouteDeclarations.make output", _t => {
+    withGeneratedRoutes(
+      `[
+        {
+          "name": "Root",
+          "path": "/"
+        },
+        {
+          "name": "Admin",
+          "path": "/admin",
+          "entrypoint": true
+        }
+      ]`,
+      (~generatedPath) => {
+        let routeDeclarations = readGeneratedFile(~generatedPath, ~fileName="RouteDeclarations.res")
+
+        expect(
+          routeDeclarations,
+        )->Expect.String.toContain(`let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> =>`)
+        expect(routeDeclarations)->Expect.String.toContain(`let routeName = "Root"`)
+        expect(routeDeclarations)->Expect.String.toContain(`let routeName = "Admin"`)
       },
     )
   })

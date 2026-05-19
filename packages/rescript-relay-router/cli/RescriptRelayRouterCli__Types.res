@@ -162,6 +162,7 @@ and routeEntry = {
   queryParams: array<queryParamNode>,
   slots: array<slotDef>,
   outlet: option<textNode>,
+  entrypoint: bool,
   children: option<array<routeChild>>,
   sourceFile: string,
   parentRouteFiles: array<string>,
@@ -209,6 +210,7 @@ type parentContext = {
   traversedRouteFiles: list<string>,
   parentRouteLoc: option<parentRouteLoc>,
   availableSlots: array<string>,
+  routeDepth: int,
   routesByName: dict<routeEntry>,
 }
 
@@ -231,6 +233,7 @@ type rec printableRoute = {
   queryParams: dict<queryParam>,
   slots: array<string>,
   outlet: option<string>,
+  entrypoint: bool,
   sourceFile: string,
 }
 

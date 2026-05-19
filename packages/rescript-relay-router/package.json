@@ -39,9 +39,7 @@
     "test:watch": "vitest watch",
     "release": "yarn npm publish"
   },
-  "bin": {
-    "rescript-relay-router": "cli/RescriptRelayRouterCli.bundle.mjs"
-  },
+  "bin": "cli/RescriptRelayRouterCli.bundle.mjs",
   "peerDependencies": {
     "@rescript/react": ">=0.13.0",
     "react": ">=18.2.0",

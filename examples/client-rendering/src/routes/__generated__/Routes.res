@@ -4,45 +4,41 @@
 /** [See route renderer](./Root_route_renderer.res)*/
 module Root = {
   module Route = Route__Root_route
-
+  module Slots = Route__Root_route.Slots
+  /** [See route renderer](./Root__Settings_route_renderer.res)*/
+  module Settings = {
+    module Route = Route__Root__Settings_route
+  }
   /** [See route renderer](./Root__Todos_route_renderer.res)*/
   module Todos = {
     module Route = Route__Root__Todos_route
-
     /** [See route renderer](./Root__Todos__ByStatus_route_renderer.res)*/
     module ByStatus = {
       module Route = Route__Root__Todos__ByStatus_route
-
     }
     /** [See route renderer](./Root__Todos__ByStatusDecoded_route_renderer.res)*/
     module ByStatusDecoded = {
       module Route = Route__Root__Todos__ByStatusDecoded_route
-
       /** [See route renderer](./Root__Todos__ByStatusDecoded__Child_route_renderer.res)*/
       module Child = {
         module Route = Route__Root__Todos__ByStatusDecoded__Child_route
-
       }
     }
     /** [See route renderer](./Root__Todos__ByStatusDecodedExtra_route_renderer.res)*/
     module ByStatusDecodedExtra = {
       module Route = Route__Root__Todos__ByStatusDecodedExtra_route
-
     }
     /** [See route renderer](./Root__Todos__Single_route_renderer.res)*/
     module Single = {
       module Route = Route__Root__Todos__Single_route
-
     }
   }
   /** [See route renderer](./Root__PathParamsOnly_route_renderer.res)*/
   module PathParamsOnly = {
     module Route = Route__Root__PathParamsOnly_route
-
   }
   /** [See route renderer](./Root__Home_route_renderer.res)*/
   module Home = {
     module Route = Route__Root__Home_route
-
   }
 }

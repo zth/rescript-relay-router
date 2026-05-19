@@ -22,7 +22,7 @@ module Internal = {
     render: renderProps<'prepared> => React.element,
   }
   @live
-  let makePrepareProps = (. 
+  let makePrepareProps = (.
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
@@ -35,10 +35,7 @@ module Internal = {
       location: location,
     }
   }
-
 }
-
-
 
 @inline
 let routePattern = "/home"
@@ -59,12 +56,9 @@ let useIsRouteActive = (~exact=false) => {
   React.useMemo(() => location->isRouteActive(~exact), (location, exact))
 }
 
-
-
 @obj
 external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
 ) => Internal.renderers<'prepared> = ""
-

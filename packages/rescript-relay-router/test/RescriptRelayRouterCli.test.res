@@ -3,6 +3,16 @@ open RescriptRelayRouterCli__Types
 
 module U = RescriptRelayRouterCli__Utils
 module DumpRoutes = RescriptRelayRouterCli__DumpRoutes
+module Bindings = RescriptRelayRouterCli__Bindings
+
+@module("os") external tmpdir: unit => string = "tmpdir"
+@module("fs") external mkdtempSync: string => string = "mkdtempSync"
+@module("fs")
+external mkdirRecursiveSync: (string, @as(json`{"recursive":true}`) _) => unit = "mkdirSync"
+@module("fs") external writeFileSync: (string, string) => unit = "writeFileSync"
+@module("fs") external readFileSync: (string, @as(json`"utf-8"`) _) => string = "readFileSync"
+@module("fs")
+external rmSync: (string, @as(json`{"recursive":true,"force":true}`) _) => unit = "rmSync"
 
 let stringifyDump = dumped =>
   dumped->Array.map(route => JSON.Object(route))->JSON.Array->JSON.stringify
@@ -12,6 +22,39 @@ let testConfig = {
   routesFolderPath: "src/routes",
   rescriptLibFolderPath: "lib/bs",
 }
+
+let withGeneratedRoutes = (routesJson, callback) => {
+  let rootPath = mkdtempSync(Bindings.Path.join([tmpdir(), "rrr-routes-"]))
+  let routesFolderPath = Bindings.Path.join([rootPath, "routes"])
+  let generatedPath = Bindings.Path.join([rootPath, "__generated__"])
+
+  mkdirRecursiveSync(routesFolderPath)
+  mkdirRecursiveSync(generatedPath)
+  writeFileSync(Bindings.Path.join([routesFolderPath, "routes.json"]), routesJson)
+
+  try {
+    RescriptRelayRouterCli__Commands.generateRoutes(
+      ~scaffoldAfter=false,
+      ~deleteRemoved=false,
+      ~config={
+        generatedPath,
+        routesFolderPath,
+        rescriptLibFolderPath: Bindings.Path.join([rootPath, "lib", "bs"]),
+      },
+    )
+
+    let result = callback(~generatedPath)
+    rmSync(rootPath)
+    result
+  } catch {
+  | exn =>
+    rmSync(rootPath)
+    throw(exn)
+  }
+}
+
+let readGeneratedFile = (~generatedPath, ~fileName) =>
+  readFileSync(Bindings.Path.join([generatedPath, fileName]))
 
 describe("Query params", () => {
   test("turns param type to string", _t => {
@@ -104,6 +147,49 @@ describe("Query params", () => {
         ~variableName="propName",
       ),
     )->Expect.toBe("propName->Array.map(value => value->SomeModule.parse)")
+  })
+})
+
+describe("Route slots", () => {
+  test("generates typed slot components and outlet metadata", _t => {
+    withGeneratedRoutes(
+      `[
+        {
+          "name": "Shell",
+          "path": "/?paneConfig=string",
+          "slots": [{ "name": "Overlay" }],
+          "children": [
+            {
+              "name": "Preferences",
+              "path": "preferences",
+              "children": [
+                {
+                  "name": "Account",
+                  "path": "account",
+                  "outlet": "Overlay"
+                }
+              ]
+            }
+          ]
+        }
+      ]`,
+      (~generatedPath) => {
+        let routes = readGeneratedFile(~generatedPath, ~fileName="Routes.res")
+        let shellRoute = readGeneratedFile(~generatedPath, ~fileName="Route__Shell_route.res")
+        let routeDeclarations = readGeneratedFile(~generatedPath, ~fileName="RouteDeclarations.res")
+
+        expect(routes)->Expect.String.toContain("module Slots = Route__Shell_route.Slots")
+        expect(routes->String.includes("RelayRouter.Slot"))->Expect.toBe(false)
+        expect(routes->String.includes("let "))->Expect.toBe(false)
+        expect(shellRoute)->Expect.String.toContain("module Slots = {")
+        expect(shellRoute)->Expect.String.toContain("module Overlay = {")
+        expect(
+          shellRoute,
+        )->Expect.String.toContain(`<RelayRouter.Slot routeName="Shell" slotName="Overlay" ?fallback />`)
+        expect(routeDeclarations)->Expect.String.toContain(`slots: ["Overlay"]`)
+        expect(routeDeclarations)->Expect.String.toContain(`outlet: Some("Overlay")`)
+      },
+    )
   })
 })
 

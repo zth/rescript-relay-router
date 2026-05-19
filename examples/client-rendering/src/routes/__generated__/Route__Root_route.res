@@ -32,7 +32,7 @@ module Internal = {
     render: renderProps<'prepared> => React.element,
   }
   @live
-  let makePrepareProps = (. 
+  let makePrepareProps = (.
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
@@ -45,10 +45,7 @@ module Internal = {
       childParams: Obj.magic(pathParams),
     }
   }
-
 }
-
-
 
 @inline
 let routePattern = "/"
@@ -69,12 +66,14 @@ let useIsRouteActive = (~exact=false) => {
   React.useMemo(() => location->isRouteActive(~exact), (location, exact))
 }
 @live
-type subRoute = [#Todos | #PathParamsOnly | #Home]
+type subRoute = [#Settings | #Todos | #PathParamsOnly | #Home]
 
 @live
-let getActiveSubRoute = (location: RelayRouter.History.location): option<[#Todos | #PathParamsOnly | #Home]> => {
+let getActiveSubRoute = (location: RelayRouter.History.location): option<[#Settings | #Todos | #PathParamsOnly | #Home]> => {
   let {pathname} = location
-  if RelayRouter.Internal.matchPath("/todos", pathname)->Option.isSome {
+  if RelayRouter.Internal.matchPath("/settings", pathname)->Option.isSome {
+      Some(#Settings)
+    } else if RelayRouter.Internal.matchPath("/todos", pathname)->Option.isSome {
       Some(#Todos)
     } else if RelayRouter.Internal.matchPath("/other/:pageSlug", pathname)->Option.isSome {
       Some(#PathParamsOnly)
@@ -86,14 +85,23 @@ let getActiveSubRoute = (location: RelayRouter.History.location): option<[#Todos
 }
 
 @live
-let useActiveSubRoute = (): option<[#Todos | #PathParamsOnly | #Home]> => {
+let useActiveSubRoute = (): option<[#Settings | #Todos | #PathParamsOnly | #Home]> => {
   let location = RelayRouter.Utils.useLocation()
   React.useMemo(() => {
     getActiveSubRoute(location)
   }, [location])
 }
 
+module Slots = {
+  module Overlay = {
+    @react.component
+    let make = (~fallback=?) =>
+      <RelayRouter.Slot routeName="Root" slotName="Overlay" ?fallback />
 
+    let useHasContent = () =>
+      RelayRouter.Slot.useHasContent(~routeName="Root", ~slotName="Overlay")
+  }
+}
 
 @obj
 external makeRenderer: (
@@ -101,4 +109,3 @@ external makeRenderer: (
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
 ) => Internal.renderers<'prepared> = ""
-

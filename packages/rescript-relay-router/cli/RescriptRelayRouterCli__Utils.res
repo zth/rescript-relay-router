@@ -203,6 +203,8 @@ and parsedToPrintable = (routeEntry: routeEntry): printableRoute => {
   queryParams: routeEntry.queryParams
   ->Array.map(({name, queryParam: (_loc, queryParam)}) => (name.text, queryParam))
   ->Dict.fromArray,
+  slots: routeEntry.slots->Array.map(slot => slot.name.text),
+  outlet: routeEntry.outlet->Option.map(outlet => outlet.text),
   sourceFile: routeEntry.sourceFile,
 }
 
@@ -269,30 +271,24 @@ let add = (str, s) => {
 
 let rec printNestedRouteModules = (route: printableRoute, ~indentation): string => {
   let moduleName = route.name->RouteName.getRouteName
-  let str = ref("")
-  let strEnd = ref("")
-
-  str->printIndentation(indentation)
-  str->add(`/** [See route renderer](./${route.name->RouteName.getRouteRendererFileName})*/\n`)
-
-  str->printIndentation(indentation)
-  str->add(`module ${moduleName} = {\n`)
-  str->printIndentation(indentation + 1)
-  str->add(`module Route = ${route.name->RouteName.toGeneratedRouteModuleName}\n`)
-
-  strEnd->printIndentation(indentation)
-  strEnd->add("}\n")
-
-  route.children->Array.forEach(route => {
-    str->add(route->printNestedRouteModules(~indentation=indentation + 1))
-  })
-
-  "\n" ++
-  str.contents ++ {
-    let contents = strEnd.contents->String.split("\n")
-    contents->Array.reverse
-    contents->Array.join("\n")
+  let indentationStr = "  "->String.repeat(indentation)
+  let innerIndentationStr = "  "->String.repeat(indentation + 1)
+  let routeLine = `${innerIndentationStr}module Route = ${route.name->RouteName.toGeneratedRouteModuleName}`
+  let slotsLine = switch route.slots {
+  | [] => ""
+  | _slots =>
+    `${innerIndentationStr}module Slots = ${route.name->RouteName.toGeneratedRouteModuleName}.Slots`
   }
+  let moduleLines = [routeLine, slotsLine]->Array.filter(line => line != "")->Array.join("\n")
+  let childModules =
+    route.children
+    ->Array.map(route => route->printNestedRouteModules(~indentation=indentation + 1))
+    ->Array.join("")
+
+  `\n${indentationStr}/** [See route renderer](./${route.name->RouteName.getRouteRendererFileName})*/
+${indentationStr}module ${moduleName} = {
+${moduleLines}${childModules}
+${indentationStr}}`
 }
 
 let queryParamToQueryParamDecoder = (param, ~key) => {

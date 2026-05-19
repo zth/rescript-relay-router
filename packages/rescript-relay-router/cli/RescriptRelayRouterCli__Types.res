@@ -26,6 +26,8 @@ type parentRouteLoc = {
   childrenArray: range,
 }
 
+type slotDef = {name: textNode}
+
 type rec queryParam =
   | Array(queryParam)
   | String
@@ -158,6 +160,8 @@ and routeEntry = {
   routePath: RoutePath.t,
   pathParams: array<pathParam>,
   queryParams: array<queryParamNode>,
+  slots: array<slotDef>,
+  outlet: option<textNode>,
   children: option<array<routeChild>>,
   sourceFile: string,
   parentRouteFiles: array<string>,
@@ -204,6 +208,7 @@ type parentContext = {
   seenPathParams: list<seenPathParam>,
   traversedRouteFiles: list<string>,
   parentRouteLoc: option<parentRouteLoc>,
+  availableSlots: array<string>,
   routesByName: dict<routeEntry>,
 }
 
@@ -224,6 +229,8 @@ type rec printableRoute = {
   name: RouteName.t,
   children: array<printableRoute>,
   queryParams: dict<queryParam>,
+  slots: array<string>,
+  outlet: option<string>,
   sourceFile: string,
 }
 

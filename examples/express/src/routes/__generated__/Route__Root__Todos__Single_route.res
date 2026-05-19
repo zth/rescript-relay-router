@@ -11,7 +11,6 @@ type queryParams = {
 }
 
 module Internal = {
-
   let parseQueryParams = (queryParams: RelayRouter.Bindings.QueryParams.t): queryParams => {
     open RelayRouter.Bindings
     {
@@ -49,7 +48,7 @@ module Internal = {
     render: renderProps<'prepared> => React.element,
   }
   @live
-  let makePrepareProps = (. 
+  let makePrepareProps = (.
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
@@ -67,7 +66,6 @@ module Internal = {
         }),
     }
   }
-
 }
 
 @live
@@ -77,7 +75,6 @@ let applyQueryParams = (
 ) => {
   open RelayRouter__Bindings
 
-  
   queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize)))
   queryParams->QueryParams.setParamOpt(~key="showMore", ~value=newParams.showMore->Option.map(showMore => switch showMore { | true => "true" | false => "false" }))
 }
@@ -112,7 +109,7 @@ let useQueryParams = (): useQueryParamsReturn => {
   }
   let currentQueryParams = React.useMemo(() => {
     statuses: statuses,
-    showMore: showMore    
+    showMore: showMore
   }, [search__])
 
   {
@@ -147,7 +144,6 @@ let makeLinkFromQueryParams = (~todoId: string, queryParams: queryParams) => {
 @live
 let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams)
 
-
 @live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
   RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": exact}, pathname)->Option.isSome
@@ -175,8 +171,7 @@ external makeRenderer: (
   ~render: Internal.renderProps<'prepared> => React.element,
 ) => Internal.renderers<'prepared> = ""
 
-
-@live 
+@live
 let parseRoute: (
   string,
   ~exact: bool=?,
@@ -186,4 +181,3 @@ let parseRoute: (
     parseQueryParams: Internal.parseQueryParams,
   }),
 )
-

@@ -1,6 +1,11 @@
 open RescriptRelayRouterTestUtils.Vitest
 open RelayRouter__Utils
 
+module SlotComponentCompileFixture = {
+  @react.component
+  let make = (~fallback=?) => <RelayRouter.Slot routeName="Root" slotName="Overlay" ?fallback />
+}
+
 type testCase = {
   exact: bool,
   pathname: string,

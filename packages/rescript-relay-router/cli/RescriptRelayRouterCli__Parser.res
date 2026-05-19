@@ -596,6 +596,8 @@ module Path = {
 module Validators = {
   open! JsoncParser
 
+  let isValidCapitalizedIdentifier = value => /^[A-Z][a-zA-Z0-9_]+$/->RegExp.test(value)
+
   let rec routeWithNameAlreadyExists = (existingChildren, ~routeName) => {
     existingChildren->Array.some(child =>
       switch child {
@@ -618,7 +620,7 @@ module Validators = {
         Some({loc, name: "_"})
       | routeName =>
         switch (
-          /^[A-Z][a-zA-Z0-9_]+$/->RegExp.test(routeName),
+          routeName->isValidCapitalizedIdentifier,
           siblings->routeWithNameAlreadyExists(~routeName),
         ) {
         | (true, false) => Some({loc, name: routeName})
@@ -668,6 +670,18 @@ module Validators = {
     | None => None
     }
   }
+
+  let validateSlotName = (~loc, ~value, ~ctx): option<slotDef> => {
+    switch value->isValidCapitalizedIdentifier {
+    | true => Some({name: {loc, text: value}})
+    | false =>
+      ctx.addDecodeError(
+        ~loc,
+        ~message=`"${value}" is not a valid slot name. Slot names need to start with an uppercase letter, and can only contain letters, digits and underscores.`,
+      )
+      None
+    }
+  }
 }
 
 module Decode = {
@@ -685,6 +699,86 @@ module Decode = {
 
   let findPropertyWithName = (properties, ~name) =>
     properties->Array.find(prop => prop.name == name)
+
+  let validateSlots = (slotsProp, ~ctx): array<slotDef> => {
+    let slots: array<slotDef> = []
+    switch slotsProp {
+    | Some({value: Array({children})}) =>
+      children->Array.forEach(slotNode =>
+        switch slotNode {
+        | Object({properties}) =>
+          switch properties->findPropertyWithName(~name="name") {
+          | Some({value: String({loc, value})}) =>
+            switch Validators.validateSlotName(~loc, ~value, ~ctx) {
+            | Some(slot) =>
+              let slotName = slot.name.text
+              switch slots->Array.some(existing => existing.name.text == slotName) {
+              | true =>
+                ctx.addDecodeError(
+                  ~loc,
+                  ~message=`Duplicate slot "${slotName}". Slots cannot have sibling entries with the same name.`,
+                )
+              | false => slots->Array.push(slot)
+              }
+            | None => ()
+            }
+          | Some({loc, value: node}) =>
+            ctx.addDecodeError(
+              ~loc,
+              ~message=`Slot "name" needs to be a string. Found ${nodeToString(node)}.`,
+            )
+          | None =>
+            ctx.addDecodeError(
+              ~loc=locFromNode(slotNode),
+              ~message=`Slot entries need a "name" prop.`,
+            )
+          }
+        | node =>
+          ctx.addDecodeError(
+            ~loc=locFromNode(node),
+            ~message=`Slot entries must be objects. Found ${nodeToString(node)}.`,
+          )
+        }
+      )
+    | Some({loc, value: node}) =>
+      ctx.addDecodeError(
+        ~loc,
+        ~message=`"slots" needs to be an array. Found ${nodeToString(node)}.`,
+      )
+    | None => ()
+    }
+    slots
+  }
+
+  let validateOutlet = (outletProp, ~ctx, ~parentContext): option<textNode> =>
+    switch outletProp {
+    | Some({value: String({loc, value})}) =>
+      switch (
+        Validators.isValidCapitalizedIdentifier(value),
+        parentContext.availableSlots->Array.includes(value),
+      ) {
+      | (true, true) => Some({loc, text: value})
+      | (false, _) =>
+        ctx.addDecodeError(
+          ~loc,
+          ~message=`"${value}" is not a valid outlet name. Outlet names need to start with an uppercase letter, and can only contain letters, digits and underscores.`,
+        )
+        None
+      | (true, false) =>
+        ctx.addDecodeError(
+          ~loc,
+          ~message=`Outlet "${value}" does not match a slot declared by an ancestor route.`,
+        )
+        None
+      }
+    | Some({loc, value: node}) =>
+      ctx.addDecodeError(
+        ~loc,
+        ~message=`"outlet" needs to be a string. Found ${nodeToString(node)}.`,
+      )
+      None
+    | None => None
+    }
 
   let rec decodeRouteChildren = (
     children,
@@ -778,9 +872,13 @@ module Decode = {
         let pathProp = properties->findPropertyWithName(~name="path")
         let nameProp = properties->findPropertyWithName(~name="name")
         let children = properties->findPropertyWithName(~name="children")
+        let slotsProp = properties->findPropertyWithName(~name="slots")
+        let outletProp = properties->findPropertyWithName(~name="outlet")
 
         let name = nameProp->Validators.validateName(~ctx, ~siblings)
         let path = pathProp->Validators.validatePath(~ctx, ~parentContext)
+        let slots = slotsProp->validateSlots(~ctx)
+        let outlet = outletProp->validateOutlet(~ctx, ~parentContext)
 
         // Params are inherited from all parent routes. This concatenates the
         // previously seen path params from the parents.
@@ -822,6 +920,8 @@ module Decode = {
               pathParams,
               routePath,
               queryParams: path.queryParams->Array.copy,
+              slots,
+              outlet,
               children: None,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
@@ -841,6 +941,8 @@ module Decode = {
               pathParams,
               queryParams: [],
               routePath: RoutePath.empty(),
+              slots,
+              outlet,
               children: None,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
@@ -872,6 +974,9 @@ module Decode = {
                   currentRoutePath: routePath,
                   currentRouteNamePath: thisRouteNamePath,
                   seenQueryParams: path.queryParams,
+                  availableSlots: parentContext.availableSlots->Array.concat(
+                    slots->Array.map(slot => slot.name.text),
+                  ),
                   parentRouteLoc: Some({
                     childrenArray: loc,
                   }),
@@ -892,6 +997,8 @@ module Decode = {
               routePath,
               pathParams,
               queryParams: path.queryParams->Array.copy,
+              slots,
+              outlet,
               children,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
@@ -1091,6 +1198,7 @@ let emptyParentCtx = (~routesByName) => {
   seenPathParams: list{},
   traversedRouteFiles: list{},
   parentRouteLoc: None,
+  availableSlots: [],
   routesByName,
 }
 

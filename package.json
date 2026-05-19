@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "license": "MIT",
-  "packageManager": "yarn@1.22.19",
+  "packageManager": "yarn@3.2.1",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -21,6 +21,7 @@
     "release": "yarn build && yarn changeset publish"
   },
   "dependencies": {
-    "@changesets/cli": "^2.23.1"
+    "@changesets/cli": "^2.23.1",
+    "rescript": "12.2.0"
   }
 }

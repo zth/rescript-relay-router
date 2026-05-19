@@ -10,8 +10,5 @@ test/
 cli/**/*.res
 cli/**/*.resi
 
-# Publish PreloadInsertingStreamNode as it has no ReScript source file.
-!src/PreloadInsertingStreamNode.mjs
-
 # Publish the Vite plugins that projects will need as is.
 !vite-plugins/*.bundle.mjs

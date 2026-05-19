@@ -656,7 +656,6 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
     | Some(outlet) => `Some("${outlet}")`
     | None => "None"
     }},
-    chunk: "${route.name->RouteName.getRouteRendererName}",
     loadRouteRenderer,
     preloadCode: (
       ~environment: RescriptRelay.Environment.t,

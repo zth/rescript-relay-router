@@ -1,6 +1,5 @@
 # Plans
 
-- [x] SSR Relay support, streaming
 - [x] Preload data
 - [x] Preload code
 - [x] Type safe URL makers
@@ -13,7 +12,7 @@
 - [x] Watch routes and rebuild
 - [x] Only write if has changes
 - [x] Ensure @live is added appropriately to enable dead code analysis
-- [x] Explore continously streaming code splitting preload tags
+- [x] Explore code splitting preload tags
 - [x] Unify router approach (react-router, rescript react router, hand rolled, require shallow push, etc)
 - [x] Error handling in vite plugin and CLI commands
 - [x] Allow multiple JSON files to make it easier to split up definitions?
@@ -41,8 +40,6 @@
 - [ ] [later] Validate and harden routes JSON definition, including JSON schema?
 - [ ] [later] Figure out Rollup plugin for linking imports to chunks so we can do proper preloads via modulepreload
 - [ ] [later] Extension integration
-- [ ] [ssr] Validate streaming SSR with defer/stream
-- [ ] [ssr] Package up the streaming etc
 - [ ] [later] CLI for checking whether there are unapplied changes (for use with CI, so process.exit)
 - [ ] [later] Investigate language server features (go to definition of renderer, find route, etc)
 - [ ] [later] Write resi files for routes? (might be cumbersome for some files, as we rely a fair bit on inference)
@@ -54,8 +51,3 @@
 - [ ] [wontfix] Inline React router matchers (it's fine to just depend on RR directly, it seems well suited for tree shaking)
 - [ ] [wontfix] Default values for query params? Not right now, easy enough to implement when needed
 - [ ] [wontfix] Figure out reasonable way to use IDs as polyvariants for tab ids etc (no need for now)
-
-## TODO
-
-- Apply errors to stream
-- Figure out a way to test all of this

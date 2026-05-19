@@ -21,14 +21,4 @@ export default [
     plugins: [resolve({ resolveOnly: ["rescript"] })],
     external: ["fsevents"],
   },
-  {
-    input: "vite-plugins/RescriptRelayServerVitePlugin.mjs",
-    output: {
-      file: "vite-plugins/RescriptRelayServerVitePlugin.bundle.mjs",
-      format: "esm",
-      name: "RescriptRelayServerVitePlugin",
-    },
-    plugins: [resolve({ resolveOnly: ["rescript"] })],
-    external: ["fsevents", "vite"],
-  },
 ];

@@ -91,7 +91,7 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
     | (true, true) =>
       let routeName =
         fileName
-        ->String.sliceToEnd(~start=String.length("Route__"))
+        ->String.slice(~start=String.length("Route__"))
         ->String.replace("_route.res", "")
 
       routeNamesDict->Dict.get(routeName)->Option.isNone
@@ -405,7 +405,7 @@ let runCli = args => {
         try {
           generateRoutes(~scaffoldAfter=scaffoldAfterGenerating, ~deleteRemoved, ~config)
         } catch {
-        | Exn.Error(e) => Console.error(e)
+        | JsExn(e) => Console.error(e)
         | Utils.Decode_error(routeStructure) =>
           routeStructure->Diagnostics.printDiagnostics(~config)
         | err =>

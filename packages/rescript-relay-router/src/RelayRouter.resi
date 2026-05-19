@@ -4,8 +4,6 @@ module Link = RelayRouter__Link
 module Scroll = RelayRouter__Scroll
 module AssetPreloader = RelayRouter__AssetPreloader
 module NetworkUtils = RelayRouter__NetworkUtils
-module PreloadInsertingStream = RelayRouter__PreloadInsertingStream
-module Manifest = RelayRouter__Manifest
 module History = RelayRouter__History
 
 // TODO: This is now exposing RelayRouter internals because it's needed by the generated code.
@@ -45,6 +43,3 @@ module RouteRenderer: {
   @react.component @live
   let make: (~renderPending: bool => React.element=?) => React.element
 }
-
-@live
-let useRegisterPreloadedAsset: Types.preloadAsset => unit

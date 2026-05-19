@@ -6,7 +6,7 @@ type renderRouteFn = (~childRoutes: React.element) => React.element
 type preloadPriority = High | Default | Low
 
 type preloadComponentAsset = {
-  @as("__$rescriptChunkName__") chunk: string,
+  chunk: string,
   load: unit => unit,
 }
 
@@ -29,7 +29,6 @@ type rec route = {
   name: string,
   slots: array<string>,
   outlet: option<string>,
-  @as("__$rescriptChunkName__") chunk: string,
   loadRouteRenderer: unit => promise<unit>,
   preloadCode: (
     ~environment: RescriptRelay.Environment.t,
@@ -94,13 +93,6 @@ type routerContext = {
   subscribeToEvent: onRouterEventFn => unsubFn,
   postRouterEvent: routerEvent => unit,
   markNextNavigationAsShallow: unit => unit,
-}
-
-@live
-type streamedEntry = {
-  id: string,
-  response: JSON.t,
-  final: bool,
 }
 
 @live

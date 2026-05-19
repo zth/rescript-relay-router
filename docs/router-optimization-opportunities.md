@@ -1,6 +1,6 @@
 # Router Optimization Opportunities
 
-This document captures a holistic pass over `rescript-relay-router` with a focus on runtime performance, bundle shape, code splitting, SSR asset loading, and maintainability of the hot paths.
+This document captures a holistic pass over `rescript-relay-router` with a focus on runtime performance, bundle shape, code splitting, and maintainability of the hot paths.
 
 The intent is that each section can be picked up as an independent work item. Some items are direct optimizations with low semantic risk. Others are architectural directions that should start with measurement or a narrow proof of concept.
 
@@ -8,7 +8,6 @@ The intent is that each section can be picked up as an independent work item. So
 
 | Priority | Area | Expected impact | Risk | Suggested owner |
 | --- | --- | --- | --- | --- |
-| P0 | Centralize manifest-backed asset preloading | High for SSR, hydration, and route transitions | Medium | SSR/build integration |
 | P1 | Reuse unchanged prepared matches with explicit freshness policy | High for nested routes with parent queries | High | Relay/runtime |
 | P1 | Centralize location subscriptions | Medium to high in nav-heavy UIs | Medium | React runtime |
 | P2 | Split route declaration payload from route prepare modules | High in very large apps | High | Codegen/build |
@@ -39,13 +38,12 @@ Before changing behavior, add a repeatable way to measure the current costs:
 - Measure number of `prepare` calls per navigation.
 - Measure number of history listeners on a page with many active route hooks.
 - Measure client bundle size and chunk graph for a realistic app.
-- Measure SSR output for preload tag duplication, preload ordering, and hydration timing.
 
 Suggested test fixtures:
 
 - Extend `packages/rescript-relay-router/test/RouterUtils.test.res` for pure route matching and route-key behavior.
 - Add focused tests around generated output in `packages/rescript-relay-router/test/RescriptRelayRouterCli.test.res`.
-- Add a larger example or benchmark fixture under `examples/` only if it exercises Vite chunk output or SSR manifest behavior.
+- Add a larger example or benchmark fixture under `examples/` only if it exercises realistic route trees and Vite chunk output.
 
 Use this baseline to prevent a common failure mode: making the router theoretically cleaner while moving cost from one phase to another without observing the final app behavior.
 
@@ -94,103 +92,7 @@ uses the compiled matcher for initial matching, history updates, and route prelo
 
 - Future vendored React Router changes still need parity tests because this helper is modified.
 
-## 2. Centralize Manifest-Backed Asset Preloading
-
-### Current State
-
-The router has a preload abstraction:
-
-- `Component`
-- `Image`
-- `Style`
-
-Client-side preloading currently de-dupes asset identifiers, but only component assets actually do anything:
-
-- `packages/rescript-relay-router/src/RelayRouter__AssetPreloader.res`
-
-SSR preloading is implemented in the Express example:
-
-- `examples/express/src/EntryServer.res`
-
-The example:
-
-- emits `<script type="module" src="...">` for component chunks
-- recursively walks direct imports
-- emits CSS preload tags
-- treats all manifest assets as images, with a TODO noting this can be wrong
-- has a TODO for duplicate chunk loads
-
-The Vite manifest transform already creates a router-specific manifest:
-
-- `packages/rescript-relay-router/vite-plugins/RescriptRelayVitePlugin__ManifestTransform.res`
-- `packages/rescript-relay-router/src/RelayRouter__Manifest.res`
-
-### Opportunity
-
-Move the default manifest-aware preloading logic into the router package. Make examples consume that default instead of implementing their own.
-
-The router should provide two default preload implementations:
-
-- Client: de-duped `import()` for component chunks, DOM `<link>` insertion for CSS/images/modules when useful.
-- Server: de-duped HTML tag emission through `PreloadInsertingStream`.
-
-The core design should make asset preloading explicit and safe:
-
-- Component chunks should generally use `rel="modulepreload"` on the server, not an eager script execution tag, unless there is a deliberate reason to execute.
-- CSS should use `rel="stylesheet"` or `rel="preload" as="style"` with clear tradeoffs.
-- Images should use `rel="preload" as="image"` only when the asset type is known.
-- Unknown assets should either not be preloaded or should carry metadata from the manifest transform.
-
-### Implementation Steps
-
-1. Extend `RelayRouter__Manifest.file` with enough metadata to avoid guessing asset types.
-   - Option A: store assets as records with `url` and `kind`.
-   - Option B: split manifest fields into `images`, `fonts`, `assets`, etc.
-   - Option C: keep raw assets but infer from extension in one central helper.
-2. Add a shared `AssetPreloader` helper that can expand a component chunk into:
-   - the chunk itself
-   - recursive static imports
-   - associated CSS
-   - associated known assets
-3. Ensure recursion is cycle-safe and de-duped by URL.
-4. Add a server preloader constructor, for example:
-
-   ```rescript
-   let makeServerAssetPreloader: (
-     ~manifest: RelayRouter__Manifest.t,
-     ~emit: string => unit,
-   ) => RelayRouter__Types.preloadAssetFn
-   ```
-
-5. Add a client preloader constructor that optionally accepts the manifest:
-
-   ```rescript
-   let makeClientAssetPreloader: (
-     preparedAssetsMap,
-     ~manifest: option<RelayRouter__Manifest.t>=?,
-   ) => RelayRouter__Types.preloadAssetFn
-   ```
-
-6. Replace the custom SSR implementation in `examples/express/src/EntryServer.res` with the router-provided default.
-7. Preserve the current user extension point: callers can still pass a custom `preloadAsset`.
-8. Add tests for de-dupe and manifest expansion.
-
-### Validation
-
-- SSR output includes no duplicate preload tags for the same URL.
-- Component routes emit module preload tags for the exact chunks needed.
-- CSS needed by matched chunks is emitted.
-- Unknown asset types are not mislabeled as images.
-- Existing examples still hydrate.
-- Client-side `Image` and `Style` preloads are no longer no-ops.
-
-### Risks
-
-- Browser preload behavior is sensitive. `modulepreload`, `preload`, and actual script execution are not interchangeable.
-- Over-preloading can hurt performance. The implementation should respect priority and make aggressive behavior opt-in where possible.
-- Vite manifest shape can differ across versions and config options.
-
-## 3. Reuse Unchanged Prepared Matches With an Explicit Freshness Policy
+## 2. Reuse Unchanged Prepared Matches With an Explicit Freshness Policy
 
 ### Current State
 
@@ -258,7 +160,7 @@ Defaulting this is the important design decision:
 - The policy needs clear docs. Users should understand when reuse is safe.
 - A custom policy can become an API surface that is hard to evolve.
 
-## 4. Split the Route Declaration Payload From Lazy Route Prepare Modules
+## 3. Split the Route Declaration Payload From Lazy Route Prepare Modules
 
 ### Current State
 
@@ -284,7 +186,6 @@ Split the generated route output into:
 1. A small always-loaded match manifest:
    - route path
    - route name
-   - route chunk identifier
    - children
 2. Lazy per-route modules:
    - prepare prop decoding
@@ -298,7 +199,7 @@ The runtime matcher only needs the match manifest. The router only needs the laz
 
 1. Define a smaller route matching type, separate from the executable `route` type.
 2. Update the matcher binding to operate on this smaller type if needed.
-3. Generate a manifest-only `RouteDeclarations.makeManifest()`.
+3. Generate a match-only `RouteDeclarations.makeRouteTree()`.
 4. Generate per-route loader modules that can produce the executable route behavior when matched.
 5. Update `Router.make` to accept either:
    - current eager route objects
@@ -311,7 +212,7 @@ The runtime matcher only needs the match manifest. The router only needs the laz
 - Initial client bundle shrinks for a large generated route tree.
 - Route matching still works without loading unmatched route prepare modules.
 - Preloading a link loads only the modules for the matched branch.
-- SSR still has enough manifest data to emit correct preload tags.
+- The server can still construct the match tree without browser APIs.
 
 ### Risks
 
@@ -319,7 +220,7 @@ The runtime matcher only needs the match manifest. The router only needs the laz
 - It may complicate type-safe generated route module access.
 - Dynamic import boundaries from generated code need careful Vite/Rollup testing.
 
-## 5. Verify and Improve Renderer Chunk Boundaries
+## 4. Verify and Improve Renderer Chunk Boundaries
 
 ### Current State
 
@@ -367,7 +268,7 @@ This may produce cleaner and smaller async chunks.
 - ReScript or Vite may already tree-shake this well enough, making the change unnecessary.
 - The `Routes` access path is more ergonomic. Direct module references are less discoverable.
 
-## 6. Centralize Location Subscriptions
+## 5. Centralize Location Subscriptions
 
 ### Current State
 
@@ -419,7 +320,7 @@ The key goal is one history listener per router instance, not one per hook.
 - Current router route-entry updates skip shallow navigations. Location subscribers must not accidentally inherit that behavior if query param hooks should update.
 - React transition behavior should be reviewed. Some location updates may want transition scheduling, others may not.
 
-## 7. Make Route Keys Collision-Safe
+## 6. Make Route Keys Collision-Safe
 
 ### Landed Shape
 
@@ -450,7 +351,7 @@ query param arrays. It distinguishes:
 
 - If current accidental collisions masked bugs, this can expose them.
 
-## 8. Route Declaration Entrypoints
+## 7. Route Declaration Entrypoints
 
 ### Use Case
 
@@ -565,7 +466,7 @@ This behavior is preferable to render-time filtering because it scopes matching,
 - Generating per-root files can complicate the current generated module structure and LSP helpers.
 - If top-level modules share `loadedRouteRenderers`, code loading can be shared across contexts. If they do not, duplicate dynamic import state may be tracked. Decide explicitly.
 
-## 9. Pool Link Intersection Observers
+## 8. Pool Link Intersection Observers
 
 ### Current State
 
@@ -618,7 +519,7 @@ The default should be conservative, but the current threshold may be too late to
 - Root element identity is awkward as a dictionary key. A JS helper may be cleaner than doing all registry logic in ReScript.
 - Early preloading can increase network usage. Defaults should be measured.
 
-## 10. Replace Reflective Disposable Extraction
+## 9. Replace Reflective Disposable Extraction
 
 ### Current State
 
@@ -678,7 +579,7 @@ The second option avoids wrapping existing prepare returns but still gives expli
 - The API may become noisier for users.
 - Having both explicit and reflective behavior can be confusing. Docs should state precedence clearly.
 
-## 11. Reduce Repeated Query Decoding
+## 10. Reduce Repeated Query Decoding
 
 ### Current State
 
@@ -730,48 +631,16 @@ The simpler near-term improvement is to reuse parsed `QueryParams.t` across rout
 - The cache may need to return fresh copies for mutation-heavy call sites.
 - Over-caching can introduce subtle stale-state bugs.
 
-## 12. SSR Stream Logging and Cleanup
-
-### Current State
-
-`RelaySSRUtils` logs a lot of debug information directly:
-
-- `packages/rescript-relay-router/src/RelaySSRUtils.res`
-
-This includes streamed entry events, boot events, and replay subject cleanup. It is not the largest performance issue, but it can add noise and overhead in production SSR/hydration flows.
-
-### Opportunity
-
-Gate debug logs behind a configuration flag or remove them from the default path.
-
-This belongs in the same family as SSR asset preloading because both affect response streaming and hydration behavior.
-
-### Implementation Steps
-
-1. Add a debug flag or logging callback.
-2. Default it to disabled.
-3. Replace direct `Console.log` calls with the gated logger.
-4. Add a test or example check that production usage does not log by default.
-
-### Validation
-
-- No debug logs in normal example app boot.
-- Logs can still be enabled for stream debugging.
-
-### Risks
-
-- Debugging SSR streaming is hard. Keep an easy way to re-enable logs.
-
 ## Suggested Work Slicing
 
 These work items can be picked up independently:
 
-1. Server/client asset preloader:
-   - practical SSR and code-splitting payoff
-   - likely needs manifest type changes
-2. Location subscription store:
+1. Location subscription store:
    - contained React runtime change
    - needs care around shallow navigation
+2. Named root-tree rendering:
+   - codegen and runtime scoping change
+   - useful for multi-entry apps, admin surfaces, and embedded route renderers
 3. Link observer pooling:
    - contained link component change
    - needs browser behavior validation
@@ -789,20 +658,18 @@ These work items can be picked up independently:
    - may become a small scaffold generation change
 8. Query decoding cache:
    - useful after route-key and location-store work clarify ownership of `search`
-9. SSR stream logging cleanup:
-   - small server-runtime cleanup
-   - should preserve opt-in debugging
 
 ## Recommended Starting Order
 
 Start with:
 
-1. Centralized asset preloading.
+1. Named root-tree rendering, if multi-entry apps or embedded surfaces are a near-term target.
 2. Centralized location subscriptions.
 3. Reduce repeated query decoding.
 4. Prepare freshness policy, behind an explicit opt-in.
 5. Renderer chunk boundary verification before any larger lazy route declaration split.
 
-That order focuses on the remaining SSR/code-splitting payoff first, then reduces router subscription
-and query parsing churn before touching Relay freshness semantics. The larger lazy declaration split
-should wait for bundle analysis so the architectural work is justified by measured chunk output.
+That order improves route-tree boundaries for multi-entry rendering, then reduces router
+subscription and query parsing churn before touching Relay freshness semantics. The larger lazy
+declaration split should wait for bundle analysis so the architectural work is justified by
+measured chunk output.

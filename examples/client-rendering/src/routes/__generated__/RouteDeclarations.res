@@ -31,7 +31,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       name: routeName,
       slots: ["Overlay"],
       outlet: None,
-      chunk: "Root_route_renderer",
       loadRouteRenderer,
       preloadCode: (
         ~environment: RescriptRelay.Environment.t,
@@ -97,7 +96,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           name: routeName,
           slots: [],
           outlet: Some("Overlay"),
-          chunk: "Root__Settings_route_renderer",
           loadRouteRenderer,
           preloadCode: (
             ~environment: RescriptRelay.Environment.t,
@@ -167,7 +165,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           name: routeName,
           slots: [],
           outlet: None,
-          chunk: "Root__Todos_route_renderer",
           loadRouteRenderer,
           preloadCode: (
             ~environment: RescriptRelay.Environment.t,
@@ -237,7 +234,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 name: routeName,
                 slots: [],
                 outlet: None,
-                chunk: "Root__Todos__ByStatus_route_renderer",
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
@@ -310,7 +306,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 name: routeName,
                 slots: [],
                 outlet: None,
-                chunk: "Root__Todos__ByStatusDecoded_route_renderer",
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
@@ -380,7 +375,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                         name: routeName,
                         slots: [],
                         outlet: None,
-                        chunk: "Root__Todos__ByStatusDecoded__Child_route_renderer",
                         loadRouteRenderer,
                         preloadCode: (
                           ~environment: RescriptRelay.Environment.t,
@@ -455,7 +449,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 name: routeName,
                 slots: [],
                 outlet: None,
-                chunk: "Root__Todos__ByStatusDecodedExtra_route_renderer",
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
@@ -532,7 +525,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 name: routeName,
                 slots: [],
                 outlet: None,
-                chunk: "Root__Todos__Single_route_renderer",
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
@@ -606,7 +598,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           name: routeName,
           slots: [],
           outlet: None,
-          chunk: "Root__PathParamsOnly_route_renderer",
           loadRouteRenderer,
           preloadCode: (
             ~environment: RescriptRelay.Environment.t,
@@ -674,7 +665,6 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           name: routeName,
           slots: [],
           outlet: None,
-          chunk: "Root__Home_route_renderer",
           loadRouteRenderer,
           preloadCode: (
             ~environment: RescriptRelay.Environment.t,

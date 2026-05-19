@@ -184,9 +184,9 @@ external requestIdleCallback: (callback, option<{"timeout": int}>) => requestIdl
 @val
 external cancelIdleCallback: requestIdleCallbackId => unit = "window.cancelIdleCallback"
 
-let supportsRequestIdleCallback: bool = switch (RelaySSRUtils.ssr, globalThis["window"]) {
-| (true, _) | (_, None) => false
-| (_, Some(window)) => Type.typeof(window["requestIdleCallback"]) === #function
+let supportsRequestIdleCallback: bool = switch globalThis["window"] {
+| None => false
+| Some(window) => Type.typeof(window["requestIdleCallback"]) === #function
 }
 
 let runCallback = (cb: callback, timeout) => {

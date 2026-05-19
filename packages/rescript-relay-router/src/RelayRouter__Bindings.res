@@ -57,7 +57,7 @@ module QueryParams = {
       let t = make()
 
       let search = if search->String.startsWith("?") {
-        search->String.sliceToEnd(~start=1)
+        search->String.slice(~start=1)
       } else {
         search
       }
@@ -120,51 +120,6 @@ module URL = {
 
   @get
   external getState: t => JSON.t = "state"
-}
-
-type streamedEntry = {
-  id: string,
-  response: option<JSON.t>,
-  final: option<bool>,
-}
-
-module RelayReplaySubject = {
-  type t
-
-  @module("relay-runtime") @new
-  external make: unit => t = "ReplaySubject"
-
-  @send
-  external complete: t => unit = "complete"
-
-  @send
-  external error: (t, JsExn.t) => unit = "error"
-
-  @send
-  external next: (t, JSON.t) => unit = "next"
-
-  @send
-  external subscribe: (
-    t,
-    RescriptRelay.Observable.observer<'response>,
-  ) => RescriptRelay.Observable.subscription = "subscribe"
-
-  @send
-  external unsubscribe: t => unit = "unsubscribe"
-
-  @send
-  external getObserverCount: t => int = "getObserverCount"
-
-  let applyPayload = (t, entry: streamedEntry) => {
-    switch entry {
-    | {final: Some(final), response: Some(response)} =>
-      t->next(response)
-      if final {
-        complete(t)
-      }
-    | _ => ()
-    }
-  }
 }
 
 @module("./vendor/react-router.js")

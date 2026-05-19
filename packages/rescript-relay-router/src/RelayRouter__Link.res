@@ -104,11 +104,6 @@ let make = (
     None
   }, [onRender])
 
-  // Run this on render when SSR:ing if wanted
-  if RelaySSRUtils.ssr {
-    onRender(None)
-  }
-
   // Sets up an intersection observer for the link if wanted
   React.useEffect(() => {
     switch (linkElement.current, preloadData, preloadCode) {
@@ -178,7 +173,8 @@ let make = (
       doPreloadDataAndCode(Some(High))
     }}
     onMouseEnter={_ => onIntent(None)}
-    onFocus={_ => onIntent(None)}>
+    onFocus={_ => onIntent(None)}
+  >
     children
   </a>
 }

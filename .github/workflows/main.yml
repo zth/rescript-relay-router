@@ -34,7 +34,7 @@ jobs:
           yarn install --immutable
       - name: Format ReScript
         run: |
-          yarn workspaces foreach run rescript format -all
+          yarn rescript format
       - name: Build all projects
         run: |
           yarn build

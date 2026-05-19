@@ -4,8 +4,6 @@ module Link = RelayRouter__Link
 module Scroll = RelayRouter__Scroll
 module AssetPreloader = RelayRouter__AssetPreloader
 module NetworkUtils = RelayRouter__NetworkUtils
-module PreloadInsertingStream = RelayRouter__PreloadInsertingStream
-module Manifest = RelayRouter__Manifest
 module History = RelayRouter__History
 
 // TODO: This is now exposing RelayRouter internals because it's needed by the generated code.
@@ -80,10 +78,7 @@ module Router = {
 
     // Preload initially matched route renderers asap, we know we'll need them.
     initialMatches->Array.forEach(({route}) => {
-      Types.Component({
-        chunk: route.chunk,
-        load: () => route.loadRouteRenderer()->ignore,
-      })->preloadAsset(~priority=High)
+      route.loadRouteRenderer()->ignore
     })
 
     let preparedMatches =
@@ -330,17 +325,5 @@ module RouteRenderer = {
         </>
       </Slot.Provider>
     </RelayRouter__Internal.RouterTransitionContext.Provider>
-  }
-}
-
-@live
-let useRegisterPreloadedAsset = asset => {
-  let {preloadAsset} = useRouterContext()
-  try {
-    if RelaySSRUtils.ssr {
-      asset->preloadAsset(~priority=Default)
-    }
-  } catch {
-  | JsExn(_) => ()
   }
 }

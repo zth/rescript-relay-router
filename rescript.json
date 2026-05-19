@@ -1,0 +1,18 @@
+{
+  "name": "rescript-relay-router-monorepo",
+  "jsx": {
+    "version": 4
+  },
+  "package-specs": [
+    {
+      "module": "esmodule",
+      "in-source": true
+    }
+  ],
+  "suffix": ".res.mjs",
+  "dependencies": [
+    "@rescript-relay-router-example/client-rendering",
+    "@rescript-relay-router/test-utils",
+    "rescript-relay-router"
+  ]
+}

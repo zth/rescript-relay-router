@@ -13,12 +13,17 @@ The intent is that each section can be picked up as an independent work item. So
 | P1 | Reuse unchanged prepared matches with explicit freshness policy | High for nested routes with parent queries | High | Relay/runtime |
 | P1 | Centralize location subscriptions | Medium to high in nav-heavy UIs | Medium | React runtime |
 | P1 | Make route keys collision-safe | Correctness fix with cache perf implications | Low | Codegen |
-| P1 | Support rendering one named root-level route tree | High for multi-entry apps and embedded surfaces | Medium | Codegen/runtime |
 | P2 | Split route declaration payload from route prepare modules | High in very large apps | High | Codegen/build |
 | P2 | Verify and improve renderer chunk boundaries | Medium bundle-size opportunity | Medium | Codegen/build |
 | P2 | Pool link intersection observers | Medium on pages with many links | Low | Link/runtime |
 | P2 | Replace reflective disposable extraction | Medium runtime + API robustness | Medium | Relay/runtime API |
 | P3 | Reduce repeated query decoding | Medium in query-heavy route trees | Medium | Codegen/runtime |
+
+Completed since this note was drafted:
+
+- Route declaration entrypoints landed in #199 as `entrypoint: true` on top-level routes. The
+  generated API is `RouteDeclarations.<RouteName>.make()`, with `RouteDeclarations.make()` still
+  returning all top-level route trees.
 
 ## Measurement Baseline
 
@@ -511,7 +516,7 @@ This is a correctness fix first. It also improves performance predictability bec
 - JSON stringification adds minor overhead. It is probably acceptable for correctness, but a length-prefixed string can be faster.
 - If current accidental collisions masked bugs, this can expose them.
 
-## 8. Support Rendering One Named Root-Level Route Tree
+## 8. Route Declaration Entrypoints
 
 ### Use Case
 
@@ -546,68 +551,29 @@ The desired behavior is to load and render only one of those root-level trees in
 
 This is related to code splitting, but it is a distinct requirement. The goal is not only to code split route renderers after matching. The goal is to make the top-level route tree itself a selectable render and build boundary.
 
-### Current State
+### Landed Shape
 
-The parser reads `routes.json` as an array of top-level routes:
+This landed in #199 as route declaration entrypoints. Top-level routes can opt into a generated
+standalone declaration module with `entrypoint: true`:
 
-- `packages/rescript-relay-router/cli/RescriptRelayRouterCli__Parser.res`
-- `packages/rescript-relay-router/cli/RescriptRelayRouterCli__Types.res`
-
-The generated `RouteDeclarations.make()` returns all top-level route trees as one `array<RelayRouter.Types.route>`.
-
-`RelayRouter.RouteRenderer` renders the current router entry's full matched branch:
-
-- `packages/rescript-relay-router/src/RelayRouter.res`
-
-That works well for a single app-wide router. It does not give an ergonomic way to say "construct, match, preload, and render only the `Admin` top-level tree".
-
-### Opportunity
-
-Introduce named root route trees as a first-class generated concept.
-
-At minimum, codegen should expose each top-level route tree independently. Possible API shapes:
-
-```rescript
-let routes = RouteDeclarations.makeRoot(~root=#Admin)
+```json
+{
+  "path": "/admin",
+  "name": "Admin",
+  "entrypoint": true,
+  "children": []
+}
 ```
 
-or:
+The generated route declaration construction API is:
 
 ```rescript
 let routes = RouteDeclarations.Admin.make()
 ```
 
-or:
+`RouteDeclarations.make()` remains the backwards-compatible all-routes API.
 
-```rescript
-let routes = RouteDeclarations.make(~roots=[#Admin])
-```
-
-The route name should likely come from the existing top-level `name` field. A top-level route named `Admin` becomes a selectable root tree named `#Admin`.
-
-This unlocks several patterns:
-
-- Create separate router contexts per entrypoint, each with only the relevant root tree.
-- Build separate client bundles that import only the relevant generated root-tree maker.
-- Keep type-safe route helpers for all routes available when desired, while allowing runtime declarations to be scoped.
-- Combine with lazy route declaration splitting later so importing `Admin.make()` does not pull `Root` and `Embedded` runtime declarations into the same bundle.
-
-### API Design Considerations
-
-There are two related but separate APIs:
-
-1. Route declaration construction.
-2. Route rendering from an existing router context.
-
-For route declaration construction, prefer a generated module per top-level route:
-
-```rescript
-let routes = RouteDeclarations.Admin.make()
-```
-
-This is friendlier to bundlers than a single `make(~root=#Admin)` switch because static imports can point at one generated module. It also leaves room for each top-level tree to live in its own generated file later.
-
-For route rendering, prefer keeping `RouteRenderer` simple and context-driven:
+Route rendering remains context-driven:
 
 ```rescript
 let (_, routerContext) = RelayRouter.Router.make(
@@ -620,38 +586,8 @@ let (_, routerContext) = RelayRouter.Router.make(
 </RelayRouter.Provider>
 ```
 
-An optional `RouteRenderer(~root=...)` prop is possible, but it is less clean because matching and preloading would still have happened against the broader route tree. Filtering at render time would save less work and could create confusing behavior where links preload routes the renderer will not show.
-
-### Implementation Steps
-
-1. Identify top-level route entries during codegen.
-2. Generate a module for each top-level route tree:
-
-   ```rescript
-   module Root = {
-     let make = (~prepareDisposeTimeout=?) => [rootRoute]
-   }
-
-   module Admin = {
-     let make = (~prepareDisposeTimeout=?) => [adminRoute]
-   }
-
-   module Embedded = {
-     let make = (~prepareDisposeTimeout=?) => [embeddedRoute]
-   }
-   ```
-
-3. Keep the current `RouteDeclarations.make()` API as the backwards-compatible "all roots" entrypoint.
-4. Ensure generated top-level modules share the same loaded route renderer cache only when that is desired.
-   - If multiple router contexts can exist on one page, a shared cache may be beneficial for code imports.
-   - Prepared route caches should remain scoped per `make()` result/router instance.
-5. Add generated signatures in `RouteDeclarations.resi`.
-6. Update README examples to show:
-   - all routes
-   - one named root tree
-   - separate app entrypoints using separate generated root modules
-7. Add codegen tests that verify generated modules exist for multiple top-level route entries.
-8. Add runtime tests or example coverage for creating a router with only one named root tree.
+This is preferable to render-time filtering because it scopes matching, preloading, preparation, and
+rendering consistently. A `RouteRenderer(~root=...)` prop would filter too late.
 
 ### Code Splitting Follow-Up
 

@@ -83,9 +83,14 @@ module Router = {
 
     let preparedMatches =
       initialMatches->prepareMatches(~environment, ~queryParams=initialQueryParams, ~location)
+    let initialMatchedRoutes = initialMatches->RelayRouter__MatchedRoutes.make(preparedMatches)
 
     let currentEntry = ref(
-      preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(~location),
+      preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
+        ~location,
+        ~queryParams=initialQueryParams,
+        ~matchedRoutes=initialMatchedRoutes,
+      ),
     )
     let currentLocation = ref(location)
 
@@ -118,8 +123,13 @@ module Router = {
 
         let matches = matchLocation(location)->Option.getOr([])
         let preparedMatches = matches->prepareMatches(~environment, ~queryParams, ~location)
+        let matchedRoutes = matches->RelayRouter__MatchedRoutes.make(preparedMatches)
         currentEntry.contents =
-          preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(~location)
+          preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
+            ~location,
+            ~queryParams,
+            ~matchedRoutes,
+          )
 
         // Notify anyone interested about routes that will now unmount.
         currentMatches->Array.forEach(({routeKey}) => {

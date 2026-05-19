@@ -13,7 +13,7 @@ let makePreparedMatch = (~routeName, ~slots=[], ~outlet=?, ()) => {
   render,
 }
 
-let routeNames = matches =>
+let routeNames = (matches: array<RelayRouter__Types.preparedMatch>) =>
   matches->Array.map(({RelayRouter__Types.routeName: routeName}) => routeName)
 
 let renderElement = text =>
@@ -34,6 +34,9 @@ let testLocation =
   RelayRouter.History.createMemoryHistory(
     ~options={"initialEntries": ["/preferences/account"]},
   )->RelayRouter.History.getLocation
+
+let testQueryParams = RelayRouter.Bindings.QueryParams.parse("")
+let testMatchedRoutes = []
 
 describe("RelayRouter__RouteSlots", () => {
   test("splits an outlet branch away from the primary route branch", _t => {
@@ -101,7 +104,11 @@ describe("RelayRouter__RouteSlots", () => {
     ]
 
     let routeEntry =
-      matches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(~location=testLocation)
+      matches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
+        ~location=testLocation,
+        ~queryParams=testQueryParams,
+        ~matchedRoutes=testMatchedRoutes,
+      )
 
     expect(routeEntry.primaryMatches->routeNames)->Expect.toStrictEqual(["Shell"])
     expect(routeEntry.allMatches->routeNames)->Expect.toStrictEqual([
@@ -135,7 +142,11 @@ describe("RelayRouter__RouteSlots", () => {
     ]
 
     let routeEntry =
-      matches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(~location=testLocation)
+      matches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
+        ~location=testLocation,
+        ~queryParams=testQueryParams,
+        ~matchedRoutes=testMatchedRoutes,
+      )
     let routerContext: RelayRouter.Types.routerContext = {
       preload: (~priority=?, _url) => ignore(priority),
       preloadCode: (~priority=?, _url) => ignore(priority),

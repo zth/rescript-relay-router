@@ -115,6 +115,8 @@ let splitPreparedMatches = (preparedMatches: array<preparedMatch>): (
 let routeSetFromPreparedMatches = (
   preparedMatches: array<preparedMatch>,
   ~location,
+  ~queryParams,
+  ~matchedRoutes,
 ): currentRouterEntry => {
   let (primaryMatches, slotBranch) = preparedMatches->splitPreparedMatches
 
@@ -131,6 +133,8 @@ let routeSetFromPreparedMatches = (
 
   {
     location,
+    queryParams,
+    matchedRoutes,
     preparedMatches,
     primaryMatches,
     slotContents,

@@ -209,6 +209,73 @@ describe("Route slots", () => {
   })
 })
 
+describe("Route targets", () => {
+  test("generates typed route target helpers without putting logic in Routes.res", _t => {
+    withGeneratedRoutes(
+      `[
+        {
+          "name": "Shell",
+          "path": "/w/:workspaceSlug?paneConfig=string",
+          "children": [
+            {
+              "name": "Channel",
+              "path": "c/:channelSlug?filter=string",
+              "children": [
+                {
+                  "name": "Thread",
+                  "path": "thread/:threadId"
+                }
+              ]
+            }
+          ]
+        }
+      ]`,
+      (~generatedPath) => {
+        let routes = readGeneratedFile(~generatedPath, ~fileName="Routes.res")
+        let shellRoute = readGeneratedFile(~generatedPath, ~fileName="Route__Shell_route.res")
+        let channelRoute = readGeneratedFile(
+          ~generatedPath,
+          ~fileName="Route__Shell__Channel_route.res",
+        )
+        let threadRoute = readGeneratedFile(
+          ~generatedPath,
+          ~fileName="Route__Shell__Channel__Thread_route.res",
+        )
+
+        expect(routes)->Expect.String.toContain("module Target = Route__Shell_route.Target")
+        expect(routes)->Expect.String.toContain(
+          "module Target = Route__Shell__Channel__Thread_route.Target",
+        )
+        expect(routes->String.includes("let "))->Expect.toBe(false)
+
+        expect(shellRoute)->Expect.String.toContain("module Target = {")
+        expect(shellRoute)->Expect.String.toContain(
+          "| Channel__Thread(Route__Shell__Channel__Thread_route.target)",
+        )
+        expect(shellRoute)->Expect.String.toContain("let fromEntry =")
+        expect(shellRoute)->Expect.String.toContain("let useCurrent =")
+        expect(shellRoute)->Expect.String.toContain("let fromLocation =")
+        expect(shellRoute)->Expect.String.toContain("let toPath =")
+        expect(shellRoute)->Expect.String.toContain("let key = toPath")
+        expect(shellRoute)->Expect.String.toContain("let routeName =")
+
+        expect(channelRoute)->Expect.String.toContain("type target = {")
+        expect(channelRoute)->Expect.String.toContain("workspaceSlug: string,")
+        expect(channelRoute)->Expect.String.toContain("channelSlug: string,")
+        expect(channelRoute)->Expect.String.toContain("paneConfig: option<string>,")
+        expect(channelRoute)->Expect.String.toContain("filter: option<string>,")
+        expect(channelRoute)->Expect.String.toContain("let targetFromMatchedRoute =")
+        expect(channelRoute)->Expect.String.toContain("let targetToPath =")
+
+        expect(threadRoute)->Expect.String.toContain("threadId: string,")
+        expect(
+          threadRoute,
+        )->Expect.String.toContain(`makeLink(~threadId=target.threadId, ~workspaceSlug=target.workspaceSlug, ~channelSlug=target.channelSlug`)
+      },
+    )
+  })
+})
+
 describe("Route declarations", () => {
   test("generates standalone make modules only for top-level routes marked entrypoint", _t => {
     withGeneratedRoutes(

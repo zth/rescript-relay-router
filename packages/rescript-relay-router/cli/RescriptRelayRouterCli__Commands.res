@@ -117,6 +117,8 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
         Codegen.getPrepareTypeDefinitions(route) ++ "}",
         Codegen.getQueryParamAssets(route),
         Codegen.getRouteMakerAndAssets(route),
+        Codegen.getTargetAssets(route),
+        Codegen.getTargetModule(route),
         Codegen.getActiveRouteAssets(route),
         Codegen.getSlotAssets(route),
         Codegen.getUsePathParamsHook(route),

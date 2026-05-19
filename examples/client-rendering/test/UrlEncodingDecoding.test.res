@@ -4,6 +4,8 @@ open TestingLibraryReact
 
 let makeRouteEntry = (location): RelayRouter.Types.currentRouterEntry => {
   location,
+  queryParams: RelayRouter.Bindings.QueryParams.parse(location.search),
+  matchedRoutes: [],
   preparedMatches: [],
   primaryMatches: [],
   slotContents: dict{},
@@ -127,6 +129,62 @@ describe("parsing", () => {
     unsubscribeLocation()
     unsubscribeRoute()
     cleanup()
+  })
+
+  test("router entry exposes matched routes and generated targets can read them", _t => {
+    let routes = RouteDeclarations.make()
+    let (cleanup, routerContext) = RelayRouter.Router.make(
+      ~routes,
+      ~environment=RelayEnv.environment,
+      ~routerEnvironment=RelayRouter.RouterEnvironment.makeServerEnvironment(
+        ~initialUrl="/todos/extra/completed?byValue=from-url",
+      ),
+      ~preloadAsset=RelayRouter.AssetPreloader.makeClientAssetPreloader(RelayEnv.preparedAssetsMap),
+    )
+    let entry = routerContext.get()
+
+    switch entry.matchedRoutes->Array.get(entry.matchedRoutes->Array.length - 1) {
+    | Some(matchedRoute) =>
+      expect(matchedRoute.routeName)->Expect.toBe("Root__Todos__ByStatusDecodedExtra")
+      expect(matchedRoute.pathParams->Dict.get("byStatusDecoded"))->Expect.toBe(Some("completed"))
+    | None => expect("missing matched route")->Expect.toBe("matched route")
+    }
+
+    switch entry->Routes.Root.Target.fromEntry {
+    | Some(Routes.Root.Target.Todos__ByStatusDecodedExtra(target)) =>
+      let rootTarget = Routes.Root.Target.Todos__ByStatusDecodedExtra(target)
+      expect((target.byStatusDecoded :> string))->Expect.toBe("completed")
+      expect(target.byValue)->Expect.toBe(Some("from-url"))
+      expect(rootTarget->Routes.Root.Target.routeName)->Expect.toBe(
+        "Root__Todos__ByStatusDecodedExtra",
+      )
+      expect(rootTarget->Routes.Root.Target.toPath)->Expect.toBe(
+        "/todos/extra/completed?byValue=from-url",
+      )
+    | Some(_) => expect("unexpected route target")->Expect.toBe("todos extra target")
+    | None => expect("missing route target")->Expect.toBe("todos extra target")
+    }
+
+    cleanup()
+  })
+
+  test("generated targets can be built by parsing a location", _t => {
+    let history = RelayRouter.History.createMemoryHistory(
+      ~options={"initialEntries": ["/todos/extra/not-completed?byValue=from-location"]},
+    )
+    let location = history->RelayRouter.History.getLocation
+
+    switch location->Routes.Root.Target.fromLocation {
+    | Some(Routes.Root.Target.Todos__ByStatusDecodedExtra(target)) =>
+      let rootTarget = Routes.Root.Target.Todos__ByStatusDecodedExtra(target)
+      expect((target.byStatusDecoded :> string))->Expect.toBe("not-completed")
+      expect(target.byValue)->Expect.toBe(Some("from-location"))
+      expect(rootTarget->Routes.Root.Target.key)->Expect.toBe(
+        "/todos/extra/not-completed?byValue=from-location",
+      )
+    | Some(_) => expect("unexpected route target")->Expect.toBe("todos extra target")
+    | None => expect("missing route target")->Expect.toBe("todos extra target")
+    }
   })
 
   test("parseRoute correctly decode query params", _t => {

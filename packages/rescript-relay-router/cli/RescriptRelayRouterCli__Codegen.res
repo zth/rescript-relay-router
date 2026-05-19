@@ -3,6 +3,17 @@ module Utils = RescriptRelayRouterCli__Utils
 
 let wrapInOpt = str => `option<${str}>`
 
+let indentLines = str =>
+  str
+  ->String.split("\n")
+  ->Array.map(line =>
+    switch line == "" {
+    | true => line
+    | false => `  ${line}`
+    }
+  )
+  ->Array.join("\n")
+
 // Param and query param names might collide with eachother, as well as with
 // "builtins" we use, like "environment". This helps handle that by checking for
 // collisions, letting us refer to safe names where needed.
@@ -40,6 +51,175 @@ module SafeParam = {
     switch key {
     | Actual(key) | CollisionPrevented({realKey: key}) => key
     }
+}
+
+type targetFieldSource =
+  | TargetPathParam(printablePathParam)
+  | TargetQueryParam(queryParam)
+
+type targetField = {
+  fieldName: string,
+  originalName: string,
+  typ: string,
+  source: targetFieldSource,
+}
+
+let getTargetFields = (route: printableRoute): array<targetField> => {
+  let fields = []
+
+  route.params->Array.forEach(param => {
+    let fieldName = Utils.printablePathParamToParamName(param)
+    fields->Array.push({
+      fieldName,
+      originalName: fieldName,
+      typ: Utils.printablePathParamToTypeStr(param),
+      source: TargetPathParam(param),
+    })
+  })
+
+  route.queryParams
+  ->Dict.toArray
+  ->Array.forEach(((queryParamName, queryParam)) => {
+    let safeParam = QueryParam(queryParamName)->SafeParam.makeSafeParamName(~params=route.params)
+    let queryParamType = queryParam->Utils.QueryParams.toTypeStr
+
+    fields->Array.push({
+      fieldName: safeParam->SafeParam.getSafeKey,
+      originalName: queryParamName,
+      typ: switch queryParam->Utils.queryParamIsOptional {
+      | true => queryParamType->wrapInOpt
+      | false => queryParamType
+      },
+      source: TargetQueryParam(queryParam),
+    })
+  })
+
+  fields
+}
+
+let getTargetTypeDefinition = (route: printableRoute) => {
+  switch route->getTargetFields {
+  | [] => "@live\ntype target = unit\n"
+  | fields =>
+    `@live
+type target = {
+${fields->Array.map(field => `  ${field.fieldName}: ${field.typ},`)->Array.join("\n")}
+}
+`
+  }
+}
+
+let getPathParamTargetValue = (param: printablePathParam, ~paramName) => {
+  let rawValue = `matchedRoute.pathParams->Dict.getUnsafe("${paramName}")`
+  switch param {
+  | PrintableRegularPathParam({text, pathToCustomModuleWithTypeT}) =>
+    `${rawValue}->((${text}RawAsString: string) => (${text}RawAsString :> ${pathToCustomModuleWithTypeT}))`
+  | PrintablePathParamWithMatchBranches(_) => `${rawValue}->Obj.magic`
+  | PrintableRegularPathParam(_) => rawValue
+  }
+}
+
+let getTargetRecordLiteral = (route: printableRoute, ~pathParamsSource) => {
+  let fields = route->getTargetFields
+
+  switch fields {
+  | [] => "()"
+  | fields =>
+    `{
+${fields
+      ->Array.map(field => {
+        let value = switch field.source {
+        | TargetPathParam(param) =>
+          switch pathParamsSource {
+          | "matchedRoute" => getPathParamTargetValue(param, ~paramName=field.originalName)
+          | pathParamsSource => `${pathParamsSource}.${field.fieldName}`
+          }
+        | TargetQueryParam(_) => `decodedQueryParams.${field.originalName}`
+        }
+        `  ${field.fieldName}: ${value},`
+      })
+      ->Array.join("\n")}
+}`
+  }
+}
+
+let getMakeLinkTargetArguments = (route: printableRoute) => {
+  route
+  ->getTargetFields
+  ->Array.map(field =>
+    switch field.source {
+    | TargetPathParam(_) => `~${field.fieldName}=target.${field.fieldName}`
+    | TargetQueryParam(queryParam) =>
+      switch queryParam->Utils.queryParamIsOptional {
+      | true => `~${field.fieldName}=?target.${field.fieldName}`
+      | false => `~${field.fieldName}=target.${field.fieldName}`
+      }
+    }
+  )
+  ->Array.join(", ")
+}
+
+let getTargetAssets = (route: printableRoute) => {
+  let fullRouteName = route.name->RouteName.getFullRouteName
+  let hasQueryParams = route.queryParams->Dict.keysToArray->Array.length > 0
+  let targetRecordLiteral = route->getTargetRecordLiteral(~pathParamsSource="matchedRoute")
+  let targetFromMatchedRoute = `@live
+let targetFromMatchedRoute = (
+  matchedRoute: RelayRouter.Types.matchedRoute,
+  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+): option<target> =>
+  switch matchedRoute.routeName {
+  | "${fullRouteName}" =>
+${switch hasQueryParams {
+    | true => "    let decodedQueryParams = Internal.parseQueryParams(queryParams)\n"
+    | false => "    ignore(queryParams)\n"
+    }}    Some(${targetRecordLiteral
+    ->String.split("\n")
+    ->Array.mapWithIndex((line, index) =>
+      switch index {
+      | 0 => line
+      | _ => `    ${line}`
+      }
+    )
+    ->Array.join("\n")})
+  | _ => None
+  }
+`
+
+  let targetToPath = switch route->getTargetFields {
+  | [] => `@live\nlet targetToPath = (_target: target): string => makeLink()\n`
+  | _ =>
+    `@live
+let targetToPath = (target: target): string =>
+  makeLink(${route->getMakeLinkTargetArguments})
+`
+  }
+
+  `${route->getTargetTypeDefinition}
+${targetFromMatchedRoute}
+@live
+let targetFromLocation = (location: RelayRouter.History.location): option<target> => {
+  let queryParams = RelayRouter.Bindings.QueryParams.parse(location.search)
+  switch RelayRouter.Internal.matchPathWithOptions({"path": routePattern, "end": true}, location.pathname) {
+  | Some({params}) =>
+    targetFromMatchedRoute({
+      routeName: "${fullRouteName}",
+      routeKey: "",
+      pathParams: params,
+      slots: [],
+      outlet: None,
+    }, ~queryParams)
+  | None => None
+  }
+}
+
+${targetToPath}
+@live
+let targetKey = targetToPath
+
+@live
+let targetRouteName = "${fullRouteName}"
+`
 }
 
 let getRouteMakerAndAssets = (route: printableRoute) => {
@@ -843,4 +1023,157 @@ let parseRoute: (
   } else {
     ""
   }
+}
+
+let rec flattenRoutes = (route: printableRoute): array<printableRoute> => {
+  let routes = [route]
+  route.children->Array.forEach(child => {
+    child->flattenRoutes->Array.forEach(route => routes->Array.push(route))
+  })
+  routes
+}
+
+let targetVariantName = (~root: printableRoute, route: printableRoute) => {
+  let rootName = root.name->RouteName.getFullRouteName
+  let routeName = route.name->RouteName.getFullRouteName
+
+  switch routeName == rootName {
+  | true => "Self"
+  | false => routeName->String.replace(`${rootName}__`, "")
+  }
+}
+
+let targetRouteAccessor = (~root: printableRoute, route: printableRoute, ~localName) => {
+  let rootName = root.name->RouteName.getFullRouteName
+  let routeName = route.name->RouteName.getFullRouteName
+
+  switch routeName == rootName {
+  | true => localName
+  | false => `${route.name->RouteName.toGeneratedRouteModuleName}.${localName}`
+  }
+}
+
+let rec getTargetFromLocationChain = (
+  routes: list<printableRoute>,
+  ~root: printableRoute,
+  ~indentation,
+) => {
+  let indentationStr = "  "->String.repeat(indentation)
+  switch routes {
+  | list{} => `${indentationStr}None`
+  | list{route, ...rest} =>
+    let variantName = route->targetVariantName(~root)
+    let targetFromLocation = route->targetRouteAccessor(~root, ~localName="targetFromLocation")
+    `${indentationStr}switch ${targetFromLocation}(location) {
+${indentationStr}| Some(target) => Some(${variantName}(target))
+${indentationStr}| None =>
+${rest->getTargetFromLocationChain(~root, ~indentation=indentation + 1)}
+${indentationStr}}`
+  }
+}
+
+let getTargetModule = (root: printableRoute) => {
+  let routes = root->flattenRoutes
+  let variantLines =
+    routes
+    ->Array.map(route => {
+      let variantName = route->targetVariantName(~root)
+      let targetType = route->targetRouteAccessor(~root, ~localName="target")
+      `  | ${variantName}(${targetType})`
+    })
+    ->Array.join("\n")
+
+  let fromMatchedRouteCases =
+    routes
+    ->Array.map(route => {
+      let variantName = route->targetVariantName(~root)
+      let routeName = route.name->RouteName.getFullRouteName
+      let targetFromMatchedRoute =
+        route->targetRouteAccessor(~root, ~localName="targetFromMatchedRoute")
+      `  | "${routeName}" =>
+    ${targetFromMatchedRoute}(matchedRoute, ~queryParams)->Option.map(target =>
+      ${variantName}(target)
+    )`
+    })
+    ->Array.join("\n")
+
+  let toPathCases =
+    routes
+    ->Array.map(route => {
+      let variantName = route->targetVariantName(~root)
+      let targetToPath = route->targetRouteAccessor(~root, ~localName="targetToPath")
+      `  | ${variantName}(target) => ${targetToPath}(target)`
+    })
+    ->Array.join("\n")
+
+  let routeNameCases =
+    routes
+    ->Array.map(route => {
+      let variantName = route->targetVariantName(~root)
+      let routeName = route.name->RouteName.getFullRouteName
+      `  | ${variantName}(_) => "${routeName}"`
+    })
+    ->Array.join("\n")
+
+  let body = `@live
+type t =
+${variantLines}
+
+let fromMatchedRoute = (
+  matchedRoute: RelayRouter.Types.matchedRoute,
+  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+): option<t> =>
+  switch matchedRoute.routeName {
+${fromMatchedRouteCases}
+  | _ => None
+  }
+
+let fromEntryWithQueryParams = (
+  entry: RelayRouter.Types.currentRouterEntry,
+  ~queryParams: RelayRouter.Bindings.QueryParams.t,
+): option<t> =>
+  switch entry.matchedRoutes->Array.toReversed->Array.get(0) {
+  | Some(matchedRoute) => fromMatchedRoute(matchedRoute, ~queryParams)
+  | None => None
+  }
+
+let fromEntry = (entry: RelayRouter.Types.currentRouterEntry): option<t> =>
+  fromEntryWithQueryParams(entry, ~queryParams=entry.queryParams)
+
+let useCurrent = (): option<t> => {
+  let router = RelayRouter.useRouterContext()
+  let location = RelayRouter.Utils.useLocation()
+  let (entry, setEntry) = React.useState(() => router.get())
+
+  React.useEffect(() => {
+    let dispose = router.subscribe(nextEntry => setEntry(_ => nextEntry))
+    Some(dispose)
+  }, [router])
+
+  React.useMemo(() => {
+    let queryParams = RelayRouter.Bindings.QueryParams.parse(location.search)
+    fromEntryWithQueryParams(entry, ~queryParams)
+  }, (entry, location.search))
+}
+
+let fromLocation = (location: RelayRouter.History.location): option<t> =>
+${routes->List.fromArray->getTargetFromLocationChain(~root, ~indentation=1)}
+
+let toPath = (target: t): string =>
+  switch target {
+${toPathCases}
+  }
+
+let key = toPath
+
+let routeName = (target: t): string =>
+  switch target {
+${routeNameCases}
+  }
+`
+
+  `module Target = {
+${body->indentLines}
+}
+`
 }

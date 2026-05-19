@@ -8,7 +8,6 @@ The intent is that each section can be picked up as an independent work item. So
 
 | Priority | Area | Expected impact | Risk | Suggested owner |
 | --- | --- | --- | --- | --- |
-| P0 | Precompile route matching | High for large route trees and link-heavy pages | Medium | Runtime/router |
 | P0 | Centralize manifest-backed asset preloading | High for SSR, hydration, and route transitions | Medium | SSR/build integration |
 | P1 | Reuse unchanged prepared matches with explicit freshness policy | High for nested routes with parent queries | High | Relay/runtime |
 | P1 | Centralize location subscriptions | Medium to high in nav-heavy UIs | Medium | React runtime |
@@ -20,6 +19,8 @@ The intent is that each section can be picked up as an independent work item. So
 
 Completed since this note was drafted:
 
+- Precompiled route matching landed in #195. The router now compiles route metadata once per router
+  instance and reuses it for initial matching, navigation, and link preloading.
 - Route declaration entrypoints landed in #199 as `entrypoint: true` on top-level routes. The
   generated API is `RouteDeclarations.<RouteName>.make()`, with `RouteDeclarations.make()` still
   returning all top-level route trees.
@@ -50,33 +51,9 @@ Use this baseline to prevent a common failure mode: making the router theoretica
 
 ## 1. Precompile Route Matching
 
-### Current State
+### Landed Shape
 
-Route matching is delegated to the vendored React Router helper:
-
-- `packages/rescript-relay-router/src/vendor/react-router.js`
-- `packages/rescript-relay-router/src/RelayRouter.res`
-
-`matchRoutes` currently performs work every time it is called:
-
-- It flattens the full route tree.
-- It ranks branches.
-- It computes path scores.
-- It compiles path regexes through `matchPath` while trying branches.
-
-The router calls this in several hot paths:
-
-- Initial route matching in `Router.make`.
-- Every history update.
-- Every `preload` and `preloadCode` call, including link intent and in-view preloads.
-
-This means pages with many links can repeatedly flatten and sort the exact same static route tree.
-
-### Opportunity
-
-Compile the route tree once when the router is created. Reuse the compiled branch list for all later matching.
-
-The likely shape is:
+This landed in #195. The vendored React Router helper now exposes a compiled matching path:
 
 ```rescript
 type compiledRoutes
@@ -89,7 +66,7 @@ external matchCompiledRoutes: (
 ) => option<array<routeMatch>> = "matchCompiledRoutes"
 ```
 
-The JS side can preserve most of the vendored implementation, but split it into two phases:
+The JS side splits matching into two phases:
 
 - `compileRoutes(routes)`:
   - flatten routes once
@@ -101,40 +78,21 @@ The JS side can preserve most of the vendored implementation, but split it into 
   - iterate ranked branches
   - match against precomputed branch metadata
 
-### Implementation Steps
-
-1. Add `compileRoutes` and `matchCompiledRoutes` to `vendor/react-router.js`.
-2. Keep `matchRoutes` as a compatibility wrapper that calls `matchCompiledRoutes(compileRoutes(routes), location)`.
-3. Add ReScript bindings in `RelayRouter.res` or a dedicated internal bindings module.
-4. In `Router.make`, compile routes once:
-
-   ```rescript
-   let compiledRoutes = compileRoutes(routes)
-   let matchLocation = matchCompiledRoutes(compiledRoutes, ...)
-   ```
-
-5. Update initial matching, navigation matching, and `runOnEachRouteMatch` to use the compiled matcher.
-6. Add tests showing that old `matchRoutes` and new compiled matching return identical matches for:
-   - root route
-   - nested route
-   - dynamic param route
-   - regex path param route
-   - unmatched route
-   - trailing slash behavior
-7. Add a small performance test or benchmark script that demonstrates flatten/sort is no longer repeated.
+`matchRoutes` remains as a compatibility wrapper. `Router.make` compiles route metadata once and
+uses the compiled matcher for initial matching, history updates, and route preloading.
 
 ### Validation
 
 - Existing router tests pass.
-- A new route-matching parity test passes.
-- Synthetic benchmark shows navigation/preload matching no longer scales with route-tree flattening and sorting.
+- Route-matching parity tests cover root, nested, dynamic param, regex param, splat, trailing slash,
+  and unmatched routes.
+- Tests cover preserving route object identity.
+- Tests cover that compiled matching does not re-walk route children after compilation.
 - Vite build still tree-shakes the vendored helper as before.
 
 ### Risks
 
-- The vendored React Router helper is modified, so parity tests matter.
-- Route objects contain closures for loading/preparing routes. The compiled structure must preserve route object identity so matched route behavior remains unchanged.
-- Precompiled regexes must preserve current decoding behavior.
+- Future vendored React Router changes still need parity tests because this helper is modified.
 
 ## 2. Centralize Manifest-Backed Asset Preloading
 
@@ -808,47 +766,43 @@ This belongs in the same family as SSR asset preloading because both affect resp
 
 These work items can be picked up independently:
 
-1. Route-key safety:
-   - smallest codegen-only correctness fix
-   - good first issue before deeper cache work
-2. Compiled route matching:
-   - contained runtime/vendor change
-   - requires parity tests
-3. Server/client asset preloader:
+1. Server/client asset preloader:
    - practical SSR and code-splitting payoff
    - likely needs manifest type changes
-4. Location subscription store:
+2. Location subscription store:
    - contained React runtime change
    - needs care around shallow navigation
-5. Named root-tree rendering:
-   - codegen and runtime scoping change
-   - useful for multi-entry apps, admin surfaces, and embedded route renderers
-6. Link observer pooling:
+3. Link observer pooling:
    - contained link component change
    - needs browser behavior validation
-7. Explicit disposal API:
+4. Explicit disposal API:
    - API evolution
    - should preserve fallback behavior
-8. Prepare freshness policy:
+5. Prepare freshness policy:
    - highest semantic risk
    - should start behind opt-in policy
-9. Lazy route declaration split:
+6. Lazy route declaration split:
    - larger architecture project
    - should start with bundle analysis and a PoC
-10. Renderer chunk boundary verification:
+7. Renderer chunk boundary verification:
    - measurement-first
    - may become a small scaffold generation change
-11. Query decoding cache:
+8. Query decoding cache:
    - useful after route-key and location-store work clarify ownership of `search`
+9. SSR stream logging cleanup:
+   - small server-runtime cleanup
+   - should preserve opt-in debugging
 
 ## Recommended Starting Order
 
 Start with:
 
-1. Route-key safety.
-2. Compiled route matching.
-3. Centralized asset preloading.
-4. Named root-tree rendering, if multi-entry apps or embedded surfaces are a near-term target.
-5. Centralized location subscriptions.
+1. Centralized asset preloading.
+2. Centralized location subscriptions.
+3. Reduce repeated query decoding.
+4. Prepare freshness policy, behind an explicit opt-in.
+5. Renderer chunk boundary verification before any larger lazy route declaration split.
 
-That order fixes one correctness issue, removes one clear hot-path inefficiency, improves SSR/code-splitting behavior, and adds a concrete route-tree boundary for multi-entry rendering before tackling lower-level React subscription churn. It also avoids changing Relay freshness semantics until there is enough measurement infrastructure to evaluate that tradeoff properly.
+That order focuses on the remaining SSR/code-splitting payoff first, then reduces router subscription
+and query parsing churn before touching Relay freshness semantics. The larger lazy declaration split
+should wait for bundle analysis so the architectural work is justified by measured chunk output.

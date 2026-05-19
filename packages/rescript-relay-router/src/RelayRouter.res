@@ -15,9 +15,16 @@ module Utils = RelayRouter__Utils
 open Types
 open Bindings
 
+type compiledRoutes
+
+@module("./vendor/react-router.js")
+external compileRoutes: array<route> => compiledRoutes = "compileRoutes"
+
 @module("./vendor/react-router.js") @return(nullable)
-external matchRoutes: (array<route>, RelayRouter__History.location) => option<array<routeMatch>> =
-  "matchRoutes"
+external matchCompiledRoutes: (
+  compiledRoutes,
+  RelayRouter__History.location,
+) => option<array<routeMatch>> = "matchCompiledRoutes"
 
 let prepareMatches = (
   matches: array<routeMatch>,
@@ -65,7 +72,8 @@ module Router = {
       routerEventListeners.contents->Array.forEach(cb => cb(event))
     }
 
-    let matchLocation = matchRoutes(routes, ...)
+    let compiledRoutes = compileRoutes(routes)
+    let matchLocation = matchCompiledRoutes(compiledRoutes, ...)
     let location = RelayRouter__History.getLocation(history)
     let initialQueryParams = QueryParams.parse(location.search)
     let initialMatches = matchLocation(location)->Option.getOr([])

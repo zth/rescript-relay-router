@@ -177,7 +177,7 @@ let (_, routerContext) = RelayRouter.Router.make(
 )
 ```
 
-`entrypoint` is only valid on top-level routes. A router built with `RouteDeclarations.Admin.make()` will not match or preload sibling root trees.
+`entrypoint` is only valid on top-level routes. A router built with `RouteDeclarations.Admin.make()` will not match or preload sibling root trees. Entrypoint routes cannot be named `RelayRouter`, because that generated module name would shadow the router runtime module in `RouteDeclarations`.
 
 Routes can also declare named slots and let descendant routes render into those slots instead of the normal `childRoutes` chain. This is useful for route-owned overlays, drawers, inspectors, and other UI that should keep the surrounding shell mounted while the URL remains a normal route URL.
 

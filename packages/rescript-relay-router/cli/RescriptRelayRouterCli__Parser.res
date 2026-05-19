@@ -901,6 +901,14 @@ module Decode = {
         let slots = slotsProp->validateSlots(~ctx)
         let outlet = outletProp->validateOutlet(~ctx, ~parentContext)
         let entrypoint = entrypointProp->Validators.validateEntrypoint(~ctx, ~parentContext)
+        switch (entrypoint, name) {
+        | (true, Some({name: "RelayRouter", loc})) =>
+          ctx.addDecodeError(
+            ~loc,
+            ~message=`"RelayRouter" cannot be used as an entrypoint route name because it would shadow the router runtime module in generated route declarations.`,
+          )
+        | _ => ()
+        }
 
         // Params are inherited from all parent routes. This concatenates the
         // previously seen path params from the parents.

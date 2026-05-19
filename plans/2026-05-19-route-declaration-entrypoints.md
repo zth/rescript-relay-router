@@ -10,11 +10,16 @@ Marked routes get a generated `RouteDeclarations.<RouteName>.make()` module that
 top-level route tree. The existing `RouteDeclarations.make()` continues to return every top-level
 route tree.
 
+Do not allow `RelayRouter` as an entrypoint route name. That generated module would shadow the
+router runtime module in `RouteDeclarations`.
+
 ## Who
 
 zth-linzumi asked Codex to take the old `task/separately-renderable-roots` work through to a PR
 after typed route slots landed. Codex renamed the config field from `separatelyRenderable` to
 `entrypoint` while rebasing the implementation onto latest `main`.
+Codex also reserved `RelayRouter` for entrypoint routes after PR review identified the generated
+module shadowing risk.
 
 ## Why
 
@@ -26,6 +31,7 @@ tree for multi-entry apps, embedded apps, admin surfaces, or isolated route root
 
 - Parser tests cover valid top-level `entrypoint: true`, nested `entrypoint`, and non-boolean
   `entrypoint` values.
+- Parser tests cover rejecting the `RelayRouter` entrypoint route name.
 - Codegen tests cover generated standalone `RouteDeclarations.<RouteName>.make()` modules and
   preservation of the all-routes `RouteDeclarations.make()`.
 - Ran `yarn workspaces foreach run rescript format -all`.

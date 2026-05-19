@@ -10,8 +10,6 @@ export let rescriptRelayVitePlugin = ({
 } = {}) => {
   // The watcher for the ReScript Relay Router CLI.
   let watcher;
-  // An in-memory copy of the ssr-manifest.json for bundle manipulation.
-  let ssrManifest = {};
   // The resolved Vite config to ensure we do what the rest of Vite does.
   /** @type ResolvedConfig */
   let config;

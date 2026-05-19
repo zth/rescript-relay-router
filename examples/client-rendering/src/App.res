@@ -12,7 +12,7 @@ if !RelaySSRUtils.ssr {
 
 @react.component
 let make = (~environment, ~routerContext) => {
-  <RescriptRelay.Context.Provider environment>
+  <RescriptRelayReact.Context.Provider environment>
     <RelayRouter.Provider value={routerContext}>
       <React.Suspense fallback={React.string("Loading...")}>
         <RescriptReactErrorBoundary fallback={_ => {<div> {React.string("Error!")} </div>}}>
@@ -23,5 +23,5 @@ let make = (~environment, ~routerContext) => {
         </RescriptReactErrorBoundary>
       </React.Suspense>
     </RelayRouter.Provider>
-  </RescriptRelay.Context.Provider>
+  </RescriptRelayReact.Context.Provider>
 }

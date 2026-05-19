@@ -11,10 +11,13 @@ let boot = () => {
     ~preloadAsset=RelayRouter.AssetPreloader.makeClientAssetPreloader(RelayEnv.preparedAssetsMap),
   )
 
-  ReactDOMExperimental.renderConcurrentRootAtElementWithId(
-    <App environment=RelayEnv.environment routerContext />,
-    "root",
-  )
+  switch ReactDOM.querySelector("#root") {
+  | Some(root) =>
+    root
+    ->ReactDOM.Client.createRoot
+    ->ReactDOM.Client.Root.render(<App environment=RelayEnv.environment routerContext />)
+  | None => Console.error("Could not find root element.")
+  }
 }
 
 boot()

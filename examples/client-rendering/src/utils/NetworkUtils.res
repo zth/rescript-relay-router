@@ -15,40 +15,38 @@ let preloadFromResponse = (part: JSON.t, ~preloadAsset: RelayRouter__Types.prelo
   }
 }
 
-external toOldExnUnsafe: JsExn.t => Exn.t = "%identity"
+let makeFetchQuery = (~preloadAsset): RescriptRelay.Network.fetchFunctionObservable => {
+  (operation, variables, _cacheConfig, _uploads) => {
+    RescriptRelay.Observable.make(sink => {
+      open RelayRouter.NetworkUtils
 
-// The client and server fetch query are currently copied, but one could easily
-// set them up so that they use the same base, and just take whatever config
-// they need.
-let makeFetchQuery = (~preloadAsset) =>
-  RelaySSRUtils.makeClientFetchFunction((sink, operation, variables, _cacheConfig, _uploads) => {
-    open RelayRouter.NetworkUtils
-
-    fetch(
-      "http://0.0.0.0:4000/graphql",
-      {
-        "method": "POST",
-        "headers": dict{"content-type": "application/json"},
-        "body": {"query": operation.text, "variables": variables}
-        ->JSON.stringifyAny
-        ->Option.getOr(""),
-      },
-    )
-    ->Promise.thenResolve(r => {
-      r->getChunks(
-        ~onNext=part => {
-          part->preloadFromResponse(~preloadAsset)
-          sink.next(part)
-        },
-        ~onError=err => {
-          err->toOldExnUnsafe->sink.error
-        },
-        ~onComplete=() => {
-          sink.complete()
+      fetch(
+        "http://0.0.0.0:4000/graphql",
+        {
+          "method": "POST",
+          "headers": dict{"content-type": "application/json"},
+          "body": {"query": operation.text, "variables": variables}
+          ->JSON.stringifyAny
+          ->Option.getOr(""),
         },
       )
-    })
-    ->Promise.ignore
+      ->Promise.thenResolve(r => {
+        r->getChunks(
+          ~onNext=part => {
+            part->preloadFromResponse(~preloadAsset)
+            sink.next(part)
+          },
+          ~onError=err => {
+            err->sink.error
+          },
+          ~onComplete=() => {
+            sink.complete()
+          },
+        )
+      })
+      ->Promise.ignore
 
-    None
-  })
+      None
+    })
+  }
+}

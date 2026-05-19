@@ -12,7 +12,6 @@ The intent is that each section can be picked up as an independent work item. So
 | P0 | Centralize manifest-backed asset preloading | High for SSR, hydration, and route transitions | Medium | SSR/build integration |
 | P1 | Reuse unchanged prepared matches with explicit freshness policy | High for nested routes with parent queries | High | Relay/runtime |
 | P1 | Centralize location subscriptions | Medium to high in nav-heavy UIs | Medium | React runtime |
-| P1 | Make route keys collision-safe | Correctness fix with cache perf implications | Low | Codegen |
 | P2 | Split route declaration payload from route prepare modules | High in very large apps | High | Codegen/build |
 | P2 | Verify and improve renderer chunk boundaries | Medium bundle-size opportunity | Medium | Codegen/build |
 | P2 | Pool link intersection observers | Medium on pages with many links | Low | Link/runtime |
@@ -24,6 +23,9 @@ Completed since this note was drafted:
 - Route declaration entrypoints landed in #199 as `entrypoint: true` on top-level routes. The
   generated API is `RouteDeclarations.<RouteName>.make()`, with `RouteDeclarations.make()` still
   returning all top-level route trees.
+- Collision-safe route keys landed in #194. Generated route keys now use a length-prefixed internal
+  encoder that includes field names, missing-versus-empty query param state, and repeated query
+  param values.
 
 ## Measurement Baseline
 
@@ -461,59 +463,33 @@ The key goal is one history listener per router instance, not one per hook.
 
 ## 7. Make Route Keys Collision-Safe
 
-### Current State
+### Landed Shape
 
-Generated route keys concatenate route name, path param values, and query param values without unambiguous delimiters:
-
-- `packages/rescript-relay-router/cli/RescriptRelayRouterCli__Codegen.res`
-
-This can alias different parameter sets. For example, `a="bc"` and `a="b", c="c"` style combinations can collapse if multiple fields are concatenated without separators and field names.
-
-It can also mishandle array query params because route key generation currently reads a single query param value for each query field.
-
-### Opportunity
-
-Generate stable, collision-safe route keys.
-
-Possible formats:
-
-- JSON array of `[fieldName, value]` pairs.
-- Length-prefixed segments.
-- URLSearchParams-like stable serialization with sorted keys and repeated array entries.
-
-Example:
+This landed in #194. Generated route keys now use `RelayRouter.Internal.RouteKey`:
 
 ```rescript
-"Root__Todos__Single:" ++ JSON.stringifyAny([
-  ["path", "todoId", todoId],
-  ["query", "showMore", showMore],
-])->Option.getOr("")
+RelayRouter.Internal.RouteKey.make("Root__Todos__Single")
+->RelayRouter.Internal.RouteKey.addPathParam(~name="todoId", ~value)
+->RelayRouter.Internal.RouteKey.addQueryParam(~name="showMore", ~value)
 ```
 
-This is a correctness fix first. It also improves performance predictability because prepared cache entries cannot be accidentally reused across distinct route states.
+The encoder uses length-prefixed segments for route names, field names, scalar values, and repeated
+query param arrays. It distinguishes:
 
-### Implementation Steps
-
-1. Decide route key encoding.
-2. Update `getMakeRouteKeyFn`.
-3. Ensure path params and query params include field names.
-4. Ensure array query params include all values in order or sorted order, depending on desired semantics.
-5. Add tests for:
-   - adjacent string collisions
-   - missing vs empty values
-   - array values
-   - reordered query params if the router treats them as equivalent
-6. Consider whether this is a breaking change for any user-observable behavior. It should be internal, but prepared cache behavior can change.
+- adjacent string boundaries
+- path and query field names
+- missing query params from present empty values
+- repeated query param value boundaries
+- repeated query param order
 
 ### Validation
 
 - Distinct route param sets produce distinct keys.
-- Equivalent query string ordering produces equivalent keys if that is the desired semantic.
+- Repeated query param ordering is preserved as part of the key.
 - Existing preloading cache still works.
 
 ### Risks
 
-- JSON stringification adds minor overhead. It is probably acceptable for correctness, but a length-prefixed string can be faster.
 - If current accidental collisions masked bugs, this can expose them.
 
 ## 8. Route Declaration Entrypoints

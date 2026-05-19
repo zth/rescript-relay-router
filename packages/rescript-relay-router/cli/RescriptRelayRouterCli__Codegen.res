@@ -444,30 +444,34 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
 // initialized with. Used to identify a route, make sure it can be prepared,
 // cached, and cleaned up, etc.
 let getMakeRouteKeyFn = (route: printableRoute) => {
-  let {pathParamsRecordFields, queryParamsRecordFields} = getRouteParamRecordFields(route)
+  let pathParams = route.params->Array.map(Utils.printablePathParamToParamName)
+  let queryParams = route.queryParams->Dict.toArray
   let ignoreLines = [
-    switch pathParamsRecordFields->Array.length {
+    switch pathParams->Array.length {
     | 0 => Some("  ignore(pathParams)")
     | _ => None
     },
-    switch queryParamsRecordFields->Array.length {
+    switch queryParams->Array.length {
     | 0 => Some("  ignore(queryParams)")
     | _ => None
     },
   ]->Array.filterMap(line => line)
   let pathParamLines =
-    pathParamsRecordFields->Array.map(((key, _)) =>
-      "    ++ pathParams->Dict.get(\"" ++ key ++ "\")->Option.getOr(\"\")"
+    pathParams->Array.map(key =>
+      `  ->RelayRouter.Internal.RouteKey.addPathParam(~name="${key}", ~value=pathParams->Dict.get("${key}")->Option.getOr(""))`
     )
-  let queryParamLines =
-    queryParamsRecordFields->Array.map(((key, _)) =>
-      "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
-      key ++ "\")->Option.getOr(\"\")"
-    )
+  let queryParamLines = queryParams->Array.map(((key, param)) =>
+    switch param {
+    | Array(_) =>
+      `  ->RelayRouter.Internal.RouteKey.addQueryParamArray(~name="${key}", ~values=queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("${key}"))`
+    | _ =>
+      `  ->RelayRouter.Internal.RouteKey.addQueryParam(~name="${key}", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("${key}"))`
+    }
+  )
   let bodyLines =
     List.concatMany([
       ignoreLines->List.fromArray,
-      list{`  "${route.name->RouteName.getFullRouteName}:"`},
+      list{`  RelayRouter.Internal.RouteKey.make("${route.name->RouteName.getFullRouteName}")`},
       pathParamLines->List.fromArray,
       queryParamLines->List.fromArray,
     ])
@@ -499,7 +503,6 @@ let getPathParamsTypeDefinition = (route: printableRoute) => {
 
   str.contents
 }
-
 let getUsePathParamsHook = (route: printableRoute) => {
   let str = ref("")
 

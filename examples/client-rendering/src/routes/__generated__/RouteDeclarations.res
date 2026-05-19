@@ -68,7 +68,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
   ): string => {
     ignore(pathParams)
     ignore(queryParams)
-    "Root:"
+    RelayRouter.Internal.RouteKey.make("Root")
   },
         ~routeName,
         ~intent
@@ -134,7 +134,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       ): string => {
         ignore(pathParams)
         ignore(queryParams)
-        "Root__Settings:"
+        RelayRouter.Internal.RouteKey.make("Root__Settings")
       },
             ~routeName,
             ~intent
@@ -203,10 +203,10 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
         ~queryParams: RelayRouter.Bindings.QueryParams.t
       ): string => {
         ignore(pathParams)
-        "Root__Todos:"
-          ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
-          ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
-          ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
+        RelayRouter.Internal.RouteKey.make("Root__Todos")
+        ->RelayRouter.Internal.RouteKey.addQueryParamArray(~name="statuses", ~values=queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses"))
+        ->RelayRouter.Internal.RouteKey.addQueryParam(~name="statusWithDefault", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault"))
+        ->RelayRouter.Internal.RouteKey.addQueryParam(~name="byValue", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue"))
       },
             ~routeName,
             ~intent
@@ -272,11 +272,11 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
               ~pathParams: dict<string>,
               ~queryParams: RelayRouter.Bindings.QueryParams.t
             ): string => {
-              "Root__Todos__ByStatus:"
-                ++ pathParams->Dict.get("byStatus")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
+              RelayRouter.Internal.RouteKey.make("Root__Todos__ByStatus")
+              ->RelayRouter.Internal.RouteKey.addPathParam(~name="byStatus", ~value=pathParams->Dict.get("byStatus")->Option.getOr(""))
+              ->RelayRouter.Internal.RouteKey.addQueryParamArray(~name="statuses", ~values=queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses"))
+              ->RelayRouter.Internal.RouteKey.addQueryParam(~name="statusWithDefault", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault"))
+              ->RelayRouter.Internal.RouteKey.addQueryParam(~name="byValue", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue"))
             },
                   ~routeName,
                   ~intent
@@ -345,11 +345,11 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
               ~pathParams: dict<string>,
               ~queryParams: RelayRouter.Bindings.QueryParams.t
             ): string => {
-              "Root__Todos__ByStatusDecoded:"
-                ++ pathParams->Dict.get("byStatusDecoded")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
+              RelayRouter.Internal.RouteKey.make("Root__Todos__ByStatusDecoded")
+              ->RelayRouter.Internal.RouteKey.addPathParam(~name="byStatusDecoded", ~value=pathParams->Dict.get("byStatusDecoded")->Option.getOr(""))
+              ->RelayRouter.Internal.RouteKey.addQueryParamArray(~name="statuses", ~values=queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses"))
+              ->RelayRouter.Internal.RouteKey.addQueryParam(~name="statusWithDefault", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault"))
+              ->RelayRouter.Internal.RouteKey.addQueryParam(~name="byValue", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue"))
             },
                   ~routeName,
                   ~intent
@@ -415,11 +415,11 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                       ~pathParams: dict<string>,
                       ~queryParams: RelayRouter.Bindings.QueryParams.t
                     ): string => {
-                      "Root__Todos__ByStatusDecoded__Child:"
-                        ++ pathParams->Dict.get("byStatusDecoded")->Option.getOr("")
-                        ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
-                        ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
-                        ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
+                      RelayRouter.Internal.RouteKey.make("Root__Todos__ByStatusDecoded__Child")
+                      ->RelayRouter.Internal.RouteKey.addPathParam(~name="byStatusDecoded", ~value=pathParams->Dict.get("byStatusDecoded")->Option.getOr(""))
+                      ->RelayRouter.Internal.RouteKey.addQueryParamArray(~name="statuses", ~values=queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses"))
+                      ->RelayRouter.Internal.RouteKey.addQueryParam(~name="statusWithDefault", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault"))
+                      ->RelayRouter.Internal.RouteKey.addQueryParam(~name="byValue", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue"))
                     },
                           ~routeName,
                           ~intent
@@ -490,11 +490,11 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
               ~pathParams: dict<string>,
               ~queryParams: RelayRouter.Bindings.QueryParams.t
             ): string => {
-              "Root__Todos__ByStatusDecodedExtra:"
-                ++ pathParams->Dict.get("byStatusDecoded")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
+              RelayRouter.Internal.RouteKey.make("Root__Todos__ByStatusDecodedExtra")
+              ->RelayRouter.Internal.RouteKey.addPathParam(~name="byStatusDecoded", ~value=pathParams->Dict.get("byStatusDecoded")->Option.getOr(""))
+              ->RelayRouter.Internal.RouteKey.addQueryParamArray(~name="statuses", ~values=queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses"))
+              ->RelayRouter.Internal.RouteKey.addQueryParam(~name="statusWithDefault", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault"))
+              ->RelayRouter.Internal.RouteKey.addQueryParam(~name="byValue", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue"))
             },
                   ~routeName,
                   ~intent
@@ -567,12 +567,12 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
               ~pathParams: dict<string>,
               ~queryParams: RelayRouter.Bindings.QueryParams.t
             ): string => {
-              "Root__Todos__Single:"
-                ++ pathParams->Dict.get("todoId")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statuses")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.getOr("")
-                ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore")->Option.getOr("")
+              RelayRouter.Internal.RouteKey.make("Root__Todos__Single")
+              ->RelayRouter.Internal.RouteKey.addPathParam(~name="todoId", ~value=pathParams->Dict.get("todoId")->Option.getOr(""))
+              ->RelayRouter.Internal.RouteKey.addQueryParamArray(~name="statuses", ~values=queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses"))
+              ->RelayRouter.Internal.RouteKey.addQueryParam(~name="statusWithDefault", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("statusWithDefault"))
+              ->RelayRouter.Internal.RouteKey.addQueryParam(~name="byValue", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue"))
+              ->RelayRouter.Internal.RouteKey.addQueryParam(~name="showMore", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("showMore"))
             },
                   ~routeName,
                   ~intent
@@ -642,8 +642,8 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
         ~queryParams: RelayRouter.Bindings.QueryParams.t
       ): string => {
         ignore(queryParams)
-        "Root__PathParamsOnly:"
-          ++ pathParams->Dict.get("pageSlug")->Option.getOr("")
+        RelayRouter.Internal.RouteKey.make("Root__PathParamsOnly")
+        ->RelayRouter.Internal.RouteKey.addPathParam(~name="pageSlug", ~value=pathParams->Dict.get("pageSlug")->Option.getOr(""))
       },
             ~routeName,
             ~intent
@@ -711,7 +711,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       ): string => {
         ignore(pathParams)
         ignore(queryParams)
-        "Root__Home:"
+        RelayRouter.Internal.RouteKey.make("Root__Home")
       },
             ~routeName,
             ~intent

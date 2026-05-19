@@ -120,6 +120,28 @@ type prepared
 external toObject: Type.Classify.object => {..} = "%identity"
 external objectToPreparedArrayUnsafe: Type.Classify.object => array<prepared> = "%identity"
 
+module RouteKey = {
+  let encodeString = value => `${value->String.length->Int.toString}:${value}`
+
+  let encodeValues = values =>
+    switch values {
+    | None => "-1:"
+    | Some(values) =>
+      `${values->Array.length->Int.toString}:${values->Array.map(encodeString)->Array.join("")}`
+    }
+
+  let make = routeName => `route:${encodeString(routeName)}`
+
+  let addPathParam = (key, ~name, ~value) =>
+    `${key}|path:${encodeString(name)}:${encodeValues(Some([value]))}`
+
+  let addQueryParam = (key, ~name, ~value) =>
+    `${key}|query:${encodeString(name)}:${encodeValues(value->Option.map(value => [value]))}`
+
+  let addQueryParamArray = (key, ~name, ~values) =>
+    `${key}|query:${encodeString(name)}:${encodeValues(values)}`
+}
+
 // This will extract all dispose functions from anything you feed it.
 let extractDisposables = prepared => {
   let rec aux = (s, disposables, seen) => {

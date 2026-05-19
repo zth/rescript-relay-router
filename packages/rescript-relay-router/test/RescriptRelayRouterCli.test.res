@@ -64,6 +64,14 @@ let sliceBetween = (content, ~startMarker, ~endMarker) => {
   content->slice(start, end_)
 }
 
+let withSinglePrintableRoute = (routesJson, callback) => {
+  let {result} = TestUtils.parseMockContent(routesJson)
+  switch result->U.routeChildrenToPrintable {
+  | [route] => callback(route)
+  | routes => expect(routes->Array.length)->Expect.toBe(1)
+  }
+}
+
 describe("Query params", () => {
   test("turns param type to string", _t => {
     open U.QueryParams
@@ -289,6 +297,102 @@ describe("Route declarations", () => {
         )->Expect.String.toContain(`let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> =>`)
         expect(routeDeclarations)->Expect.String.toContain(`let routeName = "Root"`)
         expect(routeDeclarations)->Expect.String.toContain(`let routeName = "Admin"`)
+      },
+    )
+  })
+})
+
+describe("Route key codegen", () => {
+  test("emits path params through the collision-safe route key encoder", _t => {
+    withSinglePrintableRoute(
+      `[
+      {
+        "name": "Root",
+        "path": "/:first/:second"
+      }
+    ]`,
+      route => {
+        let generated = RescriptRelayRouterCli__Codegen.getRouteDefinition(route, ~indentation=0)
+
+        expect(generated)->Expect.String.toContain(`RelayRouter.Internal.RouteKey.make("Root")`)
+        expect(
+          generated,
+        )->Expect.String.toContain(`RelayRouter.Internal.RouteKey.addPathParam(~name="first"`)
+        expect(
+          generated,
+        )->Expect.String.toContain(`RelayRouter.Internal.RouteKey.addPathParam(~name="second"`)
+      },
+    )
+  })
+
+  test("emits scalar query params with explicit missing versus empty encoding", _t => {
+    withSinglePrintableRoute(
+      `[
+      {
+        "name": "Root",
+        "path": "/?first=string&second=string"
+      }
+    ]`,
+      route => {
+        let generated = RescriptRelayRouterCli__Codegen.getRouteDefinition(route, ~indentation=0)
+
+        expect(
+          generated,
+        )->Expect.String.toContain(`RelayRouter.Internal.RouteKey.addQueryParam(~name="first"`)
+        expect(
+          generated,
+        )->Expect.String.toContain(`~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("first")`)
+        expect(
+          generated,
+        )->Expect.String.toContain(`RelayRouter.Internal.RouteKey.addQueryParam(~name="second"`)
+        expect(
+          generated,
+        )->Expect.String.toContain(`~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("second")`)
+      },
+    )
+  })
+
+  test("emits array query params using all repeated values", _t => {
+    withSinglePrintableRoute(
+      `[
+      {
+        "name": "Root",
+        "path": "/?statuses=array<string>&after=string"
+      }
+    ]`,
+      route => {
+        let generated = RescriptRelayRouterCli__Codegen.getRouteDefinition(route, ~indentation=0)
+
+        expect(
+          generated,
+        )->Expect.String.toContain(`RelayRouter.Internal.RouteKey.addQueryParamArray(~name="statuses"`)
+        expect(
+          generated,
+        )->Expect.String.toContain(`~values=queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")`)
+        expect(
+          generated,
+        )->Expect.String.toContain(`RelayRouter.Internal.RouteKey.addQueryParam(~name="after"`)
+      },
+    )
+  })
+
+  test("uses original URL param names when generated prop names need collision protection", _t => {
+    withSinglePrintableRoute(
+      `[
+      {
+        "name": "Root",
+        "path": "/:environment?pathParams=string"
+      }
+    ]`,
+      route => {
+        let generated = RescriptRelayRouterCli__Codegen.getRouteDefinition(route, ~indentation=0)
+
+        expect(
+          generated,
+        )->Expect.String.toContain(`RelayRouter.Internal.RouteKey.addPathParam(~name="environment", ~value=pathParams->Dict.get("environment")->Option.getOr(""))`)
+        expect(
+          generated,
+        )->Expect.String.toContain(`RelayRouter.Internal.RouteKey.addQueryParam(~name="pathParams", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("pathParams"))`)
       },
     )
   })

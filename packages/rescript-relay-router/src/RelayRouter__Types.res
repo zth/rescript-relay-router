@@ -69,6 +69,7 @@ type currentRouterEntry = {
 }
 
 type subFn = currentRouterEntry => unit
+type locationSubFn = RelayRouter__History.location => unit
 type unsubFn = unit => unit
 type cleanupFn = unit => unit
 type callback = unit => unit
@@ -87,6 +88,8 @@ type routerContext = {
   preloadAsset: preloadAssetFn,
   get: unit => currentRouterEntry,
   subscribe: subFn => unsubFn,
+  getLocation: unit => RelayRouter__History.location,
+  subscribeToLocation: locationSubFn => unsubFn,
   history: RelayRouter__History.t,
   subscribeToEvent: onRouterEventFn => unsubFn,
   postRouterEvent: routerEvent => unit,

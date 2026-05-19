@@ -92,21 +92,31 @@ module Router = {
     let currentEntry = ref(
       preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(~location),
     )
+    let currentLocation = ref(location)
 
     let nextId = ref(0)
     let subscribers = dict{}
+    let nextLocationSubscriberId = ref(0)
+    let locationSubscribers = dict{}
     let nextNavigationIsShallow = ref(false)
 
     let cleanup = history->RelayRouter__History.listen(({location}) => {
+      currentLocation.contents = location
+      locationSubscribers
+      ->Dict.valuesToArray
+      ->Array.forEach(subscriber => subscriber(location))
+
       let thisNavigationShouldBeShallow = nextNavigationIsShallow.contents
-      if nextNavigationIsShallow.contents === true {
-        nextNavigationIsShallow.contents = false
+      switch nextNavigationIsShallow.contents {
+      | true => nextNavigationIsShallow.contents = false
+      | false => ()
       }
-      if (
-        !thisNavigationShouldBeShallow &&
-        (location.pathname !== currentEntry.contents.location.pathname ||
-          location.search !== currentEntry.contents.location.search)
+      switch (
+        thisNavigationShouldBeShallow,
+        location.pathname !== currentEntry.contents.location.pathname ||
+          location.search !== currentEntry.contents.location.search,
       ) {
+      | (false, true) =>
         let queryParams = QueryParams.parse(location.search)
 
         let currentMatches = currentEntry.contents.allMatches
@@ -130,6 +140,7 @@ module Router = {
         subscribers
         ->Dict.valuesToArray
         ->Array.forEach(subscriber => subscriber(currentEntry.contents))
+      | (true, _) | (false, false) => ()
       }
     })
 
@@ -191,6 +202,7 @@ module Router = {
     }
 
     let get = () => currentEntry.contents
+    let getLocation = () => currentLocation.contents
 
     let subscribe = cb => {
       nextId.contents = nextId.contents + 1
@@ -199,6 +211,16 @@ module Router = {
 
       () => {
         subscribers->Dict.delete(Int.toString(id))
+      }
+    }
+
+    let subscribeToLocation = cb => {
+      nextLocationSubscriberId.contents = nextLocationSubscriberId.contents + 1
+      let id = nextLocationSubscriberId.contents
+      locationSubscribers->Dict.set(Int.toString(id), cb)
+
+      () => {
+        locationSubscribers->Dict.delete(Int.toString(id))
       }
     }
 
@@ -220,6 +242,8 @@ module Router = {
         preloadAsset,
         get,
         subscribe,
+        getLocation,
+        subscribeToLocation,
         history,
         subscribeToEvent: callback => {
           let _ = routerEventListeners.contents->Array.push(callback)

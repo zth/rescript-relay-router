@@ -2,6 +2,16 @@ open RescriptRelayRouterTestUtils
 open Vitest
 open TestingLibraryReact
 
+let makeRouteEntry = (location): RelayRouter.Types.currentRouterEntry => {
+  location,
+  preparedMatches: [],
+  primaryMatches: [],
+  slotContents: dict{},
+  allMatches: [],
+}
+
+let testPreloadAsset = (~priority, _asset) => ignore(priority)
+
 describe("makeLink", () => {
   test("should generate link with statuses", _t => {
     let link = Routes.Root.Todos.Route.makeLink(
@@ -27,6 +37,95 @@ describe("makeLink", () => {
 })
 
 describe("parsing", () => {
+  test("useLocation reads from the router location store", _t => {
+    let history = RelayRouter.History.createMemoryHistory(
+      ~options={"initialEntries": ["/initial?paneConfig=old"]},
+    )
+    let initialLocation = history->RelayRouter.History.getLocation
+    let currentLocation = ref(initialLocation)
+    let locationSubscriber = ref(None)
+    let routerContext: RelayRouter.Types.routerContext = {
+      preload: (~priority=?, _url) => ignore(priority),
+      preloadCode: (~priority=?, _url) => ignore(priority),
+      preloadAsset: testPreloadAsset,
+      get: () => currentLocation.contents->makeRouteEntry,
+      subscribe: _callback => () => (),
+      getLocation: () => currentLocation.contents,
+      subscribeToLocation: callback => {
+        locationSubscriber.contents = Some(callback)
+
+        () => {
+          locationSubscriber.contents = None
+        }
+      },
+      history,
+      subscribeToEvent: _callback => () => (),
+      postRouterEvent: _event => (),
+      markNextNavigationAsShallow: () => (),
+    }
+    let wrapper = ({Wrapper.children: children}) =>
+      <RelayRouter.Provider value={routerContext}> {children} </RelayRouter.Provider>
+    let {result} = renderHook(() => RelayRouter.Utils.useLocation(), ~options={wrapper: wrapper})
+    let nextLocation = {
+      ...initialLocation,
+      search: "?paneConfig=new",
+      key: "updated",
+    }
+
+    expect(result.current.search)->Expect.toBe("?paneConfig=old")
+
+    act(
+      () => {
+        currentLocation.contents = nextLocation
+        switch locationSubscriber.contents {
+        | Some(callback) => callback(nextLocation)
+        | None => ()
+        }
+      },
+    )
+
+    expect(result.current.search)->Expect.toBe("?paneConfig=new")
+  })
+
+  test("shallow navigations update location subscribers without preparing route entries", _t => {
+    let routes = RouteDeclarations.make()
+    let (cleanup, routerContext) = RelayRouter.Router.make(
+      ~routes,
+      ~environment=RelayEnv.environment,
+      ~routerEnvironment=RelayRouter.RouterEnvironment.makeServerEnvironment(
+        ~initialUrl="/todos?byValue=old",
+      ),
+      ~preloadAsset=RelayRouter.AssetPreloader.makeClientAssetPreloader(RelayEnv.preparedAssetsMap),
+    )
+    let routeEntries = []
+    let locations = []
+    let unsubscribeRoute = routerContext.subscribe(entry => routeEntries->Array.push(entry))
+    let unsubscribeLocation = routerContext.subscribeToLocation(
+      location => locations->Array.push(location),
+    )
+
+    routerContext.markNextNavigationAsShallow()
+    routerContext.history->RelayRouter.History.push("/todos?byValue=shallow")
+
+    let shallowLocation: RelayRouter.History.location = locations->Array.get(0)->Option.getExn
+    expect(locations->Array.length)->Expect.toBe(1)
+    expect(shallowLocation.search)->Expect.toBe("?byValue=shallow")
+    expect(routeEntries->Array.length)->Expect.toBe(0)
+    expect(routerContext.getLocation().search)->Expect.toBe("?byValue=shallow")
+    expect(routerContext.get().location.search)->Expect.toBe("?byValue=old")
+
+    routerContext.history->RelayRouter.History.push("/todos?byValue=prepared")
+
+    expect(locations->Array.length)->Expect.toBe(2)
+    expect(routeEntries->Array.length)->Expect.toBe(1)
+    expect(routerContext.getLocation().search)->Expect.toBe("?byValue=prepared")
+    expect(routerContext.get().location.search)->Expect.toBe("?byValue=prepared")
+
+    unsubscribeLocation()
+    unsubscribeRoute()
+    cleanup()
+  })
+
   test("parseRoute correctly decode query params", _t => {
     let queryParams =
       Routes.Root.Todos.Route.parseRoute(

@@ -3,6 +3,16 @@ open RescriptRelayRouterTestUtils.Vitest
 module P = RescriptRelayRouterCli__Parser
 module Bindings = RescriptRelayRouterCli__Bindings
 
+let parseRouteStructure = mockContent =>
+  P.readRouteStructure(
+    ~config={
+      generatedPath: "",
+      routesFolderPath: "",
+      rescriptLibFolderPath: "",
+    },
+    ~getRouteFileContents=_ => Ok(mockContent),
+  )
+
 let makeMockParserCtx = (
   ~content,
   ~routeFileName="routes.json",
@@ -28,7 +38,7 @@ describe("Parsing", () => {
   test("path params are inherited from parent routes", _t => {
     let mockContent = `[
     {
-        "name": "Organization", 
+        "name": "Organization",
         "path": "/o/:slug",
         "children": [
             {
@@ -80,5 +90,64 @@ describe("Parsing", () => {
       )->Expect.toEqual(["memberId", "slug"])
     | _ => ()
     }
+  })
+
+  test("parses route slots and descendant outlets", _t => {
+    let {errors, result} = parseRouteStructure(`[
+      {
+        "name": "Shell",
+        "path": "/",
+        "slots": [{ "name": "Overlay" }],
+        "children": [
+          {
+            "name": "Preferences",
+            "path": "preferences",
+            "children": [
+              {
+                "name": "Account",
+                "path": "account",
+                "outlet": "Overlay"
+              }
+            ]
+          }
+        ]
+      }
+    ]`)
+
+    suite->assertions(3)
+    expect(errors)->Expect.Array.toHaveLength(0)
+    switch result {
+    | [
+        RouteEntry({
+          slots,
+          children: Some([
+            RouteEntry({children: Some([RouteEntry({outlet: Some(outlet)})])}),
+          ]),
+        }),
+      ] =>
+      expect(slots->Array.map(slot => slot.name.text))->Expect.toEqual(["Overlay"])
+      expect(outlet.text)->Expect.toBe("Overlay")
+    | _ => ()
+    }
+  })
+
+  test("reports outlets without ancestor slot declarations", _t => {
+    let {errors} = parseRouteStructure(`[
+      {
+        "name": "Root",
+        "path": "/",
+        "children": [
+          {
+            "name": "Preferences",
+            "path": "preferences",
+            "outlet": "Overlay"
+          }
+        ]
+      }
+    ]`)
+
+    expect(errors->Array.map(error => error.message))->Expect.Array.toContain(
+      `Outlet "Overlay" does not match a slot declared by an ancestor route.`,
+    )
   })
 })

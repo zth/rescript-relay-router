@@ -200,6 +200,25 @@ let getQueryParamAssets = (route: printableRoute) => {
   let queryParamEntries = route.queryParams->Dict.toArray
 
   if queryParamEntries->Array.length > 0 {
+    let queryParamSetters = queryParamEntries
+    ->Array.map(((key, queryParam)) => {
+      switch queryParam {
+      | Array(queryParam) =>
+        `  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${key}->Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+            ~variableName=key,
+          )})))`
+      | CustomModule({required: true}) =>
+        `  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
+            ~variableName=`newParams.${key}`,
+          )})`
+      | queryParam =>
+        `  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+            ~variableName=key,
+          )}))`
+      }
+    })
+    ->Array.join("\n")
+
     `@live
 let applyQueryParams = (
   queryParams: RelayRouter__Bindings.QueryParams.t,
@@ -207,24 +226,7 @@ let applyQueryParams = (
 ) => {
   open RelayRouter__Bindings
 
-  ${queryParamEntries
-      ->Array.map(((key, queryParam)) => {
-        switch queryParam {
-        | Array(queryParam) =>
-          `\n  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${key}->Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
-              ~variableName=key,
-            )})))`
-        | CustomModule({required: true}) =>
-          `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
-              ~variableName=`newParams.${key}`,
-            )})`
-        | queryParam =>
-          `\n  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
-              ~variableName=key,
-            )}))`
-        }
-      })
-      ->Array.join("")}
+${queryParamSetters}
 }
 
 @live
@@ -253,7 +255,7 @@ ${queryParamEntries
       ->Array.map(((key, _)) => {
         `    ${key}: ${key}`
       })
-      ->Array.join(",\n")}    
+      ->Array.join(",\n")}
   }, [search__])
 
   {
@@ -372,7 +374,7 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
   let params = route.params
   let childParams = findChildrenPathParams(route)->Dict.toArray
 
-  let str = ref(`(. 
+  let str = ref(`(.
   ~environment: RescriptRelay.Environment.t,
   ~pathParams: dict<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t,
@@ -390,17 +392,18 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
     str.contents = str.contents ++ `  ignore(${propName})\n`
   })
 
-  if returnMode == ForInlinedRouteFn {
+  switch returnMode {
+  | ForInlinedRouteFn =>
     // We preserve type safety by making sure that what we generate type checks,
     // before we cast it to an abstract type (which we do to save bundle size).
     str.contents =
       str.contents ++
-      `  let prepareProps: Route__${route.name->RouteName.getFullRouteName}_route.Internal.prepareProps = `
+      `  let prepareProps: Route__${route.name->RouteName.getFullRouteName}_route.Internal.prepareProps = {\n`
+  | ForDedicatedRouteFile => str.contents = str.contents ++ "  {\n"
   }
 
   str.contents =
-    str.contents ++ `  {
-    environment: environment,
+    str.contents ++ `    environment: environment,
     location: location,\n`
 
   if childParams->Array.length > 0 {
@@ -426,8 +429,9 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
 
   str.contents = str.contents ++ "  }\n"
 
-  if returnMode == ForInlinedRouteFn {
-    str.contents = str.contents ++ `  prepareProps->unsafe_toPrepareProps\n`
+  switch returnMode {
+  | ForInlinedRouteFn => str.contents = str.contents ++ `  prepareProps->unsafe_toPrepareProps\n`
+  | ForDedicatedRouteFile => ()
   }
 
   str.contents = str.contents ++ "}"
@@ -440,33 +444,38 @@ let getMakePrepareProps = (route: printableRoute, ~returnMode) => {
 // cached, and cleaned up, etc.
 let getMakeRouteKeyFn = (route: printableRoute) => {
   let {pathParamsRecordFields, queryParamsRecordFields} = getRouteParamRecordFields(route)
+  let ignoreLines = [
+    switch pathParamsRecordFields->Array.length {
+    | 0 => Some("  ignore(pathParams)")
+    | _ => None
+    },
+    switch queryParamsRecordFields->Array.length {
+    | 0 => Some("  ignore(queryParams)")
+    | _ => None
+    },
+  ]->Array.filterMap(line => line)
+  let pathParamLines = pathParamsRecordFields
+  ->Array.map(((key, _)) => "    ++ pathParams->Dict.get(\"" ++ key ++ "\")->Option.getOr(\"\")")
+  let queryParamLines = queryParamsRecordFields
+  ->Array.map(((key, _)) =>
+    "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
+    key ++ "\")->Option.getOr(\"\")"
+  )
+  let bodyLines = List.concatMany([
+    ignoreLines->List.fromArray,
+    list{`  "${route.name->RouteName.getFullRouteName}:"`},
+    pathParamLines->List.fromArray,
+    queryParamLines->List.fromArray,
+  ])
+  ->List.toArray
+  ->Array.join("\n")
 
   `(
   ~pathParams: dict<string>,
   ~queryParams: RelayRouter.Bindings.QueryParams.t
 ): string => {
-${if pathParamsRecordFields->Array.length == 0 {
-      "  ignore(pathParams)\n"
-    } else {
-      ""
-    }}${if queryParamsRecordFields->Array.length == 0 {
-      "  ignore(queryParams)\n"
-    } else {
-      ""
-    }}
-  "${route.name->RouteName.getFullRouteName}:"
-${pathParamsRecordFields
-    ->Array.map(((key, _)) => "    ++ pathParams->Dict.get(\"" ++ key ++ "\")->Option.getOr(\"\")")
-    ->Array.join("\n")}
-${queryParamsRecordFields
-    ->Array.map(((key, _)) =>
-      "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
-      key ++ "\")->Option.getOr(\"\")"
-    )
-    ->Array.join("\n")}
-}
-
-`
+${bodyLines}
+}`
 }
 
 let getPathParamsTypeDefinition = (route: printableRoute) => {
@@ -510,8 +519,7 @@ let getQueryParamParser = (route: printableRoute) => {
   let queryParamEntries = route.queryParams->Dict.toArray
 
   if queryParamEntries->Array.length > 0 {
-    `
-  let parseQueryParams = (queryParams: RelayRouter.Bindings.QueryParams.t): queryParams => {
+    `  let parseQueryParams = (queryParams: RelayRouter.Bindings.QueryParams.t): queryParams => {
     open RelayRouter.Bindings
     {
 ${queryParamEntries
@@ -591,7 +599,7 @@ let getPrepareTypeDefinitions = (route: printableRoute) => {
     // Proper indentation
     ->String.split("\n")
     ->Array.mapWithIndex((l, index) => index === 0 ? l : "  " ++ l)
-    ->Array.join("\n") ++ "\n\n"
+    ->Array.join("\n") ++ "\n"
 
   str.contents
 }
@@ -611,11 +619,22 @@ external makeRenderer: (
 }
 
 let addIndentation = (str, indentation) => {
-  String.repeat("  ", indentation) ++ str
+  switch str {
+  | "" => ""
+  | str => String.repeat("  ", indentation) ++ str
+  }
 }
 
 let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
   let routeName = route.name->RouteName.getFullRouteName
+  let childrenDefinition = switch route.children {
+  | [] => ""
+  | children =>
+    "\n" ++
+    children
+    ->Array.map(route => getRouteDefinition(route, ~indentation=indentation + 1))
+    ->Array.join(",\n") ++ "\n"
+  }
 
   let str = `{
   let routeName = "${routeName}"
@@ -625,6 +644,11 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
   {
     path: "${route.path->RoutePath.getPathSegment}",
     name: routeName,
+    slots: [${route.slots->Array.map(slot => `"${slot}"`)->Array.join(", ")}],
+    outlet: ${switch route.outlet {
+    | Some(outlet) => `Some("${outlet}")`
+    | None => "None"
+    }},
     chunk: "${route.name->RouteName.getRouteRendererName}",
     loadRouteRenderer,
     preloadCode: (
@@ -660,9 +684,7 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
       ~routeName,
       ~intent
     ),
-    children: [${route.children
-    ->Array.map(r => getRouteDefinition(r, ~indentation=indentation + 1))
-    ->Array.join(",\n")}],
+    children: [${childrenDefinition}],
   }
 }`
 
@@ -750,12 +772,35 @@ let getActiveRouteAssets = (route: RescriptRelayRouterCli__Types.printableRoute)
   str.contents
 }
 
+let getSlotAssets = (route: RescriptRelayRouterCli__Types.printableRoute) => {
+  switch route.slots {
+  | [] => ""
+  | slots =>
+    let routeName = route.name->RouteName.getFullRouteName
+    `module Slots = {
+${slots
+    ->Array.map(slotName =>
+      `  module ${slotName} = {
+    @react.component
+    let make = (~fallback=?) =>
+      <RelayRouter.Slot routeName="${routeName}" slotName="${slotName}" ?fallback />
+
+    let useHasContent = () =>
+      RelayRouter.Slot.useHasContent(~routeName="${routeName}", ~slotName="${slotName}")
+  }`
+    )
+    ->Array.join("\n")}
+}
+`
+  }
+}
+
 let getParseRoute = (route: RescriptRelayRouterCli__Types.printableRoute) => {
   let hasQueryParams = route.queryParams->Dict.keysToArray->Array.length > 0
   let hasPathParams = route.params->Array.length > 0
   if hasQueryParams && hasPathParams {
     `
-@live 
+@live
 let parseRoute: (
   string,
   ~exact: bool=?,
@@ -768,7 +813,7 @@ let parseRoute: (
 \n`
   } else if hasQueryParams {
     `
-@live 
+@live
 let parseRoute: (
   string,
   ~exact: bool=?,

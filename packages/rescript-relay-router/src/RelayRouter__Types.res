@@ -27,6 +27,8 @@ type prepareIntent = Render | Preload
 type rec route = {
   path: string,
   name: string,
+  slots: array<string>,
+  outlet: option<string>,
   @as("__$rescriptChunkName__") chunk: string,
   loadRouteRenderer: unit => promise<unit>,
   preloadCode: (
@@ -50,11 +52,20 @@ type routeMatch = {
   route: route,
 }
 
-type preparedMatch = {routeKey: string, render: renderRouteFn}
+type preparedMatch = {
+  routeKey: string,
+  routeName: string,
+  slots: array<string>,
+  outlet: option<string>,
+  render: renderRouteFn,
+}
 
 type currentRouterEntry = {
   location: RelayRouter__History.location,
   preparedMatches: array<preparedMatch>,
+  primaryMatches: array<preparedMatch>,
+  slotContents: dict<React.element>,
+  allMatches: array<preparedMatch>,
 }
 
 type subFn = currentRouterEntry => unit

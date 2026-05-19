@@ -5,7 +5,6 @@ type queryParams = {
 }
 
 module Internal = {
-
   let parseQueryParams = (queryParams: RelayRouter.Bindings.QueryParams.t): queryParams => {
     open RelayRouter.Bindings
     {
@@ -44,7 +43,7 @@ module Internal = {
     render: renderProps<'prepared> => React.element,
   }
   @live
-  let makePrepareProps = (. 
+  let makePrepareProps = (.
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
@@ -57,7 +56,6 @@ module Internal = {
       statuses: queryParams->RelayRouter.Bindings.QueryParams.getArrayParamByKey("statuses")->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)),
     }
   }
-
 }
 
 @live
@@ -67,7 +65,6 @@ let applyQueryParams = (
 ) => {
   open RelayRouter__Bindings
 
-  
   queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize)))
 }
 
@@ -92,7 +89,7 @@ let useQueryParams = (): useQueryParamsReturn => {
     React.useMemo(() => param->Option.map(value => value->Array.filterMap(value => value->TodoStatus.parse)), [param->Option.getOr([])->Array.join(" | ")])
   }
   let currentQueryParams = React.useMemo(() => {
-    statuses: statuses    
+    statuses: statuses
   }, [search__])
 
   {
@@ -121,7 +118,6 @@ let makeLinkFromQueryParams = (queryParams: queryParams) => {
 
 @live
 let useMakeLinkWithPreservedPath = (): ((queryParams => queryParams) => string) => RelayRouter__Internal.useMakeLinkWithPreservedPath(~parseQueryParams=Internal.parseQueryParams, ~applyQueryParams)
-
 
 @live
 let isRouteActive = (~exact: bool=false, {pathname}: RelayRouter.History.location): bool => {
@@ -156,8 +152,6 @@ let useActiveSubRoute = (): option<[#ByStatus | #Single]> => {
   }, [location])
 }
 
-
-
 @obj
 external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,
@@ -165,8 +159,7 @@ external makeRenderer: (
   ~render: Internal.renderProps<'prepared> => React.element,
 ) => Internal.renderers<'prepared> = ""
 
-
-@live 
+@live
 let parseRoute: (
   string,
   ~exact: bool=?,
@@ -176,4 +169,3 @@ let parseRoute: (
     parseQueryParams: Internal.parseQueryParams,
   }),
 )
-

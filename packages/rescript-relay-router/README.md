@@ -149,6 +149,50 @@ Route names must:
 
 Any routes put in another route's `children` is _nested_. In the example above, this means that the `Organization` route controls rendering of all of its child routes. This enables nested layouts, where layouts can stay rendered and untouched as URL changes in ways that does not affect them.
 
+Routes can also declare named slots and let descendant routes render into those slots instead of the normal `childRoutes` chain. This is useful for route-owned overlays, drawers, inspectors, and other UI that should keep the surrounding shell mounted while the URL remains a normal route URL.
+
+```json
+[
+  {
+    "name": "Shell",
+    "path": "/?paneConfig=string",
+    "slots": [{ "name": "Overlay" }],
+    "children": [
+      {
+        "name": "Preferences",
+        "path": "preferences",
+        "children": [
+          {
+            "name": "Account",
+            "path": "account",
+            "outlet": "Overlay"
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+The generated `Routes` module exposes one typed component per declared slot:
+
+```rescript
+let renderer = Routes.Shell.Route.makeRenderer(
+  ~prepare,
+  ~render=props =>
+    <Shell queryRef={props.prepared}>
+      {props.childRoutes}
+      <OverlayFrame>
+        <Routes.Shell.Slots.Overlay />
+      </OverlayFrame>
+    </Shell>,
+)
+```
+
+Slot routes are still regular routes. They use their normal route renderer, `prepare`, `prepareCode`, query params, path params, links, and preloading. The `outlet` property only controls where the matched branch renders.
+
+This initial implementation supports one active outlet branch per matched URL. A route tree may declare multiple slots, but a single URL match can only split once into the first descendant route that declares `outlet`.
+
 To create a "catch all" route, use the `*`, character as the route path. Typically used for the "not found" route. Example:
 
 ```json

@@ -30,7 +30,7 @@ module Internal = {
     render: renderProps<'prepared> => React.element,
   }
   @live
-  let makePrepareProps = (. 
+  let makePrepareProps = (.
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
@@ -43,10 +43,7 @@ module Internal = {
       childParams: Obj.magic(pathParams),
     }
   }
-
 }
-
-
 
 @inline
 let routePattern = "/"
@@ -87,12 +84,9 @@ let useActiveSubRoute = (): option<[#Todos]> => {
   }, [location])
 }
 
-
-
 @obj
 external makeRenderer: (
   ~prepare: Internal.prepareProps => 'prepared,
   ~prepareCode: Internal.prepareProps => array<RelayRouter.Types.preloadAsset>=?,
   ~render: Internal.renderProps<'prepared> => React.element,
 ) => Internal.renderers<'prepared> = ""
-

@@ -12,7 +12,6 @@ type queryParams = {
 }
 
 module Internal = {
-
   let parseQueryParams = (queryParams: RelayRouter.Bindings.QueryParams.t): queryParams => {
     open RelayRouter.Bindings
     {
@@ -47,7 +46,7 @@ module Internal = {
     render: renderProps<'prepared> => React.element,
   }
   @live
-  let makePrepareProps = (. 
+  let makePrepareProps = (.
     ~environment: RescriptRelay.Environment.t,
     ~pathParams: dict<string>,
     ~queryParams: RelayRouter.Bindings.QueryParams.t,
@@ -62,7 +61,6 @@ module Internal = {
       byValue: queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("byValue")->Option.flatMap(value => Some(value)),
     }
   }
-
 }
 
 @live
@@ -72,7 +70,6 @@ let applyQueryParams = (
 ) => {
   open RelayRouter__Bindings
 
-  
   queryParams->QueryParams.setParamArrayOpt(~key="statuses", ~value=newParams.statuses->Option.map(statuses => statuses->Array.map(statuses => statuses->TodoStatus.serialize)))
   queryParams->QueryParams.setParamOpt(~key="statusWithDefault", ~value=newParams.statusWithDefault->TodoStatus.serialize === TodoStatus.defaultValue->TodoStatus.serialize ? None : newParams.statusWithDefault->TodoStatus.serialize->Some)
   queryParams->QueryParams.setParamOpt(~key="byValue", ~value=newParams.byValue->Option.map(byValue => byValue))
@@ -109,7 +106,7 @@ let useQueryParams = (): useQueryParamsReturn => {
   let currentQueryParams = React.useMemo(() => {
     statuses: statuses,
     statusWithDefault: statusWithDefault,
-    byValue: byValue    
+    byValue: byValue
   }, [search__])
 
   {
@@ -180,8 +177,7 @@ external makeRenderer: (
   ~render: Internal.renderProps<'prepared> => React.element,
 ) => Internal.renderers<'prepared> = ""
 
-
-@live 
+@live
 let parseRoute: (
   string,
   ~exact: bool=?,
@@ -191,4 +187,3 @@ let parseRoute: (
     parseQueryParams: Internal.parseQueryParams,
   }),
 )
-

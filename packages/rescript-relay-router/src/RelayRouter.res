@@ -35,6 +35,9 @@ let prepareMatches = (
     )
     {
       routeKey,
+      routeName: match.route.name,
+      slots: match.route.slots,
+      outlet: match.route.outlet,
       render,
     }
   })
@@ -78,10 +81,9 @@ module Router = {
     let preparedMatches =
       initialMatches->prepareMatches(~environment, ~queryParams=initialQueryParams, ~location)
 
-    let currentEntry = ref({
-      location,
-      preparedMatches,
-    })
+    let currentEntry = ref(preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
+      ~location,
+    ))
 
     let nextId = ref(0)
     let subscribers = dict{}
@@ -99,19 +101,18 @@ module Router = {
       ) {
         let queryParams = QueryParams.parse(location.search)
 
-        let currentMatches = currentEntry.contents.preparedMatches
+        let currentMatches = currentEntry.contents.allMatches
 
         let matches = matchLocation(location)->Option.getOr([])
         let preparedMatches = matches->prepareMatches(~environment, ~queryParams, ~location)
-        currentEntry.contents = {
-          location,
-          preparedMatches,
-        }
+        currentEntry.contents = preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
+          ~location,
+        )
 
         // Notify anyone interested about routes that will now unmount.
         currentMatches->Array.forEach(({routeKey}) => {
           if (
-            preparedMatches
+            currentEntry.contents.allMatches
             ->Array.find(match => match.routeKey === routeKey)
             ->Option.isNone
           ) {
@@ -232,10 +233,32 @@ module Provider = RelayRouter__Context.Provider
 
 let useRouterContext = RelayRouter__Context.useRouterContext
 
-module RouteComponent = {
+module Slot = {
+  type slotContents = dict<React.element>
+
+  let context: React.Context.t<slotContents> = React.createContext(dict{})
+
+  module Provider = {
+    let make = React.Context.provider(context)
+  }
+
+  let useContent = (~routeName, ~slotName): React.element => {
+    let contents = React.useContext(context)
+    contents->Dict.get(RelayRouter__RouteSlots.slotKey(~routeName, ~slotName))->Option.getOr(
+      React.null,
+    )
+  }
+
+  let useHasContent = (~routeName, ~slotName): bool =>
+    useContent(~routeName, ~slotName)->RelayRouter__Utils.childRouteHasContent
+
   @react.component
-  let make = (~render: renderRouteFn, ~children) => {
-    render(~childRoutes=children)
+  let make = (~routeName: string, ~slotName: string, ~fallback=?) => {
+    let content = useContent(~routeName, ~slotName)
+    switch content->RelayRouter__Utils.childRouteHasContent {
+    | true => content
+    | false => fallback->Option.getOr(React.null)
+    }
   }
 }
 
@@ -263,21 +286,18 @@ module RouteRenderer = {
       Some(dispose)
     }, (router, startTransition))
 
-    let reversedItems = routeEntry.preparedMatches->Array.toReversed
-    let renderedContent = ref(React.null)
-
-    reversedItems->Array.forEach(({render}) => {
-      renderedContent.contents = <RouteComponent render>
-        {renderedContent.contents}
-      </RouteComponent>
-    })
+    let renderedContent = routeEntry.primaryMatches->RelayRouter__RouteSlots.renderPreparedMatches
 
     <RelayRouter__Internal.RouterTransitionContext.Provider value=startTransition>
-      {switch renderPending {
-      | Some(renderPending) => renderPending(isPending)
-      | None => React.null
-      }}
-      {renderedContent.contents}
+      <Slot.Provider value={routeEntry.slotContents}>
+        <>
+          {switch renderPending {
+          | Some(renderPending) => renderPending(isPending)
+          | None => React.null
+          }}
+          {renderedContent}
+        </>
+      </Slot.Provider>
     </RelayRouter__Internal.RouterTransitionContext.Provider>
   }
 }

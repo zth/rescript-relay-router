@@ -2,7 +2,17 @@
   {
     "path": "/",
     "name": "Root",
+    "slots": [
+      {
+        "name": "Overlay"
+      }
+    ],
     "children": [
+      {
+        "path": "settings",
+        "name": "Settings",
+        "outlet": "Overlay"
+      },
       {
         "include": "todoRoutes.json"
       }

@@ -4,7 +4,10 @@ module Query = %relay(`
   }
 `)
 
-let links = [("Todos", Routes.Root.Todos.Route.makeLink())]
+let links = [
+  ("Todos", Routes.Root.Todos.Route.makeLink()),
+  ("Settings overlay", Routes.Root.Settings.Route.makeLink()),
+]
 
 @react.component
 let make = (~queryRef, ~children) => {
@@ -22,5 +25,6 @@ let make = (~queryRef, ~children) => {
     <React.Suspense fallback={<div> {React.string("Loading...")} </div>}>
       <LayoutDisplay query={data.fragmentRefs}> {children} </LayoutDisplay>
     </React.Suspense>
+    <Routes.Root.Slots.Overlay />
   </div>
 }

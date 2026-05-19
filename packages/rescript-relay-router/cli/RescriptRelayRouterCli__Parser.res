@@ -741,7 +741,10 @@ module Decode = {
         }
       )
     | Some({loc, value: node}) =>
-      ctx.addDecodeError(~loc, ~message=`"slots" needs to be an array. Found ${nodeToString(node)}.`)
+      ctx.addDecodeError(
+        ~loc,
+        ~message=`"slots" needs to be an array. Found ${nodeToString(node)}.`,
+      )
     | None => ()
     }
     slots

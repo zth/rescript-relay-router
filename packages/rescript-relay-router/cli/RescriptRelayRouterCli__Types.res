@@ -26,9 +26,7 @@ type parentRouteLoc = {
   childrenArray: range,
 }
 
-type slotDef = {
-  name: textNode,
-}
+type slotDef = {name: textNode}
 
 type rec queryParam =
   | Array(queryParam)

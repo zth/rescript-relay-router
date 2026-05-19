@@ -280,9 +280,10 @@ let rec printNestedRouteModules = (route: printableRoute, ~indentation): string 
     `${innerIndentationStr}module Slots = ${route.name->RouteName.toGeneratedRouteModuleName}.Slots`
   }
   let moduleLines = [routeLine, slotsLine]->Array.filter(line => line != "")->Array.join("\n")
-  let childModules = route.children
-  ->Array.map(route => route->printNestedRouteModules(~indentation=indentation + 1))
-  ->Array.join("")
+  let childModules =
+    route.children
+    ->Array.map(route => route->printNestedRouteModules(~indentation=indentation + 1))
+    ->Array.join("")
 
   `\n${indentationStr}/** [See route renderer](./${route.name->RouteName.getRouteRendererFileName})*/
 ${indentationStr}module ${moduleName} = {

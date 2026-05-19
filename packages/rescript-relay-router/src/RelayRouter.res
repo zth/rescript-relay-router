@@ -81,9 +81,9 @@ module Router = {
     let preparedMatches =
       initialMatches->prepareMatches(~environment, ~queryParams=initialQueryParams, ~location)
 
-    let currentEntry = ref(preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
-      ~location,
-    ))
+    let currentEntry = ref(
+      preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(~location),
+    )
 
     let nextId = ref(0)
     let subscribers = dict{}
@@ -105,9 +105,8 @@ module Router = {
 
         let matches = matchLocation(location)->Option.getOr([])
         let preparedMatches = matches->prepareMatches(~environment, ~queryParams, ~location)
-        currentEntry.contents = preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
-          ~location,
-        )
+        currentEntry.contents =
+          preparedMatches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(~location)
 
         // Notify anyone interested about routes that will now unmount.
         currentMatches->Array.forEach(({routeKey}) => {
@@ -244,9 +243,9 @@ module Slot = {
 
   let useContent = (~routeName, ~slotName): React.element => {
     let contents = React.useContext(context)
-    contents->Dict.get(RelayRouter__RouteSlots.slotKey(~routeName, ~slotName))->Option.getOr(
-      React.null,
-    )
+    contents
+    ->Dict.get(RelayRouter__RouteSlots.slotKey(~routeName, ~slotName))
+    ->Option.getOr(React.null)
   }
 
   let useHasContent = (~routeName, ~slotName): bool =>

@@ -7,10 +7,12 @@ module Bindings = RescriptRelayRouterCli__Bindings
 
 @module("os") external tmpdir: unit => string = "tmpdir"
 @module("fs") external mkdtempSync: string => string = "mkdtempSync"
-@module("fs") external mkdirRecursiveSync: (string, @as(json`{"recursive":true}`) _) => unit = "mkdirSync"
+@module("fs")
+external mkdirRecursiveSync: (string, @as(json`{"recursive":true}`) _) => unit = "mkdirSync"
 @module("fs") external writeFileSync: (string, string) => unit = "writeFileSync"
 @module("fs") external readFileSync: (string, @as(json`"utf-8"`) _) => string = "readFileSync"
-@module("fs") external rmSync: (string, @as(json`{"recursive":true,"force":true}`) _) => unit = "rmSync"
+@module("fs")
+external rmSync: (string, @as(json`{"recursive":true,"force":true}`) _) => unit = "rmSync"
 
 let stringifyDump = dumped =>
   dumped->Array.map(route => JSON.Object(route))->JSON.Array->JSON.stringify
@@ -181,9 +183,9 @@ describe("Route slots", () => {
         expect(routes->String.includes("let "))->Expect.toBe(false)
         expect(shellRoute)->Expect.String.toContain("module Slots = {")
         expect(shellRoute)->Expect.String.toContain("module Overlay = {")
-        expect(shellRoute)->Expect.String.toContain(
-          `<RelayRouter.Slot routeName="Shell" slotName="Overlay" ?fallback />`,
-        )
+        expect(
+          shellRoute,
+        )->Expect.String.toContain(`<RelayRouter.Slot routeName="Shell" slotName="Overlay" ?fallback />`)
         expect(routeDeclarations)->Expect.String.toContain(`slots: ["Overlay"]`)
         expect(routeDeclarations)->Expect.String.toContain(`outlet: Some("Overlay")`)
       },

@@ -35,11 +35,7 @@ let useRouterContext: unit => Types.routerContext
 
 module Slot: {
   @react.component @live
-  let make: (
-    ~routeName: string,
-    ~slotName: string,
-    ~fallback: React.element=?,
-  ) => React.element
+  let make: (~routeName: string, ~slotName: string, ~fallback: React.element=?) => React.element
 
   @live
   let useHasContent: (~routeName: string, ~slotName: string) => bool

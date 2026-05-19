@@ -200,24 +200,25 @@ let getQueryParamAssets = (route: printableRoute) => {
   let queryParamEntries = route.queryParams->Dict.toArray
 
   if queryParamEntries->Array.length > 0 {
-    let queryParamSetters = queryParamEntries
-    ->Array.map(((key, queryParam)) => {
-      switch queryParam {
-      | Array(queryParam) =>
-        `  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${key}->Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
-            ~variableName=key,
-          )})))`
-      | CustomModule({required: true}) =>
-        `  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
-            ~variableName=`newParams.${key}`,
-          )})`
-      | queryParam =>
-        `  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
-            ~variableName=key,
-          )}))`
-      }
-    })
-    ->Array.join("\n")
+    let queryParamSetters =
+      queryParamEntries
+      ->Array.map(((key, queryParam)) => {
+        switch queryParam {
+        | Array(queryParam) =>
+          `  queryParams->QueryParams.setParamArrayOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${key}->Array.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+              ~variableName=key,
+            )})))`
+        | CustomModule({required: true}) =>
+          `  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=${queryParam->Utils.QueryParams.toSerializer(
+              ~variableName=`newParams.${key}`,
+            )})`
+        | queryParam =>
+          `  queryParams->QueryParams.setParamOpt(~key="${key}", ~value=newParams.${key}->Option.map(${key} => ${queryParam->Utils.QueryParams.toSerializer(
+              ~variableName=key,
+            )}))`
+        }
+      })
+      ->Array.join("\n")
 
     `@live
 let applyQueryParams = (
@@ -454,21 +455,24 @@ let getMakeRouteKeyFn = (route: printableRoute) => {
     | _ => None
     },
   ]->Array.filterMap(line => line)
-  let pathParamLines = pathParamsRecordFields
-  ->Array.map(((key, _)) => "    ++ pathParams->Dict.get(\"" ++ key ++ "\")->Option.getOr(\"\")")
-  let queryParamLines = queryParamsRecordFields
-  ->Array.map(((key, _)) =>
-    "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
-    key ++ "\")->Option.getOr(\"\")"
-  )
-  let bodyLines = List.concatMany([
-    ignoreLines->List.fromArray,
-    list{`  "${route.name->RouteName.getFullRouteName}:"`},
-    pathParamLines->List.fromArray,
-    queryParamLines->List.fromArray,
-  ])
-  ->List.toArray
-  ->Array.join("\n")
+  let pathParamLines =
+    pathParamsRecordFields->Array.map(((key, _)) =>
+      "    ++ pathParams->Dict.get(\"" ++ key ++ "\")->Option.getOr(\"\")"
+    )
+  let queryParamLines =
+    queryParamsRecordFields->Array.map(((key, _)) =>
+      "    ++ queryParams->RelayRouter.Bindings.QueryParams.getParamByKey(\"" ++
+      key ++ "\")->Option.getOr(\"\")"
+    )
+  let bodyLines =
+    List.concatMany([
+      ignoreLines->List.fromArray,
+      list{`  "${route.name->RouteName.getFullRouteName}:"`},
+      pathParamLines->List.fromArray,
+      queryParamLines->List.fromArray,
+    ])
+    ->List.toArray
+    ->Array.join("\n")
 
   `(
   ~pathParams: dict<string>,
@@ -779,8 +783,8 @@ let getSlotAssets = (route: RescriptRelayRouterCli__Types.printableRoute) => {
     let routeName = route.name->RouteName.getFullRouteName
     `module Slots = {
 ${slots
-    ->Array.map(slotName =>
-      `  module ${slotName} = {
+      ->Array.map(slotName =>
+        `  module ${slotName} = {
     @react.component
     let make = (~fallback=?) =>
       <RelayRouter.Slot routeName="${routeName}" slotName="${slotName}" ?fallback />
@@ -788,8 +792,8 @@ ${slots
     let useHasContent = () =>
       RelayRouter.Slot.useHasContent(~routeName="${routeName}", ~slotName="${slotName}")
   }`
-    )
-    ->Array.join("\n")}
+      )
+      ->Array.join("\n")}
 }
 `
   }

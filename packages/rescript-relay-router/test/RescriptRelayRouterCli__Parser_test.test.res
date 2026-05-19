@@ -120,9 +120,7 @@ describe("Parsing", () => {
     | [
         RouteEntry({
           slots,
-          children: Some([
-            RouteEntry({children: Some([RouteEntry({outlet: Some(outlet)})])}),
-          ]),
+          children: Some([RouteEntry({children: Some([RouteEntry({outlet: Some(outlet)})])})]),
         }),
       ] =>
       expect(slots->Array.map(slot => slot.name.text))->Expect.toEqual(["Overlay"])
@@ -146,8 +144,8 @@ describe("Parsing", () => {
       }
     ]`)
 
-    expect(errors->Array.map(error => error.message))->Expect.Array.toContain(
-      `Outlet "Overlay" does not match a slot declared by an ancestor route.`,
-    )
+    expect(
+      errors->Array.map(error => error.message),
+    )->Expect.Array.toContain(`Outlet "Overlay" does not match a slot declared by an ancestor route.`)
   })
 })

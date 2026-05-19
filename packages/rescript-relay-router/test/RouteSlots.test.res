@@ -13,13 +13,15 @@ let makePreparedMatch = (~routeName, ~slots=[], ~outlet=?, ()) => {
   render,
 }
 
-let routeNames = matches => matches->Array.map(({RelayRouter__Types.routeName}) => routeName)
+let routeNames = matches =>
+  matches->Array.map(({RelayRouter__Types.routeName: routeName}) => routeName)
 
-let renderElement = text => (~childRoutes) =>
-  <section>
-    <span> {React.string(text)} </span>
-    {childRoutes}
-  </section>
+let renderElement = text =>
+  (~childRoutes) =>
+    <section>
+      <span> {React.string(text)} </span>
+      {childRoutes}
+    </section>
 
 let renderShellWithOverlay = (~childRoutes) =>
   <section>
@@ -98,9 +100,8 @@ describe("RelayRouter__RouteSlots", () => {
       makePreparedMatch(~routeName="Account", ~outlet="Overlay", ()),
     ]
 
-    let routeEntry = matches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
-      ~location=testLocation,
-    )
+    let routeEntry =
+      matches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(~location=testLocation)
 
     expect(routeEntry.primaryMatches->routeNames)->Expect.toStrictEqual(["Shell"])
     expect(routeEntry.allMatches->routeNames)->Expect.toStrictEqual([
@@ -133,9 +134,8 @@ describe("RelayRouter__RouteSlots", () => {
       },
     ]
 
-    let routeEntry = matches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(
-      ~location=testLocation,
-    )
+    let routeEntry =
+      matches->RelayRouter__RouteSlots.routeSetFromPreparedMatches(~location=testLocation)
     let routerContext: RelayRouter.Types.routerContext = {
       preload: (~priority=?, _url) => ignore(priority),
       preloadCode: (~priority=?, _url) => ignore(priority),

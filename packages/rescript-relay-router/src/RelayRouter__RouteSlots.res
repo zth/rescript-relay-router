@@ -10,7 +10,9 @@ module RouteComponent = {
 }
 
 let renderPreparedMatches = (matches: array<preparedMatch>): React.element => {
-  matches->Array.toReversed->Array.reduce(React.null, (renderedContent, {render}) =>
+  matches
+  ->Array.toReversed
+  ->Array.reduce(React.null, (renderedContent, {render}) =>
     <RouteComponent render> {renderedContent} </RouteComponent>
   )
 }
@@ -27,10 +29,7 @@ type splitAccumulator = {
   index: int,
 }
 
-let rec findFirstOutlet = (
-  matches: List.t<preparedMatch>,
-  index: int,
-): option<outletMatch> =>
+let rec findFirstOutlet = (matches: List.t<preparedMatch>, index: int): option<outletMatch> =>
   switch matches {
   | list{} => None
   | list{match, ...rest} =>
@@ -61,12 +60,12 @@ let rec findSlotHostIndex = (
     }
   }
 
-let splitMatchesAtHost = (
-  preparedMatches: array<preparedMatch>,
-  ~hostIndex: int,
-): (array<preparedMatch>, array<preparedMatch>) => {
+let splitMatchesAtHost = (preparedMatches: array<preparedMatch>, ~hostIndex: int): (
+  array<preparedMatch>,
+  array<preparedMatch>,
+) => {
   let {primaryMatches, slotMatches} = preparedMatches->Array.reduce(
-    {primaryMatches: list{}, slotMatches: list{}, index: 0}: splitAccumulator,
+    ({primaryMatches: list{}, slotMatches: list{}, index: 0}: splitAccumulator),
     (acc, match) =>
       switch acc.index <= hostIndex {
       | true => {
@@ -82,15 +81,13 @@ let splitMatchesAtHost = (
       },
   )
 
-  (
-    primaryMatches->List.reverse->List.toArray,
-    slotMatches->List.reverse->List.toArray,
-  )
+  (primaryMatches->List.reverse->List.toArray, slotMatches->List.reverse->List.toArray)
 }
 
-let splitPreparedMatches = (
-  preparedMatches: array<preparedMatch>,
-): (array<preparedMatch>, option<slotBranch>) => {
+let splitPreparedMatches = (preparedMatches: array<preparedMatch>): (
+  array<preparedMatch>,
+  option<slotBranch>,
+) => {
   let allMatchesList = preparedMatches->List.fromArray
 
   switch allMatchesList->findFirstOutlet(0) {

@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   compileRoutes,
   matchCompiledRoutes,
+  matchPath,
   matchRoutes,
 } from "../src/vendor/react-router.js";
 
@@ -179,6 +180,13 @@ describe("compiled route matching", () => {
     expect(
       serializeMatches(matchCompiledRoutes(compiledRoutes, makeLocation("/teams/core")))
     ).toEqual(serializeMatches(matchRoutes(routes, makeLocation("/teams/core"))));
+  });
+
+  test("keeps matchPath result pattern identity", () => {
+    const pattern = { path: "/teams/:teamId" };
+    const match = matchPath(pattern, "/teams/core");
+
+    expect(match?.pattern).toBe(pattern);
   });
 
   test("preserves matched route object identity", () => {

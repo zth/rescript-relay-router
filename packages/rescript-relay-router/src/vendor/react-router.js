@@ -178,7 +178,6 @@ function matchRouteBranch(branch, pathname) {
   let matches = [];
   for (let i = 0; i < routesMeta.length; ++i) {
     let meta = routesMeta[i];
-    let end = i === routesMeta.length - 1;
     let remainingPathname =
       matchedPathname === "/"
         ? pathname
@@ -202,7 +201,15 @@ function matchRouteBranch(branch, pathname) {
   }
   return matches;
 }
-function matchCompiledPath(compiledMeta, pathname) {
+function matchCompiledPath(
+  compiledMeta,
+  pathname,
+  pattern = {
+    path: compiledMeta.relativePath,
+    caseSensitive: compiledMeta.caseSensitive,
+    end: compiledMeta.end,
+  }
+) {
   let [matcher, paramNames] = compiledMeta.compiledPath;
   let match = pathname.match(matcher);
   if (!match) return null;
@@ -228,11 +235,7 @@ function matchCompiledPath(compiledMeta, pathname) {
     params,
     pathname: matchedPathname,
     pathnameBase,
-    pattern: {
-      path: compiledMeta.relativePath,
-      caseSensitive: compiledMeta.caseSensitive,
-      end: compiledMeta.end,
-    },
+    pattern,
   };
 }
 /**
@@ -271,15 +274,13 @@ export function matchPath(pattern, pathname) {
   if (typeof pattern === "string") {
     pattern = { path: pattern, caseSensitive: false, end: true };
   }
-  return matchCompiledPath(
-    {
-      relativePath: pattern.path,
-      caseSensitive: pattern.caseSensitive,
-      end: pattern.end,
-      compiledPath: compilePath(pattern.path, pattern.caseSensitive, pattern.end),
-    },
-    pathname
-  );
+  let compiledPattern = {
+    relativePath: pattern.path,
+    caseSensitive: pattern.caseSensitive,
+    end: pattern.end,
+    compiledPath: compilePath(pattern.path, pattern.caseSensitive, pattern.end),
+  };
+  return matchCompiledPath(compiledPattern, pathname, pattern);
 }
 function compilePath(path, caseSensitive = false, end = true) {
   warning(

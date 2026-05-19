@@ -90,72 +90,90 @@ describe("RelayRouter__Internal.RouteKey", () => {
 
   test("distinguishes path param field names", _t => {
     let key1 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addPathParam(~name="first", ~value="same")
+      RelayRouter__Internal.RouteKey.make("Root")->RelayRouter__Internal.RouteKey.addPathParam(
+        ~name="first",
+        ~value="same",
+      )
 
     let key2 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addPathParam(~name="second", ~value="same")
+      RelayRouter__Internal.RouteKey.make("Root")->RelayRouter__Internal.RouteKey.addPathParam(
+        ~name="second",
+        ~value="same",
+      )
 
     expect(key1 === key2)->Expect.toBe(false)
   })
 
   test("distinguishes missing query params from empty query params", _t => {
     let key1 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParam(~name="first", ~value=None)
+      RelayRouter__Internal.RouteKey.make("Root")->RelayRouter__Internal.RouteKey.addQueryParam(
+        ~name="first",
+        ~value=None,
+      )
 
     let key2 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParam(~name="first", ~value=Some(""))
+      RelayRouter__Internal.RouteKey.make("Root")->RelayRouter__Internal.RouteKey.addQueryParam(
+        ~name="first",
+        ~value=Some(""),
+      )
 
     expect(key1 === key2)->Expect.toBe(false)
   })
 
   test("distinguishes scalar query param field names", _t => {
     let key1 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParam(~name="first", ~value=Some("same"))
+      RelayRouter__Internal.RouteKey.make("Root")->RelayRouter__Internal.RouteKey.addQueryParam(
+        ~name="first",
+        ~value=Some("same"),
+      )
 
     let key2 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParam(~name="second", ~value=Some("same"))
+      RelayRouter__Internal.RouteKey.make("Root")->RelayRouter__Internal.RouteKey.addQueryParam(
+        ~name="second",
+        ~value=Some("same"),
+      )
 
     expect(key1 === key2)->Expect.toBe(false)
   })
 
   test("distinguishes repeated query param value boundaries", _t => {
     let key1 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some(["a", "bc"]))
+      RelayRouter__Internal.RouteKey.make(
+        "Root",
+      )->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some(["a", "bc"]))
 
     let key2 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some(["ab", "c"]))
+      RelayRouter__Internal.RouteKey.make(
+        "Root",
+      )->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some(["ab", "c"]))
 
     expect(key1 === key2)->Expect.toBe(false)
   })
 
   test("preserves repeated query param order", _t => {
     let key1 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some(["a", "b"]))
+      RelayRouter__Internal.RouteKey.make(
+        "Root",
+      )->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some(["a", "b"]))
 
     let key2 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some(["b", "a"]))
+      RelayRouter__Internal.RouteKey.make(
+        "Root",
+      )->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some(["b", "a"]))
 
     expect(key1 === key2)->Expect.toBe(false)
   })
 
   test("distinguishes missing repeated query params from present empty arrays", _t => {
     let key1 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=None)
+      RelayRouter__Internal.RouteKey.make(
+        "Root",
+      )->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=None)
 
     let key2 =
-      RelayRouter__Internal.RouteKey.make("Root")
-      ->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some([]))
+      RelayRouter__Internal.RouteKey.make(
+        "Root",
+      )->RelayRouter__Internal.RouteKey.addQueryParamArray(~name="tags", ~values=Some([]))
 
     expect(key1 === key2)->Expect.toBe(false)
   })

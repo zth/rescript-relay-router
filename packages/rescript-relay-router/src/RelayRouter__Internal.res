@@ -121,29 +121,25 @@ external toObject: Type.Classify.object => {..} = "%identity"
 external objectToPreparedArrayUnsafe: Type.Classify.object => array<prepared> = "%identity"
 
 module RouteKey = {
-  let encodeString = value => Int.toString(value->String.length) ++ ":" ++ value
+  let encodeString = value => `${value->String.length->Int.toString}:${value}`
 
   let encodeValues = values =>
     switch values {
     | None => "-1:"
     | Some(values) =>
-      Int.toString(values->Array.length) ++ ":" ++ values->Array.map(encodeString)->Array.join("")
+      `${values->Array.length->Int.toString}:${values->Array.map(encodeString)->Array.join("")}`
     }
 
-  let make = routeName => "route:" ++ encodeString(routeName)
+  let make = routeName => `route:${encodeString(routeName)}`
 
   let addPathParam = (key, ~name, ~value) =>
-    key ++ "|path:" ++ encodeString(name) ++ ":" ++ encodeValues(Some([value]))
+    `${key}|path:${encodeString(name)}:${encodeValues(Some([value]))}`
 
   let addQueryParam = (key, ~name, ~value) =>
-    key ++
-    "|query:" ++
-    encodeString(name) ++
-    ":" ++
-    encodeValues(value->Option.map(value => [value]))
+    `${key}|query:${encodeString(name)}:${encodeValues(value->Option.map(value => [value]))}`
 
   let addQueryParamArray = (key, ~name, ~values) =>
-    key ++ "|query:" ++ encodeString(name) ++ ":" ++ encodeValues(values)
+    `${key}|query:${encodeString(name)}:${encodeValues(values)}`
 }
 
 // This will extract all dispose functions from anything you feed it.

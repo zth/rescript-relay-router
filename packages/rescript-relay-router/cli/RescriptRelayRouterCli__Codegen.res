@@ -456,9 +456,10 @@ let getMakeRouteKeyFn = (route: printableRoute) => {
     | _ => None
     },
   ]->Array.filterMap(line => line)
-  let pathParamLines = pathParams->Array.map(key =>
-    `  ->RelayRouter.Internal.RouteKey.addPathParam(~name="${key}", ~value=pathParams->Dict.get("${key}")->Option.getOr(""))`
-  )
+  let pathParamLines =
+    pathParams->Array.map(key =>
+      `  ->RelayRouter.Internal.RouteKey.addPathParam(~name="${key}", ~value=pathParams->Dict.get("${key}")->Option.getOr(""))`
+    )
   let queryParamLines = queryParams->Array.map(((key, param)) =>
     switch param {
     | Array(_) =>
@@ -467,14 +468,15 @@ let getMakeRouteKeyFn = (route: printableRoute) => {
       `  ->RelayRouter.Internal.RouteKey.addQueryParam(~name="${key}", ~value=queryParams->RelayRouter.Bindings.QueryParams.getParamByKey("${key}"))`
     }
   )
-  let bodyLines = List.concatMany([
-    ignoreLines->List.fromArray,
-    list{`  RelayRouter.Internal.RouteKey.make("${route.name->RouteName.getFullRouteName}")`},
-    pathParamLines->List.fromArray,
-    queryParamLines->List.fromArray,
-  ])
-  ->List.toArray
-  ->Array.join("\n")
+  let bodyLines =
+    List.concatMany([
+      ignoreLines->List.fromArray,
+      list{`  RelayRouter.Internal.RouteKey.make("${route.name->RouteName.getFullRouteName}")`},
+      pathParamLines->List.fromArray,
+      queryParamLines->List.fromArray,
+    ])
+    ->List.toArray
+    ->Array.join("\n")
 
   `(
   ~pathParams: dict<string>,

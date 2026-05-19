@@ -15,23 +15,25 @@ let useRouter = (): routerHelpers => {
     preload,
     preloadCode,
     postRouterEvent,
-    get,
+    getLocation,
     markNextNavigationAsShallow,
   } = RelayRouter__Context.useRouterContext()
   let push = React.useCallback((path, ~shallow=false) => {
-    if shallow {
-      markNextNavigationAsShallow()
+    switch shallow {
+    | true => markNextNavigationAsShallow()
+    | false => ()
     }
-    postRouterEvent(OnBeforeNavigation({currentLocation: get().location}))
+    postRouterEvent(OnBeforeNavigation({currentLocation: getLocation()}))
     history->RelayRouter__History.push(path)
-  }, (history, postRouterEvent))
+  }, (history, postRouterEvent, getLocation, markNextNavigationAsShallow))
   let replace = React.useCallback((path, ~shallow=false) => {
-    if shallow {
-      markNextNavigationAsShallow()
+    switch shallow {
+    | true => markNextNavigationAsShallow()
+    | false => ()
     }
-    postRouterEvent(OnBeforeNavigation({currentLocation: get().location}))
+    postRouterEvent(OnBeforeNavigation({currentLocation: getLocation()}))
     history->RelayRouter__History.replace(path)
-  }, (history, postRouterEvent))
+  }, (history, postRouterEvent, getLocation, markNextNavigationAsShallow))
 
   {
     push,
@@ -43,19 +45,12 @@ let useRouter = (): routerHelpers => {
 
 let useLocation = () => {
   let router = RelayRouter__Context.useRouterContext()
-  let (location, setLocation) = React.useState(() =>
-    router.history->RelayRouter__History.getLocation
-  )
 
-  React.useEffect(() => {
-    let unsub = router.history->RelayRouter__History.listen(({location}) => {
-      setLocation(_ => location)
+  React.useSyncExternalStoreWithServerSnapshot(~subscribe=callback =>
+    router.subscribeToLocation(_location => {
+      callback()
     })
-
-    Some(unsub)
-  }, [router.history])
-
-  location
+  , ~getSnapshot=router.getLocation, ~getServerSnapshot=router.getLocation)
 }
 
 let isRouteActive = (~pathname, ~routePattern, ~exact=false) => {

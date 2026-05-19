@@ -142,6 +142,8 @@ describe("RelayRouter__RouteSlots", () => {
       preloadAsset: (~priority, _asset) => ignore(priority),
       get: () => routeEntry,
       subscribe: _callback => () => (),
+      getLocation: () => routeEntry.location,
+      subscribeToLocation: _callback => () => (),
       history: RelayRouter.History.createMemoryHistory(
         ~options={"initialEntries": ["/preferences/account"]},
       ),

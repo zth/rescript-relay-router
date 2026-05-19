@@ -205,6 +205,7 @@ and parsedToPrintable = (routeEntry: routeEntry): printableRoute => {
   ->Dict.fromArray,
   slots: routeEntry.slots->Array.map(slot => slot.name.text),
   outlet: routeEntry.outlet->Option.map(outlet => outlet.text),
+  entrypoint: routeEntry.entrypoint,
   sourceFile: routeEntry.sourceFile,
 }
 

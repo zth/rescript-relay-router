@@ -137,13 +137,34 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
   })
 
   // Write the full route declarations file
+  let entrypointRootModules =
+    routes
+    ->Array.filter(route => route.entrypoint)
+    ->Array.map(route => {
+      let moduleName = route.name->Types.RouteName.getRouteName
+      `module ${moduleName} = {
+  let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
+    let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
+
+    [
+      ${Codegen.getRouteDefinition(route, ~indentation=3)}
+    ]
+  }
+}`
+    })
+    ->Array.join("\n\n")
+  let entrypointRootModulesSection = switch entrypointRootModules {
+  | "" => ""
+  | entrypointRootModules => `${entrypointRootModules}\n\n`
+  }
+
   let fileContents = `open RelayRouter__Internal__DeclarationsSupport
 
 external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
 let loadedRouteRenderers: Map.t<string, loadedRouteRenderer> = Map.make()
 
-let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
+${entrypointRootModulesSection}let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
   let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
 
   [
@@ -158,10 +179,24 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
   )
 
   // Write interface file as the signature of this will never change
-  Utils.pathInGeneratedFolder(
-    ~config,
-    ~fileName="RouteDeclarations.resi",
-  )->Fs.writeFileIfChanged(`let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>`)
+  let entrypointRootModuleSignatures =
+    routes
+    ->Array.filter(route => route.entrypoint)
+    ->Array.map(route => {
+      let moduleName = route.name->Types.RouteName.getRouteName
+      `module ${moduleName}: {
+  let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>
+}`
+    })
+    ->Array.join("\n\n")
+  let entrypointRootModuleSignaturesSection = switch entrypointRootModuleSignatures {
+  | "" => ""
+  | entrypointRootModuleSignatures => `${entrypointRootModuleSignatures}\n\n`
+  }
+
+  Utils.pathInGeneratedFolder(~config, ~fileName="RouteDeclarations.resi")->Fs.writeFileIfChanged(
+    `${entrypointRootModuleSignaturesSection}let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>`,
+  )
 
   if scaffoldAfter {
     scaffoldRouteRenderers(~deleteRemoved, ~config)

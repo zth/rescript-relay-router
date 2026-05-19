@@ -682,6 +682,26 @@ module Validators = {
       None
     }
   }
+
+  let validateEntrypoint = (entrypointNode, ~ctx, ~parentContext: parentContext) => {
+    switch entrypointNode {
+    | Some({loc, value: Boolean({value: true})}) =>
+      switch parentContext.routeDepth === 0 {
+      | true => true
+      | false =>
+        ctx.addDecodeError(~loc, ~message=`"entrypoint" can only be used on top-level routes.`)
+        false
+      }
+    | Some({value: Boolean({value: false})}) => false
+    | Some({loc, value: node}) =>
+      ctx.addDecodeError(
+        ~loc,
+        ~message=`"entrypoint" needs to be a boolean. Found ${nodeToString(node)}.`,
+      )
+      false
+    | None => false
+    }
+  }
 }
 
 module Decode = {
@@ -874,11 +894,13 @@ module Decode = {
         let children = properties->findPropertyWithName(~name="children")
         let slotsProp = properties->findPropertyWithName(~name="slots")
         let outletProp = properties->findPropertyWithName(~name="outlet")
+        let entrypointProp = properties->findPropertyWithName(~name="entrypoint")
 
         let name = nameProp->Validators.validateName(~ctx, ~siblings)
         let path = pathProp->Validators.validatePath(~ctx, ~parentContext)
         let slots = slotsProp->validateSlots(~ctx)
         let outlet = outletProp->validateOutlet(~ctx, ~parentContext)
+        let entrypoint = entrypointProp->Validators.validateEntrypoint(~ctx, ~parentContext)
 
         // Params are inherited from all parent routes. This concatenates the
         // previously seen path params from the parents.
@@ -922,6 +944,7 @@ module Decode = {
               queryParams: path.queryParams->Array.copy,
               slots,
               outlet,
+              entrypoint,
               children: None,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
@@ -943,6 +966,7 @@ module Decode = {
               routePath: RoutePath.empty(),
               slots,
               outlet,
+              entrypoint,
               children: None,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
@@ -977,6 +1001,7 @@ module Decode = {
                   availableSlots: parentContext.availableSlots->Array.concat(
                     slots->Array.map(slot => slot.name.text),
                   ),
+                  routeDepth: parentContext.routeDepth + 1,
                   parentRouteLoc: Some({
                     childrenArray: loc,
                   }),
@@ -999,6 +1024,7 @@ module Decode = {
               queryParams: path.queryParams->Array.copy,
               slots,
               outlet,
+              entrypoint,
               children,
               sourceFile: ctx.routeFileName,
               parentRouteFiles: parentContext.traversedRouteFiles->List.toArray,
@@ -1199,6 +1225,7 @@ let emptyParentCtx = (~routesByName) => {
   traversedRouteFiles: list{},
   parentRouteLoc: None,
   availableSlots: [],
+  routeDepth: 0,
   routesByName,
 }
 

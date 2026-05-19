@@ -129,6 +129,23 @@ describe("Parsing", () => {
     }
   })
 
+  test("allows entrypoint on top-level routes", _t => {
+    let {errors, result} = parseRouteStructure(`[
+      {
+        "name": "Admin",
+        "path": "/admin",
+        "entrypoint": true
+      }
+    ]`)
+
+    suite->assertions(2)
+    expect(errors)->Expect.Array.toHaveLength(0)
+    switch result {
+    | [RouteEntry({entrypoint})] => expect(entrypoint)->Expect.toBe(true)
+    | _ => ()
+    }
+  })
+
   test("reports outlets without ancestor slot declarations", _t => {
     let {errors} = parseRouteStructure(`[
       {
@@ -147,5 +164,39 @@ describe("Parsing", () => {
     expect(
       errors->Array.map(error => error.message),
     )->Expect.Array.toContain(`Outlet "Overlay" does not match a slot declared by an ancestor route.`)
+  })
+
+  test("reports entrypoint on nested routes", _t => {
+    let {errors} = parseRouteStructure(`[
+      {
+        "name": "Root",
+        "path": "/",
+        "children": [
+          {
+            "name": "Settings",
+            "path": "settings",
+            "entrypoint": true
+          }
+        ]
+      }
+    ]`)
+
+    expect(
+      errors->Array.map(error => error.message),
+    )->Expect.Array.toContain(`"entrypoint" can only be used on top-level routes.`)
+  })
+
+  test("reports non-boolean entrypoint values", _t => {
+    let {errors} = parseRouteStructure(`[
+      {
+        "name": "Admin",
+        "path": "/admin",
+        "entrypoint": "true"
+      }
+    ]`)
+
+    expect(
+      errors->Array.map(error => error.message),
+    )->Expect.Array.toContain(`"entrypoint" needs to be a boolean. Found string("true").`)
   })
 })

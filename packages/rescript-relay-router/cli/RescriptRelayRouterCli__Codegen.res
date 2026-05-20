@@ -632,14 +632,17 @@ let addIndentation = (str, indentation) => {
   }
 }
 
-let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
+let rec getRouteDefinition = (route: printableRoute, ~indentation, ~inheritedOutlet=?): string => {
   let routeName = route.name->RouteName.getFullRouteName
+  let effectiveOutlet = route.outlet->Option.orElse(inheritedOutlet)
   let childrenDefinition = switch route.children {
   | [] => ""
   | children =>
     "\n" ++
     children
-    ->Array.map(route => getRouteDefinition(route, ~indentation=indentation + 1))
+    ->Array.map(route =>
+      getRouteDefinition(route, ~indentation=indentation + 1, ~inheritedOutlet=?effectiveOutlet)
+    )
     ->Array.join(",\n") ++ "\n"
   }
 
@@ -653,6 +656,10 @@ let rec getRouteDefinition = (route: printableRoute, ~indentation): string => {
     name: routeName,
     slots: [${route.slots->Array.map(slot => `"${slot}"`)->Array.join(", ")}],
     outlet: ${switch route.outlet {
+    | Some(outlet) => `Some("${outlet}")`
+    | None => "None"
+    }},
+    effectiveOutlet: ${switch effectiveOutlet {
     | Some(outlet) => `Some("${outlet}")`
     | None => "None"
     }},

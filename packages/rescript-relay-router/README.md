@@ -221,6 +221,17 @@ let renderer = Routes.Shell.Route.makeRenderer(
 
 Slot routes are still regular routes. They use their normal route renderer, `prepare`, `prepareCode`, query params, path params, links, and preloading. The `outlet` property only controls where the matched branch renders.
 
+The generated route declarations also expose a root-scoped `outletForUrl` helper:
+
+```rescript
+let renderTarget = switch RouteDeclarations.Shell.outletForUrl("/preferences/account") {
+| Some(Overlay) => "overlay"
+| Some(_) | None => "primary"
+}
+```
+
+`outletForUrl` uses the same route matcher as the runtime router and returns the deepest matched route's effective outlet as a typed outlet variant. Effective outlets are inherited by descendants, so a child route under an outlet route reports the same outlet even when the child does not repeat the `outlet` field.
+
 This initial implementation supports one active outlet branch per matched URL. A route tree may declare multiple slots, but a single URL match can only split once into the first descendant route that declares `outlet`.
 
 To create a "catch all" route, use the `*`, character as the route path. Typically used for the "not found" route. Example:

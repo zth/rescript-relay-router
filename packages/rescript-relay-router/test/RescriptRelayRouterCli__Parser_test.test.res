@@ -200,17 +200,16 @@ describe("Parsing", () => {
     )->Expect.Array.toContain(`"entrypoint" needs to be a boolean. Found string("true").`)
   })
 
-  test("reports entrypoint route names that shadow the router runtime module", _t => {
+  test("reports top-level route names that shadow the router runtime module", _t => {
     let {errors} = parseRouteStructure(`[
       {
         "name": "RelayRouter",
-        "path": "/router",
-        "entrypoint": true
+        "path": "/router"
       }
     ]`)
 
     expect(
       errors->Array.map(error => error.message),
-    )->Expect.Array.toContain(`"RelayRouter" cannot be used as an entrypoint route name because it would shadow the router runtime module in generated route declarations.`)
+    )->Expect.Array.toContain(`"RelayRouter" cannot be used as a top-level route name because it would shadow the router runtime module in generated route declarations.`)
   })
 })

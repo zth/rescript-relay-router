@@ -23,6 +23,28 @@ let renderElement = text =>
       {childRoutes}
     </section>
 
+let makeRoute = (~path, ~name, ~slots=[], ~outlet=?, ~effectiveOutlet=?, ~children=[], ()) => {
+  RelayRouter__Types.path,
+  name,
+  slots,
+  outlet,
+  effectiveOutlet,
+  loadRouteRenderer: () => Promise.resolve(),
+  preloadCode: (~environment as _, ~pathParams as _, ~queryParams as _, ~location as _) =>
+    Promise.resolve([]),
+  prepare: (
+    ~environment as _,
+    ~pathParams as _,
+    ~queryParams as _,
+    ~location as _,
+    ~intent as _,
+  ) => {
+    routeKey: name,
+    render,
+  },
+  children,
+}
+
 let renderShellWithOverlay = (~childRoutes) =>
   <section>
     <span> {React.string("shell")} </span>
@@ -159,5 +181,40 @@ describe("RelayRouter__RouteSlots", () => {
     expect(html)->Expect.String.toContain("shell")
     expect(html)->Expect.String.toContain("preferences")
     expect(html)->Expect.String.toContain("account")
+  })
+})
+
+describe("RelayRouter.Internal.outletForUrl", () => {
+  test("returns the deepest match effective outlet", _t => {
+    let routes = [
+      makeRoute(
+        ~path="/",
+        ~name="Root",
+        ~slots=["Overlay"],
+        ~children=[
+          makeRoute(
+            ~path="settings",
+            ~name="Settings",
+            ~outlet="Overlay",
+            ~effectiveOutlet="Overlay",
+            ~children=[makeRoute(~path="account", ~name="Account", ~effectiveOutlet="Overlay", ())],
+            (),
+          ),
+          makeRoute(~path="todos", ~name="Todos", ()),
+        ],
+        (),
+      ),
+    ]
+
+    let compiledRoutes = routes->RelayRouter.Internal.compileRoutes
+
+    expect(
+      RelayRouter.Internal.outletForUrl(compiledRoutes, "/settings/account?tab=profile"),
+    )->Expect.toBe(Some("Overlay"))
+    expect(RelayRouter.Internal.outletForUrl(compiledRoutes, "settings/account"))->Expect.toBe(
+      Some("Overlay"),
+    )
+    expect(RelayRouter.Internal.outletForUrl(compiledRoutes, "/todos"))->Expect.toBe(None)
+    expect(RelayRouter.Internal.outletForUrl(compiledRoutes, "/missing"))->Expect.toBe(None)
   })
 })

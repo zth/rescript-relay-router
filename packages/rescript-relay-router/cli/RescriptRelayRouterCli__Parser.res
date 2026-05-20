@@ -901,11 +901,11 @@ module Decode = {
         let slots = slotsProp->validateSlots(~ctx)
         let outlet = outletProp->validateOutlet(~ctx, ~parentContext)
         let entrypoint = entrypointProp->Validators.validateEntrypoint(~ctx, ~parentContext)
-        switch (entrypoint, name) {
-        | (true, Some({name: "RelayRouter", loc})) =>
+        switch (parentContext.routeDepth, name) {
+        | (0, Some({name: "RelayRouter", loc})) =>
           ctx.addDecodeError(
             ~loc,
-            ~message=`"RelayRouter" cannot be used as an entrypoint route name because it would shadow the router runtime module in generated route declarations.`,
+            ~message=`"RelayRouter" cannot be used as a top-level route name because it would shadow the router runtime module in generated route declarations.`,
           )
         | _ => ()
         }

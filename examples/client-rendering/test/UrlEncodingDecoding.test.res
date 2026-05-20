@@ -129,6 +129,14 @@ describe("parsing", () => {
     cleanup()
   })
 
+  test("outletForUrl returns the deepest match effective outlet", _t => {
+    expect(RouteDeclarations.Root.outletForUrl("/settings"))->Expect.toBe(
+      Some(RouteDeclarations.Root.Overlay),
+    )
+    expect(RouteDeclarations.Root.outletForUrl("/todos"))->Expect.toBe(None)
+    expect(RouteDeclarations.Root.outletForUrl("/not-found"))->Expect.toBe(None)
+  })
+
   test("parseRoute correctly decode query params", _t => {
     let queryParams =
       Routes.Root.Todos.Route.parseRoute(

@@ -29,6 +29,7 @@ type rec route = {
   name: string,
   slots: array<string>,
   outlet: option<string>,
+  effectiveOutlet: option<string>,
   loadRouteRenderer: unit => promise<unit>,
   preloadCode: (
     ~environment: RescriptRelay.Environment.t,

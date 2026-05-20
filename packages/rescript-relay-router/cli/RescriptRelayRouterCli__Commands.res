@@ -137,25 +137,87 @@ let generateRoutes = (~scaffoldAfter, ~deleteRemoved, ~config) => {
   })
 
   // Write the full route declarations file
-  let entrypointRootModules =
-    routes
-    ->Array.filter(route => route.entrypoint)
-    ->Array.map(route => {
-      let moduleName = route.name->Types.RouteName.getRouteName
-      `module ${moduleName} = {
-  let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
-    let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
+  let rootRouteMakerName = (route: Types.printableRoute) =>
+    `make${route.name->Types.RouteName.getRouteName}Route`
+  let rec collectRouteOutlets = (route: Types.printableRoute, outlets) => {
+    switch route.outlet {
+    | Some(outlet) =>
+      switch outlets->Array.includes(outlet) {
+      | true => ()
+      | false => outlets->Array.push(outlet)
+      }
+    | None => ()
+    }
 
-    [
-      ${Codegen.getRouteDefinition(route, ~indentation=3)}
-    ]
+    route.children->Array.forEach(child => collectRouteOutlets(child, outlets))
   }
+  let routeOutlets = (route: Types.printableRoute) => {
+    let outlets = []
+    collectRouteOutlets(route, outlets)
+    outlets
+  }
+  let outletTypeDefinition = outlets =>
+    switch outlets {
+    | [] => "type outlet"
+    | outlets => `type outlet = ${outlets->Array.join(" | ")}`
+    }
+  let outletFromStringDefinition = outlets =>
+    switch outlets {
+    | [] => `let outletFromString: string => option<outlet> = _outlet => None`
+    | outlets =>
+      `let outletFromString: string => option<outlet> = outlet =>
+    switch outlet {
+    ${outlets->Array.map(outlet => `| "${outlet}" => Some(${outlet})`)->Array.join("\n    ")}
+    | _ => None
+    }`
+    }
+  let outletTypeSignature = outlets =>
+    switch outlets {
+    | [] => "type outlet"
+    | outlets => `type outlet = ${outlets->Array.join(" | ")}`
+    }
+  let rootRouteMakers =
+    routes
+    ->Array.map(route => {
+      let makeRouteName = route->rootRouteMakerName
+      `let ${makeRouteName} = (~prepareDisposeTimeout=5 * 60 * 1000): RelayRouter.Types.route => {
+  let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
+
+${Codegen.getRouteDefinition(route, ~indentation=1)}
 }`
     })
     ->Array.join("\n\n")
-  let entrypointRootModulesSection = switch entrypointRootModules {
+
+  let rootModules =
+    routes
+    ->Array.map(route => {
+      let moduleName = route.name->Types.RouteName.getRouteName
+      let makeRouteName = route->rootRouteMakerName
+      let outlets = route->routeOutlets
+      let makeFunction = switch route.entrypoint {
+      | true =>
+        `
+  let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
+    [${makeRouteName}(~prepareDisposeTimeout)]
+  }`
+      | false => ""
+      }
+      `module ${moduleName} = {
+  let routes = [${makeRouteName}()]
+  let compiledRoutes = routes->RelayRouter.Internal.compileRoutes
+
+  ${outlets->outletTypeDefinition}
+
+  ${outlets->outletFromStringDefinition}
+
+  let outletForUrl = url =>
+    RelayRouter.Internal.outletForUrl(compiledRoutes, url)->Option.flatMap(outletFromString)${makeFunction}
+}`
+    })
+    ->Array.join("\n\n")
+  let rootModulesSection = switch rootModules {
   | "" => ""
-  | entrypointRootModules => `${entrypointRootModules}\n\n`
+  | rootModules => `${rootModules}\n\n`
   }
 
   let fileContents = `open RelayRouter__Internal__DeclarationsSupport
@@ -164,12 +226,12 @@ external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
 let loadedRouteRenderers: Map.t<string, loadedRouteRenderer> = Map.make()
 
-${entrypointRootModulesSection}let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
-  let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
+${rootRouteMakers}
 
+${rootModulesSection}let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
   [
     ${routes
-    ->Array.map(route => Codegen.getRouteDefinition(route, ~indentation=1))
+    ->Array.map(route => `${route->rootRouteMakerName}(~prepareDisposeTimeout)`)
     ->Array.join(",\n")}
   ]
 }`
@@ -179,23 +241,31 @@ ${entrypointRootModulesSection}let make = (~prepareDisposeTimeout=5 * 60 * 1000)
   )
 
   // Write interface file as the signature of this will never change
-  let entrypointRootModuleSignatures =
+  let rootModuleSignatures =
     routes
-    ->Array.filter(route => route.entrypoint)
     ->Array.map(route => {
       let moduleName = route.name->Types.RouteName.getRouteName
-      `module ${moduleName}: {
+      let outlets = route->routeOutlets
+      let makeSignature = switch route.entrypoint {
+      | true => `
   let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>
+`
+      | false => ""
+      }
+      `module ${moduleName}: {
+  ${outlets->outletTypeSignature}
+
+  let outletForUrl: string => option<outlet>${makeSignature}
 }`
     })
     ->Array.join("\n\n")
-  let entrypointRootModuleSignaturesSection = switch entrypointRootModuleSignatures {
+  let rootModuleSignaturesSection = switch rootModuleSignatures {
   | "" => ""
-  | entrypointRootModuleSignatures => `${entrypointRootModuleSignatures}\n\n`
+  | rootModuleSignatures => `${rootModuleSignatures}\n\n`
   }
 
   Utils.pathInGeneratedFolder(~config, ~fileName="RouteDeclarations.resi")->Fs.writeFileIfChanged(
-    `${entrypointRootModuleSignaturesSection}let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>`,
+    `${rootModuleSignaturesSection}let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>`,
   )
 
   if scaffoldAfter {

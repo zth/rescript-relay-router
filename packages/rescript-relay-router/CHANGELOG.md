@@ -1,5 +1,11 @@
 # rescript-relay-router
 
+## 4.1.0
+
+### Minor Changes
+
+- 5bd5d2d: Expose root-scoped route declaration helpers for resolving the typed effective outlet for a URL.
+
 ## 4.0.0
 
 ### Major Changes

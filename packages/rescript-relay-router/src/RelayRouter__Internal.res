@@ -116,6 +116,48 @@ external matchPath: (string, string) => option<pathMatch> = "matchPath"
 external matchPathWithOptions: ({"path": string, "end": bool}, string) => option<pathMatch> =
   "matchPath"
 
+type compiledRoutes
+
+@module("./vendor/react-router.js")
+external compileRoutes: array<route> => compiledRoutes = "compileRoutes"
+
+@module("./vendor/react-router.js") @return(nullable)
+external matchCompiledRoutes: (
+  compiledRoutes,
+  RelayRouter__History.location,
+) => option<array<routeMatch>> = "matchCompiledRoutes"
+
+let locationFromUrl = url => {
+  let urlObj = switch (url->String.startsWith("http://"), url->String.startsWith("https://")) {
+  | (true, _) | (_, true) => url
+  | (false, false) =>
+    switch url->String.startsWith("/") {
+    | true => `http://localhost${url}`
+    | false => `http://localhost/${url}`
+    }
+  }->RelayRouter__Bindings.URL.make
+
+  {
+    RelayRouter__History.pathname: urlObj->RelayRouter__Bindings.URL.getPathname,
+    search: urlObj->RelayRouter__Bindings.URL.getSearch->Option.getOr(""),
+    hash: urlObj->RelayRouter__Bindings.URL.getHash,
+    state: urlObj->RelayRouter__Bindings.URL.getState,
+    key: "-",
+  }
+}
+
+let outletForUrl = (compiledRoutes: compiledRoutes, url: string): option<string> => {
+  let location = url->locationFromUrl
+
+  switch matchCompiledRoutes(compiledRoutes, location) {
+  | Some(matches) =>
+    matches
+    ->Array.get(matches->Array.length - 1)
+    ->Option.flatMap(match => match.route.effectiveOutlet)
+  | None => None
+  }
+}
+
 type prepared
 external toObject: Type.Classify.object => {..} = "%identity"
 external objectToPreparedArrayUnsafe: Type.Classify.object => array<prepared> = "%identity"

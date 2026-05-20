@@ -35,6 +35,13 @@ external matchPath: (string, string) => option<pathMatch> = "matchPath"
 external matchPathWithOptions: ({"path": string, "end": bool}, string) => option<pathMatch> =
   "matchPath"
 
+type compiledRoutes
+
+@module("./vendor/react-router.js")
+external compileRoutes: array<RelayRouter__Types.route> => compiledRoutes = "compileRoutes"
+
+let outletForUrl: (compiledRoutes, string) => option<string>
+
 type prepared
 
 module RouteKey: {

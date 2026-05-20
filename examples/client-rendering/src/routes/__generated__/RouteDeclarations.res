@@ -4,11 +4,10 @@ external unsafe_toPrepareProps: 'any => prepareProps = "%identity"
 
 let loadedRouteRenderers: Map.t<string, loadedRouteRenderer> = Map.make()
 
-let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
+let makeRootRoute = (~prepareDisposeTimeout=5 * 60 * 1000): RelayRouter.Types.route => {
   let {prepareRoute, getPrepared} = makePrepareAssets(~loadedRouteRenderers, ~prepareDisposeTimeout)
 
-  [
-      {
+  {
     let routeName = "Root"
     let loadRouteRenderer = () => (() => import(Root_route_renderer.renderer))->Obj.magic->doLoadRouteRenderer(~routeName, ~loadedRouteRenderers)
     let makePrepareProps = (.
@@ -31,6 +30,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
       name: routeName,
       slots: ["Overlay"],
       outlet: None,
+      effectiveOutlet: None,
       loadRouteRenderer,
       preloadCode: (
         ~environment: RescriptRelay.Environment.t,
@@ -96,6 +96,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           name: routeName,
           slots: [],
           outlet: Some("Overlay"),
+          effectiveOutlet: Some("Overlay"),
           loadRouteRenderer,
           preloadCode: (
             ~environment: RescriptRelay.Environment.t,
@@ -165,6 +166,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           name: routeName,
           slots: [],
           outlet: None,
+          effectiveOutlet: None,
           loadRouteRenderer,
           preloadCode: (
             ~environment: RescriptRelay.Environment.t,
@@ -234,6 +236,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 name: routeName,
                 slots: [],
                 outlet: None,
+                effectiveOutlet: None,
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
@@ -306,6 +309,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 name: routeName,
                 slots: [],
                 outlet: None,
+                effectiveOutlet: None,
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
@@ -375,6 +379,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                         name: routeName,
                         slots: [],
                         outlet: None,
+                        effectiveOutlet: None,
                         loadRouteRenderer,
                         preloadCode: (
                           ~environment: RescriptRelay.Environment.t,
@@ -449,6 +454,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 name: routeName,
                 slots: [],
                 outlet: None,
+                effectiveOutlet: None,
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
@@ -525,6 +531,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
                 name: routeName,
                 slots: [],
                 outlet: None,
+                effectiveOutlet: None,
                 loadRouteRenderer,
                 preloadCode: (
                   ~environment: RescriptRelay.Environment.t,
@@ -598,6 +605,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           name: routeName,
           slots: [],
           outlet: None,
+          effectiveOutlet: None,
           loadRouteRenderer,
           preloadCode: (
             ~environment: RescriptRelay.Environment.t,
@@ -665,6 +673,7 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
           name: routeName,
           slots: [],
           outlet: None,
+          effectiveOutlet: None,
           loadRouteRenderer,
           preloadCode: (
             ~environment: RescriptRelay.Environment.t,
@@ -712,5 +721,26 @@ let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route
   ],
     }
   }
+}
+
+module Root = {
+  let routes = [makeRootRoute()]
+  let compiledRoutes = routes->RelayRouter.Internal.compileRoutes
+
+  type outlet = Overlay
+
+  let outletFromString: string => option<outlet> = outlet =>
+    switch outlet {
+    | "Overlay" => Some(Overlay)
+    | _ => None
+    }
+
+  let outletForUrl = url =>
+    RelayRouter.Internal.outletForUrl(compiledRoutes, url)->Option.flatMap(outletFromString)
+}
+
+let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> => {
+  [
+    makeRootRoute(~prepareDisposeTimeout)
   ]
 }

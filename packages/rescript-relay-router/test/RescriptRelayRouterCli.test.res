@@ -178,11 +178,11 @@ describe("Route slots", () => {
             {
               "name": "Preferences",
               "path": "preferences",
+              "outlet": "Overlay",
               "children": [
                 {
                   "name": "Account",
-                  "path": "account",
-                  "outlet": "Overlay"
+                  "path": "account"
                 }
               ]
             }
@@ -204,6 +204,30 @@ describe("Route slots", () => {
         )->Expect.String.toContain(`<RelayRouter.Slot routeName="Shell" slotName="Overlay" ?fallback />`)
         expect(routeDeclarations)->Expect.String.toContain(`slots: ["Overlay"]`)
         expect(routeDeclarations)->Expect.String.toContain(`outlet: Some("Overlay")`)
+        expect(routeDeclarations)->Expect.String.toContain(`effectiveOutlet: Some("Overlay")`)
+        expect(routeDeclarations)->Expect.String.toContain(`module Shell = {`)
+        expect(routeDeclarations)->Expect.String.toContain(`let routes = [makeShellRoute()]`)
+        expect(
+          routeDeclarations,
+        )->Expect.String.toContain(`let compiledRoutes = routes->RelayRouter.Internal.compileRoutes`)
+        expect(routeDeclarations)->Expect.String.toContain(`type outlet = Overlay`)
+        expect(
+          routeDeclarations,
+        )->Expect.String.toContain(`let outletFromString: string => option<outlet> = outlet =>`)
+        expect(routeDeclarations)->Expect.String.toContain(`| "Overlay" => Some(Overlay)`)
+        expect(
+          routeDeclarations,
+        )->Expect.String.toContain(`RelayRouter.Internal.outletForUrl(compiledRoutes, url)->Option.flatMap(outletFromString)`)
+        let accountRoute =
+          routeDeclarations->sliceBetween(
+            ~startMarker=`let routeName = "Shell__Preferences__Account"`,
+            ~endMarker="children: [],",
+          )
+        expect(
+          accountRoute,
+        )->Expect.String.toContain(`let routeName = "Shell__Preferences__Account"`)
+        expect(accountRoute)->Expect.String.toContain("outlet: None")
+        expect(accountRoute)->Expect.String.toContain(`effectiveOutlet: Some("Overlay")`)
       },
     )
   })
@@ -247,31 +271,50 @@ describe("Route declarations", () => {
           ~fileName="RouteDeclarations.resi",
         )
 
+        expect(routeDeclarations)->Expect.String.toContain("module Root = {")
         expect(routeDeclarations)->Expect.String.toContain("module Admin = {")
+        expect(routeDeclarations)->Expect.String.toContain("module Embedded = {")
+        let rootModule =
+          routeDeclarations->sliceBetween(
+            ~startMarker="module Root = {",
+            ~endMarker="\n\nmodule Admin = {",
+          )
+        let embeddedModule =
+          routeDeclarations->sliceBetween(
+            ~startMarker="module Embedded = {",
+            ~endMarker="\n\nlet make = (~prepareDisposeTimeout",
+          )
+
+        expect(rootModule)->Expect.String.toContain("let outletForUrl =")
+        expect(rootModule)->Expect.not->Expect.String.toContain("let make =")
+        expect(embeddedModule)->Expect.String.toContain("let outletForUrl =")
+        expect(embeddedModule)->Expect.not->Expect.String.toContain("let make =")
+
         expect(routeDeclarations)->Expect.String.toContain(
           "let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> =>",
         )
-        let adminModule =
+        let adminRouteMaker =
           routeDeclarations->sliceBetween(
-            ~startMarker="module Admin = {",
-            ~endMarker="\n\nlet make = (~prepareDisposeTimeout",
+            ~startMarker="let makeAdminRoute = ",
+            ~endMarker="\n\nlet makeEmbeddedRoute = ",
           )
-        expect(adminModule)->Expect.String.toContain(`let routeName = "Admin"`)
-        expect(adminModule)->Expect.String.toContain(`let routeName = "Admin__Users"`)
-        expect(adminModule)->Expect.not->Expect.String.toContain(`let routeName = "Root"`)
-        expect(adminModule)->Expect.not->Expect.String.toContain(`let routeName = "Embedded"`)
+        expect(adminRouteMaker)->Expect.String.toContain(`let routeName = "Admin"`)
+        expect(adminRouteMaker)->Expect.String.toContain(`let routeName = "Admin__Users"`)
+        expect(adminRouteMaker)->Expect.not->Expect.String.toContain(`let routeName = "Root"`)
+        expect(adminRouteMaker)->Expect.not->Expect.String.toContain(`let routeName = "Embedded"`)
         expect(
           routeDeclarations,
         )->Expect.String.toContain(`let make = (~prepareDisposeTimeout=5 * 60 * 1000): array<RelayRouter.Types.route> =>`)
-        expect(routeDeclarations)->Expect.not->Expect.String.toContain("module Root = {")
-        expect(routeDeclarations)->Expect.not->Expect.String.toContain("module Embedded = {")
-
+        expect(routeDeclarationsInterface)->Expect.String.toContain("module Root: {")
         expect(routeDeclarationsInterface)->Expect.String.toContain("module Admin: {")
+        expect(routeDeclarationsInterface)->Expect.String.toContain("module Embedded: {")
+        expect(routeDeclarationsInterface)->Expect.String.toContain("type outlet")
+        expect(routeDeclarationsInterface)->Expect.String.toContain(
+          "let outletForUrl: string => option<outlet>",
+        )
         expect(routeDeclarationsInterface)->Expect.String.toContain(
           "let make: (~prepareDisposeTimeout: int=?) => array<RelayRouter.Types.route>",
         )
-        expect(routeDeclarationsInterface)->Expect.not->Expect.String.toContain("module Root:")
-        expect(routeDeclarationsInterface)->Expect.not->Expect.String.toContain("module Embedded:")
       },
     )
   })
